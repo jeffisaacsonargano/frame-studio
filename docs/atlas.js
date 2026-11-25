@@ -210,7 +210,7 @@
   NAV['frame-size'] = { label: 'Frame size', tag: 'Admin', icon: '<rect x="3" y="8" width="14" height="5" rx="1.2"/><path d="M3 10.5h9.5"/><path d="M6 4.5h8M6 15.5h5"/>' };
   NAV['frame-world'] = { label: 'Frame World', tag: '', icon: '<circle cx="10" cy="10" r="7.2"/><path d="M2.8 10h14.4M10 2.8c2.4 2 2.4 12.4 0 14.4M10 2.8c-2.4 2-2.4 12.4 0 14.4"/><path d="m13.2 5.2 1.6-2.2 1 2.4" stroke-linecap="round" stroke-linejoin="round"/>' };
   const NAV_GROUPS = [['learn', 'Start'], ['apps', 'Apps'], ['pigment', 'Pigment']];
-  const NAV_DEFAULT = { order: { learn: ['home'], numbers: [], apps: ['graphite', 'formula-lens', 'blockflow', 'frame-strata', 'frame-world', 'lumina'], pigment: ['frame-size'], extras: [] }, starred: [] };
+  const NAV_DEFAULT = { order: { learn: ['home'], numbers: [], apps: ['formula-lens', 'blockflow', 'frame-strata', 'frame-world', 'lumina'], pigment: ['frame-size'], extras: ['graphite'] }, starred: [] };
   /* Groups: the built-in ones plus user-made ones (ids "g-…"). `groups` is their order in the main rail; Extras sits in
      its own block below the nav and stays last. A deleted built-in group is listed in `deleted` so it does not come back. */
   const BUILTIN_GROUPS = NAV_GROUPS.map(([g]) => g);
