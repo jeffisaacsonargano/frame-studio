@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Vision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg: #F4EFE6; --surface: #FBF8F3; --ink: #1F1E1D; --ink2: #47423B; --muted: #6E675C; --line: rgba(31,30,29,.12);
+  --accent: #B04F2B; --accent2: #2B5D9E; --core: #2B3A67; --glow: rgba(176,79,43,.22);
+  --serif: 'Fraunces', Georgia, serif; --sans: Inter, system-ui, sans-serif;
+}
+:root[data-theme="dark"] {
+  --bg: #17171B; --surface: #202026; --ink: #F4F1EA; --ink2: #D6D1C6; --muted: #A49F95; --line: rgba(255,255,255,.12);
+  --accent: #E08A62; --accent2: #7FA2E8; --core: #9AA7E8; --glow: rgba(224,138,98,.25);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.65 var(--sans); -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+.eyebrow { font: 600 12px/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -.01em; margin: 0; }
+h1 { font-size: clamp(44px, 7vw, 92px); line-height: .98; margin: 18px 0 22px; }
+h2 { font-size: clamp(30px, 4vw, 48px); line-height: 1.08; margin-bottom: 14px; }
+h3 { font-size: 24px; line-height: 1.2; margin-bottom: 8px; }
+p { margin: 0 0 14px; color: var(--ink2); }
+.lede { font-family: var(--serif); font-size: clamp(22px, 2.6vw, 30px); line-height: 1.35; color: var(--ink); max-width: 820px; }
+section { padding: 72px 0; }
+.hero { padding: 96px 0 56px; }
+.hero .sub { max-width: 720px; font-size: 18px; }
+.rule { height: 1px; background: var(--line); margin: 0; border: 0; }
+/* thesis */
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 28px; }
+.half { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px 28px; }
+.half .tag { font: 600 12px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.half h3 { margin-top: 8px; }
+.half ul { margin: 10px 0 0; padding-left: 18px; color: var(--ink2); }
+.half li { margin: 6px 0; }
+.half.core { border-top: 4px solid var(--core); }
+.half.surface { border-top: 4px solid var(--accent); }
+.bet { margin-top: 30px; font-family: var(--serif); font-size: 24px; line-height: 1.4; max-width: 860px; }
+/* scrollytelling */
+.story { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; }
+.steps { padding: 10vh 0 30vh; }
+.step { min-height: 72vh; display: flex; flex-direction: column; justify-content: center; opacity: .35; transition: opacity .5s ease; }
+.step.on { opacity: 1; }
+.step .num { font: 600 13px var(--sans); color: var(--accent); letter-spacing: .1em; }
+.step h3 { font-size: clamp(26px, 3vw, 36px); margin: 8px 0 12px; }
+.step .go { margin-top: 6px; display: inline-flex; gap: 8px; flex-wrap: wrap; }
+.btn { appearance: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 14px var(--sans); padding: 9px 16px; border-radius: 999px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { border-color: var(--accent); }
+.btn.pri { background: var(--accent); border-color: var(--accent); color: #FFF8F2; }
+.btn:focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
+.stick { position: sticky; top: 6vh; height: 88vh; display: flex; align-items: center; justify-content: center; }
+.stick svg { width: 100%; max-width: 560px; height: auto; overflow: visible; }
+.door circle.d { fill: var(--surface); stroke: var(--line); stroke-width: 2; transition: all .5s ease; }
+.door text { font: 600 15px var(--sans); fill: var(--muted); transition: fill .5s ease; }
+.door.on circle.d { fill: var(--accent); stroke: var(--accent); }
+.door.on text { fill: var(--ink); }
+.door.was circle.d { stroke: var(--accent); }
+.beam { stroke: var(--accent); stroke-width: 3; stroke-dasharray: 6 10; opacity: 0; transition: opacity .5s ease; }
+.beam.on { opacity: .9; animation: flow 1.2s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -32; } }
+.ring { fill: none; stroke: var(--line); stroke-width: 2; }
+.core-g .band { transition: opacity .6s ease; }
+.core-label { font: 600 13px var(--sans); fill: var(--muted); letter-spacing: .14em; text-transform: uppercase; }
+.core-halo { fill: var(--glow); transition: r .6s ease, opacity .6s ease; }
+/* principles and horizon */
+.princ { counter-reset: p; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 36px; margin-top: 26px; padding: 0; list-style: none; }
+.princ li { counter-increment: p; position: relative; padding-left: 46px; }
+.princ li::before { content: counter(p, decimal-leading-zero); position: absolute; left: 0; top: 2px; font: 600 14px var(--sans); color: var(--accent); }
+.princ b { display: block; font-family: var(--serif); font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+.horizon { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 26px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; }
+.card h3 { font-size: 20px; }
+.card p { font-size: 15px; margin: 0; }
+.close { text-align: center; padding: 96px 0 120px; }
+.close .lede { margin: 0 auto 26px; }
+.close .go { display: inline-flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.note { font-size: 13px; color: var(--muted); margin-top: 28px; }
+@media (max-width: 860px) {
+  .duo, .princ, .horizon { grid-template-columns: 1fr; }
+  .story { grid-template-columns: 1fr; gap: 0; }
+  .stick { position: sticky; top: 0; height: 40vh; z-index: 2; background: var(--bg); padding: 8px 0; }
+  .stick svg { max-width: 300px; }
+  .step { min-height: 60vh; }
+  .steps { padding-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .beam.on { animation: none; } .step, .door circle.d, .door text, .beam { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="hero wrap">
+  <div class="eyebrow">Frame Studio · the vision</div>
+  <h1>Planning at<br>the frontier</h1>
+  <p class="lede">Keep the arithmetic boring. Make everything around it extraordinary.</p>
+  <p class="sub">Frame Studio is a working sketch of what planning and decision making could feel like when a defensible, deterministic engine stays at the centre, and the experience around it is lit up, imaginative, and yours to explore.</p>
+</header>
+<hr class="rule">
+
+<section class="wrap">
+  <div class="eyebrow">The idea</div>
+  <h2>Two promises that usually pull apart</h2>
+  <div class="duo">
+    <div class="half core">
+      <div class="tag">The core</div>
+      <h3>Defensible</h3>
+      <ul>
+        <li>The same inputs give the same numbers, every time.</li>
+        <li>Every number traces back to the blocks and rows that made it.</li>
+        <li>Access rights decide what each person can see and change.</li>
+        <li>A change recalculates only what depends on it.</li>
+      </ul>
+    </div>
+    <div class="half surface">
+      <div class="tag">The surface</div>
+      <h3>Alive</h3>
+      <ul>
+        <li>Pages that explain themselves instead of waiting to be read.</li>
+        <li>Formulas you can watch, models you can walk through.</li>
+        <li>Many ways in, all leading to the same governed numbers.</li>
+        <li>A plan that feels less like a spreadsheet and more like a story you can steer.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="bet">Most tools ask you to choose: trustworthy and rigid, or delightful and loose. The bet here is that you don’t have to. Pigment’s calculation engine stays the single source of truth. Everything built on top is free to be playful, because nothing up there can bend the math.</p>
+</section>
+<hr class="rule">
+
+<section class="wrap" aria-label="The vision, chapter by chapter">
+  <div class="eyebrow">Seven doors, one engine</div>
+  <h2>Choose your own adventure</h2>
+  <p style="max-width:720px">Each chapter below is a different way into the same model. Scroll through them: the doors change, the core never does.</p>
+  <div class="story">
+    <div class="steps" id="steps">
+      <article class="step" data-door="-1">
+        <div class="num">Prologue</div>
+        <h3>The engine stays the engine</h3>
+        <p>At the centre sits Graphite, the calculation engine. It stores only the cells that hold data, recalculates only what a change touches, and applies access rights before anything reaches a screen. It is meant to be dull in the best way: predictable, explainable, the same for everyone.</p>
+        <p>Every door that follows reads from it. None of them can change how it adds up.</p>
+        <div class="go"><a class="btn" href="../#graphite" data-view="graphite">See the engine →</a></div>
+      </article>
+      <article class="step" data-door="0">
+        <div class="num">Door 1 · Formulas</div>
+        <h3>Watch a formula think</h3>
+        <p>A formula is usually a line of text you squint at. Here it is a small animation: cells move, dimensions fold away, a cube reshapes as BY, REMOVE and FILTER do their work. Understanding a model stops being a privilege of whoever built it.</p>
+        <div class="go"><a class="btn" href="../#formula-lens" data-view="formula-lens">Open Formula Studio →</a></div>
+      </article>
+      <article class="step" data-door="1">
+        <div class="num">Door 2 · The model map</div>
+        <h3>See the whole model at once</h3>
+        <p>Blockflow lays out every block and every dependency, from the source systems to the numbers on the page. Slide from a summary of stages down to every block. Play a build plan step by step and watch the model grow.</p>
+        <div class="go"><a class="btn" href="../#blockflow" data-view="blockflow">Open Blockflow →</a></div>
+      </article>
+      <article class="step" data-door="2">
+        <div class="num">Door 3 · The frame</div>
+        <h3>The page becomes software</h3>
+        <p>A Pigment frame is a whole application inside the plan. Lumina reads live data and answers back: Pulse says what changed and what to act on, Ask why breaks a gap into volume, price and mix, and notes pin decisions to the numbers they are about.</p>
+        <div class="go"><a class="btn" href="../#lumina" data-view="lumina">Open the Lumina frame →</a></div>
+      </article>
+      <article class="step" data-door="3">
+        <div class="num">Door 4 · The layers</div>
+        <h3>Take it apart to trust it</h3>
+        <p>Framecraft lifts the page off the model: the dashboard on top, the frame’s logic beneath, then the blocks it reads and the systems that feed them. Click any block and see its formula and its neighbours. Trust comes from seeing the parts, not from being told.</p>
+        <div class="go"><a class="btn" href="../#framecraft" data-view="frame-strata">Open Framecraft →</a></div>
+      </article>
+      <article class="step" data-door="4">
+        <div class="num">Door 5 · The world</div>
+        <h3>Walk inside the plan</h3>
+        <p>Step onto the frame in first person. Drop through a hatch into the model, cross a bridge into the warehouse where every table carries its SQL, sink to the engine and float at its heart. Exploration becomes a place you can visit, not a report you are handed.</p>
+        <div class="go"><a class="btn" href="../#frame-world" data-view="frame-world">Walk the Frame →</a></div>
+      </article>
+      <article class="step" data-door="5">
+        <div class="num">Door 6 · Agents</div>
+        <h3>Machines propose, people decide</h3>
+        <p>Claude reads the governed model like any other reader. It drafts build plans, tags a call transcript to the blocks it implies, sketches a new view. Nothing is written without approval. In Frame World the model offers to run the business on its own, and the answer is no. That answer is part of the design.</p>
+        <div class="go"><a class="btn" href="../#lumina" data-view="lumina">See it in the frame →</a></div>
+      </article>
+      <article class="step" data-door="6">
+        <div class="num">Door 7 · The field</div>
+        <h3>The world has the last word</h3>
+        <p>A model can say EMEA is short. It cannot say why. So the story walks out of the office to the shelf, where a sold-out watch explains the gap. The decision is made in the world, and what was learned flows back into the frame. The loop closes, and starts again.</p>
+        <div class="go"><a class="btn" href="../#frame-world" data-view="frame-world">Play the loop →</a></div>
+      </article>
+    </div>
+    <div class="stick" aria-hidden="true">
+      <svg id="viz" viewBox="0 0 600 600" role="img">
+        <defs>
+          <radialGradient id="coreFill" cx="50%" cy="42%" r="60%">
+            <stop offset="0%" stop-color="#F57BB0"/><stop offset="45%" stop-color="#C2407E"/><stop offset="100%" stop-color="#2B3A67"/>
+          </radialGradient>
+        </defs>
+        <circle class="ring" cx="300" cy="300" r="225"/>
+        <circle class="ring" cx="300" cy="300" r="140" stroke-dasharray="3 9"/>
+        <g id="beams"></g>
+        <g class="core-g">
+          <circle class="core-halo" id="halo" cx="300" cy="300" r="96" opacity=".6"/>
+          <circle cx="300" cy="300" r="74" fill="url(#coreFill)"/>
+          <path class="band" d="M240 282 Q300 258 360 282" stroke="rgba(255,255,255,.55)" stroke-width="5" fill="none"/>
+          <path class="band" d="M232 304 Q300 280 368 304" stroke="rgba(255,255,255,.4)" stroke-width="5" fill="none"/>
+          <path class="band" d="M240 326 Q300 304 360 326" stroke="rgba(255,255,255,.3)" stroke-width="5" fill="none"/>
+          <text class="core-label" x="300" y="402" text-anchor="middle">The engine</text>
+        </g>
+        <g id="doors"></g>
+      </svg>
+    </div>
+  </div>
+</section>
+<hr class="rule">
+
+<section class="wrap">
+  <div class="eyebrow">Principles</div>
+  <h2>What the experiment holds to</h2>
+  <ol class="princ">
+    <li><b>Determinism is the floor, not the ceiling.</b>The engine guarantees the numbers. That guarantee is what frees everything above it to experiment.</li>
+    <li><b>Every surface is a door, not a fork.</b>Dashboards, 3D, first person, conversation, agents: all read the same governed truth. None keeps a private copy.</li>
+    <li><b>Show the math.</b>Any number should be one gesture away from its formula, its blocks and its source rows.</li>
+    <li><b>Approval before write.</b>People and agents can propose anything. Only an approved change reaches the model.</li>
+    <li><b>Play is a feature.</b>Curiosity is how people learn a model. An experience that invites it is not a toy.</li>
+    <li><b>Explorable by someone who didn’t build it.</b>The test of a good model is whether a newcomer can find their way around it alone.</li>
+    <li><b>The world is the final check.</b>Plans inform decisions. Reality decides, and the plan learns from it.</li>
+    <li><b>Sample to start, live to decide.</b>Everything here runs on sample data to explore freely. In Pigment, the same code runs on the real thing.</li>
+  </ol>
+</section>
+<hr class="rule">
+
+<section class="wrap">
+  <div class="eyebrow">Further out</div>
+  <h2>Where this could go</h2>
+  <p style="max-width:760px">Speculative, on purpose. None of this is built yet; all of it keeps the same rule: a deterministic core, and as much imagination around it as people can use.</p>
+  <div class="horizon">
+    <div class="card"><h3>Planning rooms</h3><p>Finance, sales and operations stand inside the same model at the same time, each seeing what their access allows, arguing over one set of numbers instead of three.</p></div>
+    <div class="card"><h3>Scenario worlds</h3><p>Each scenario becomes a parallel version of the world you can step between. Walk the downside, then the upside, and feel the difference before you choose.</p></div>
+    <div class="card"><h3>Agents on the night shift</h3><p>Heavy analysis runs overnight. In the morning there is a brief, and every claim in it links to the cells that support it. No receipts, no claim.</p></div>
+    <div class="card"><h3>Pages that reshape to the question</h3><p>Ask why a region is short and the frame rearranges itself to answer: the bridge, the culprit products, the shelf. Then it folds back.</p></div>
+    <div class="card"><h3>Branching reviews</h3><p>The board meeting becomes a choose-your-own-adventure. Pick a path, the model follows, and every branch can be replayed exactly.</p></div>
+    <div class="card"><h3>Plans that remember the field</h3><p>What happened on the shelf, in the call, at the customer, flows back as structured learning the next plan starts from.</p></div>
+    <div class="card"><h3>Learning by playing</h3><p>New planners learn the model the way people learn a city: by walking it, getting a little lost, and finding the landmarks.</p></div>
+    <div class="card"><h3>Explain anything</h3><p>Point at any number on any surface and the path behind it lights up, from the page to the formula to the source system.</p></div>
+    <div class="card"><h3>Many hands, one truth</h3><p>Humans in Pigment, agents through MCP, apps on the edge: all reading and proposing against the same definitions and the same governance.</p></div>
+  </div>
+</section>
+<hr class="rule">
+
+<section class="close wrap">
+  <p class="lede">The engine is the promise. The experience is the invitation.</p>
+  <div class="go">
+    <a class="btn pri" href="../#graphite" data-view="graphite">Start the path →</a>
+    <button class="btn" type="button" data-demo-start>Watch the demo</button>
+    <a class="btn" href="../#frame-world" data-view="frame-world">Walk the Frame</a>
+  </div>
+  <p class="note">An independent exploration built on sample data. Product names describe what the demos depict; the drawings are original.</p>
+</section>
+
+<script>
+(function () {
+  'use strict';
+  var root = document.documentElement;
+  /* follow the shell's light or dark theme */
+  function syncTheme() { try { var pt = window.parent !== window && window.parent.document.documentElement.getAttribute('data-theme'); if (pt) root.setAttribute('data-theme', pt); } catch (e) {} }
+  syncTheme();
+  try { if (window.parent !== window) new MutationObserver(syncTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }); } catch (e) {}
+  if (!root.getAttribute('data-theme') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) root.setAttribute('data-theme', 'dark');
+
+  /* the diagram: seven doors around one core */
+  var DOORS = ['Formulas', 'Model map', 'The frame', 'Layers', 'The world', 'Agents', 'The field'];
+  var NS = 'http://www.w3.org/2000/svg', dG = document.getElementById('doors'), bG = document.getElementById('beams'), doors = [], beams = [];
+  DOORS.forEach(function (name, i) {
+    var a = -Math.PI / 2 + i * (Math.PI * 2 / DOORS.length), x = 300 + Math.cos(a) * 225, y = 300 + Math.sin(a) * 225;
+    var g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'door');
+    var c = document.createElementNS(NS, 'circle'); c.setAttribute('class', 'd'); c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', 15);
+    var t = document.createElementNS(NS, 'text'); var right = Math.cos(a) > 0.2, left = Math.cos(a) < -0.2;
+    t.setAttribute('x', x + (right ? 24 : left ? -24 : 0)); t.setAttribute('y', y + (Math.abs(Math.cos(a)) <= 0.2 ? (Math.sin(a) < 0 ? -26 : 36) : 5));
+    t.setAttribute('text-anchor', right ? 'start' : left ? 'end' : 'middle'); t.textContent = name;
+    g.appendChild(c); g.appendChild(t); dG.appendChild(g); doors.push(g);
+    var l = document.createElementNS(NS, 'line'); l.setAttribute('class', 'beam'); l.setAttribute('x1', x); l.setAttribute('y1', y); l.setAttribute('x2', 300 + Math.cos(a) * 80); l.setAttribute('y2', 300 + Math.sin(a) * 80);
+    bG.appendChild(l); beams.push(l);
+  });
+  var halo = document.getElementById('halo'), seen = {};
+  function light(k) {
+    doors.forEach(function (g, i) { g.setAttribute('class', 'door' + (i === k ? ' on' : seen[i] ? ' was' : '')); });
+    beams.forEach(function (l, i) { l.setAttribute('class', 'beam' + (i === k ? ' on' : '')); });
+    if (k >= 0) seen[k] = 1;
+    halo.setAttribute('r', k < 0 ? 112 : 96); halo.setAttribute('opacity', k < 0 ? '.9' : '.55');
+  }
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  function activate(el) { steps.forEach(function (s) { s.classList.toggle('on', s === el); }); light(+el.getAttribute('data-door')); }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) activate(e.target); }); }, { rootMargin: '-45% 0px -45% 0px' });
+    steps.forEach(function (s) { io.observe(s); });
+  } else steps.forEach(function (s) { s.classList.add('on'); });
+  activate(steps[0]);
+
+  /* links open the app inside Frame Studio when embedded; on their own they go to the site */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-view]'), function (a) {
+    a.addEventListener('click', function (e) { try { var P = window.parent; if (P !== window && P.__atlas && P.__atlas.show) { e.preventDefault(); P.__atlas.show(a.getAttribute('data-view')); } } catch (x) {} });
+  });
+  var demo = document.querySelector('[data-demo-start]');
+  demo.addEventListener('click', function () { try { var P = window.parent; if (P !== window && P.__demo) { P.__demo.start(); return; } } catch (x) {} location.href = '../?demo=1'; });
+  try { if (window.parent === window || !window.parent.__demo) demo.hidden = !(window.parent === window); } catch (x) {}
+})();
+</script>
+</body>
+</html>

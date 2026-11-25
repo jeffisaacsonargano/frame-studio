@@ -70,7 +70,7 @@
   applyTheme(store.get('theme-choice', 'light'));
 
   /* ----------------------------------------------------------------- router */
-  const VIEWS = ['home', 'lumina', 'formula-lens', 'frame-strata', 'blockflow', 'graphite', 'frame-world', 'frame-size'];
+  const VIEWS = ['home', 'vision', 'lumina', 'formula-lens', 'frame-strata', 'blockflow', 'graphite', 'frame-world', 'frame-size'];
   const ALIAS = { start: 'home', overview: 'home', 'formula-studio': 'formula-lens', framecraft: 'frame-strata', world: 'frame-world', size: 'frame-size', admin: 'frame-size' };
   const HASH = { 'formula-lens': 'formula-studio', 'frame-strata': 'framecraft' };
   const rendered = {};
@@ -106,6 +106,7 @@
   };
   /* After the last stop: the real frames in Pigment. Not a numbered stop, but the path control leads on to it. */
   const CODA = {
+    vision: { role: 'Vision', name: 'The vision', desc: 'Planning at the frontier: a calculation engine you can defend, and an experience you want to explore.' },
     'frame-world': { role: 'Play', name: 'Frame World', desc: 'Walk a revenue frame in first person, then follow the finding to the office and out into the world. Sample data.' },
     'frame-size': { role: 'Admin', name: 'Frame size', desc: 'How much of the 1 MiB Pigment limit each part of the frame uses, and what to trim first' },
   };
@@ -142,7 +143,7 @@
       h('p', { class: 'lede', text: 'Frame Studio is a set of working models of how Pigment plans: the calculation engine, the formula language, a model’s data flow and the frames built on top. Follow the path in order, or jump in anywhere.' }));
     const cta = h('button', { type: 'button', class: 'btn primary', onclick: () => goStop(next || PATH[0]) });
     cta.innerHTML = (seen === 0 ? 'Start with ' + esc(PSTOPS[PATH[0]].name) : next ? 'Continue with ' + esc(PSTOPS[next].name) : 'Walk the path again') + ARROW;
-    const prog = h('div', { class: 'home-prog' }, cta,
+    const prog = h('div', { class: 'home-prog' }, cta, h('button', { type: 'button', class: 'btn', text: 'Read the vision', onclick: () => show('vision') }),
       h('span', { class: 'small muted tnum', text: seen + ' of ' + PATH.length + ' stops visited' }));
     if (seen) prog.append(h('button', { type: 'button', class: 'btn ghost', text: 'Reset progress', onclick: () => { Object.keys(visited).forEach((k) => delete visited[k]); store.set('visited', visited); renderNav(); renderHome(); paintPath(); } }));
     const path = h('ol', { class: 'home-path' });
@@ -211,9 +212,10 @@
     'frame-strata': { label: 'Framecraft', tag: '', icon: '<path d="m10 2.5 7 3.8-7 3.8-7-3.8z"/><path d="m3 12.2 7 3.8 7-3.8"/><path d="M6.5 8.3v5.5M13.5 8.3v5.5" stroke-dasharray="1.4 1.6"/>' },
   };
   NAV['frame-size'] = { label: 'Frame size', tag: 'Admin', icon: '<rect x="3" y="8" width="14" height="5" rx="1.2"/><path d="M3 10.5h9.5"/><path d="M6 4.5h8M6 15.5h5"/>' };
+  NAV.vision = { label: 'The vision', tag: '', icon: '<circle cx="10" cy="10" r="3"/><circle cx="10" cy="10" r="7.2"/><path d="M10 2.8v2.4M10 14.8v2.4M2.8 10h2.4M14.8 10h2.4"/>' };
   NAV['frame-world'] = { label: 'Frame World', tag: '', icon: '<circle cx="10" cy="10" r="7.2"/><path d="M2.8 10h14.4M10 2.8c2.4 2 2.4 12.4 0 14.4M10 2.8c-2.4 2-2.4 12.4 0 14.4"/><path d="m13.2 5.2 1.6-2.2 1 2.4" stroke-linecap="round" stroke-linejoin="round"/>' };
   const NAV_GROUPS = [['learn', 'Start'], ['apps', 'Apps'], ['pigment', 'Pigment']];
-  const NAV_DEFAULT = { order: { learn: ['home'], numbers: [], apps: ['formula-lens', 'blockflow', 'frame-strata', 'frame-world', 'lumina'], pigment: ['frame-size'], extras: ['graphite'] }, starred: [] };
+  const NAV_DEFAULT = { order: { learn: ['home', 'vision'], numbers: [], apps: ['formula-lens', 'blockflow', 'frame-strata', 'frame-world', 'lumina'], pigment: ['frame-size'], extras: ['graphite'] }, starred: [] };
   /* Groups: the built-in ones plus user-made ones (ids "g-…"). `groups` is their order in the main rail; Extras sits in
      its own block below the nav and stays last. A deleted built-in group is listed in `deleted` so it does not come back. */
   const BUILTIN_GROUPS = NAV_GROUPS.map(([g]) => g);

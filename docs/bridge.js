@@ -12,7 +12,7 @@
   const $ = (s, r = document) => r.querySelector(s);
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const TARGET_VIEW = { 'formula-studio': 'formula-lens', blockflow: 'blockflow', 'frame-strata': 'frame-strata', framecraft: 'frame-strata', engine: 'graphite', frames: 'pigment-frames' };
-  const APP_NAME = { 'formula-lens': 'Formula Studio', blockflow: 'Blockflow', 'frame-strata': 'Framecraft', graphite: 'Graphite', lumina: 'Lumina frame', 'pigment-frames': 'Pigment Frames', 'frame-matrix': 'Frame vs Studio', 'frame-world': 'Frame World', 'frame-size': 'Frame size' };
+  const APP_NAME = { vision: 'The vision', 'formula-lens': 'Formula Studio', blockflow: 'Blockflow', 'frame-strata': 'Framecraft', graphite: 'Graphite', lumina: 'Lumina frame', 'pigment-frames': 'Pigment Frames', 'frame-matrix': 'Frame vs Studio', 'frame-world': 'Frame World', 'frame-size': 'Frame size' };
 
   /* ---------- toast ---------- */
   const toastEl = document.createElement('div');
