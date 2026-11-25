@@ -165,6 +165,7 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
 
   /* ------------------------------------------------------------ sources */
   const SRC = {
+    gblog: { t: 'Pigment blog: Graphite, the architecture powering what’s possible in Pigment (June 2026)', u: 'https://www.pigment.com/blog/graphite-the-architecture-powering-whats-possible-in-pigment', n: 'The three pillars (Elastic Engine; unified, governed data; dynamic modeling) and Graphite as the foundation for both the Pigment app and its MCP server.' },
     news: { t: 'Pigment newsroom: Series E announcement (Graphite named)', u: 'https://www.pigment.com/newsroom/pigment-raises-250m-series-e', n: 'Graphite as the proprietary, patent-pending compute engine; scale and concurrency claims.' },
     pilotia: { t: 'Pilotia: Pigment unveils Graphite (secondary coverage)', u: 'https://www.pilotia.com/en/pigment-devoile-graphite-le-moteur-technologique-de-sa-plateforme-de-planification/', n: 'Three pillars: elastic engine with storage separated from compute, unified governed data, dynamic modeling.' },
     arch: { t: 'Pigment Community: Architectural foundations: dimensions, sparsity, scale and the discipline of scope', u: 'https://community.pigment.com/technical-tips-182/architectural-foundations-dimensions-sparsity-scale-and-the-discipline-of-scope-3973', n: 'Sparse engine, cardinality, densifying functions, dependency graph, parallelised calculation, scope.' },
@@ -190,7 +191,7 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
   /* ------------------------------------------------------------ three.js stage */
   const T = window.THREE;
   const cv = $('#cv'), stage = $('#stage');
-  const G = { ok: !!T, picks: [], tweens: [], timers: [], wake: 0, camKey: '', orbit: { th: 0.7, ph: 1.05, r: 16, tx: 0, ty: 0, tz: 0 }, home: null, group: null, token: 0 };
+  const G = { ok: !!T, picks: [], tweens: [], anims: [], timers: [], wake: 0, camKey: '', orbit: { th: 0.7, ph: 1.05, r: 16, tx: 0, ty: 0, tz: 0 }, home: null, group: null, token: 0 };
   let renderer, scene3, camera, ray, amb, sun;
   if (G.ok) {
     try {
@@ -222,6 +223,8 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
   function tw(ms, fn, done) { const t = { t0: performance.now(), ms: reduce ? 1 : ms, fn, done, tok: G.token }; G.tweens.push(t); return t; }
   function later(fn, ms) { const tok = G.token; const id = setTimeout(() => { if (tok === G.token) { fn(); poke(); } }, reduce ? Math.min(ms, 30) : ms); G.timers.push(id); }
   /* render on demand: anything that can change the picture calls poke(), which keeps frames coming for a moment */
+  /* a continuous animation for the current scene: runs every frame until the scene changes */
+  function every(fn) { G.anims.push({ fn, tok: G.token }); }
   function poke(ms) { G.wake = Math.max(G.wake, performance.now() + (ms || 400)); }
   function camTo(to, ms) {
     const o = G.orbit, from = Object.assign({}, o);
@@ -230,6 +233,8 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
   function loop(now) {
     requestAnimationFrame(loop);
     if (!G.ok || document.hidden) return;
+    for (let i = G.anims.length - 1; i >= 0; i--) { const a = G.anims[i]; if (a.tok !== G.token) { G.anims.splice(i, 1); continue; } a.fn(now); }
+    if (G.anims.length) poke(120);
     for (let i = G.tweens.length - 1; i >= 0; i--) {
       const t = G.tweens[i];
       if (t.tok !== G.token) { G.tweens.splice(i, 1); continue; }
@@ -248,7 +253,7 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
     renderer.render(scene3, camera);
   }
   function clearScene() {
-    G.token++; G.tweens.length = 0; G.timers.forEach(clearTimeout); G.timers.length = 0; G.picks = [];
+    G.token++; G.tweens.length = 0; G.anims.length = 0; G.timers.forEach(clearTimeout); G.timers.length = 0; G.picks = [];
     if (G.group) {
       scene3.remove(G.group);
       G.group.traverse((o) => { if (o.userData.keep) return; if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } });
@@ -392,33 +397,80 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
   /* ============================================================ SCENE: overview */
   SCENES.overview = {
     name: 'Overview', eyebrow: 'Graphite', title: 'The engine under every Pigment model',
-    intro: 'Graphite is the name Pigment gives its compute engine. Pigment has published what it does, not how it is built, so this tab pairs the public statements with pictures of the documented behaviour. Click a slab to see what is claimed, then follow it into a scene.',
-    cam: { th: 0.6, ph: 1.1, r: 17 },
+    intro: 'Pigment describes Graphite as three pillars, with the Pigment app and its MCP server for AI agents working on top. Pick a layer, or walk them in order: the stack opens up, the layer lights, and its scene is one click away.',
+    cam: { th: 0.62, ph: 1.12, r: 19 },
     info: { tag: 'doc', title: 'What Pigment has said about Graphite', body: '<ul><li>It is Pigment’s “proprietary, patent-pending compute engine”, and its AI agents run on it.</li><li>Thousands of AI agents and people can work on the same governed model at once.</li><li>It scales to hundreds of billions of data points with deterministic, fully traceable results.</li></ul><p>These are Pigment’s own statements from its October 2026 funding announcement. They are not independently benchmarked.</p>', src: ['news'] },
     build() {
       const els = [];
-      if (!G.ok) return { elements: els };
-      G.spin = true;
-      const slabs = [
-        { y: -2.4, c: '--c-input', t: 'Unified, governed data', info: { tag: 'doc', title: 'Unified, governed data', body: '<p>Coverage of the Graphite launch describes one source of truth whose updates propagate across models, with security controls limiting each person to the data they may see.</p><p>The <b>Access rights</b> scene shows the documented rule evaluation that sits behind that.</p>', src: ['pilotia', 'ar'], act: ['scene:access', 'See access rights evaluated'] } },
-        { y: 0, c: '--c-calc', t: 'Elastic calculation engine', info: { tag: 'doc', title: 'Elastic calculation engine', body: '<p>Described as a cloud architecture that separates storage from compute so performance holds at peak load and with many concurrent users. That description comes from secondary coverage citing Pigment.</p><p>What Pigment documents in detail is the engine’s behaviour: it is sparse, it keeps a dependency graph, and it recalculates only what a change affects.</p>', src: ['pilotia', 'arch', 'scope'], act: ['scene:cube', 'Open the sparse cube'] } },
-        { y: 2.4, c: '--c-lost', t: 'Dynamic modeling', info: { tag: 'doc', title: 'Dynamic modeling', body: '<p>Teams create, change and compare scenarios quickly, and adjust plans without breaking consistency. Structure changes ripple through formulas the same way value changes do.</p>', src: ['pilotia', 'scn'], act: ['scene:scenarios', 'See scenarios as layers'] } },
+      const st = state.ov || (state.ov = { on: -1 });
+      const LAYERS = [
+        { y: 3.6, c: '--accent', t: 'Pigment and MCP · people and AI agents', short: 'People and agents', info: { tag: 'doc', title: 'Where people and AI agents work', body: '<p>Pigment presents Graphite as the foundation whether planning happens in the Pigment app or through its MCP server.</p><ul><li>People and AI agents work from the same definitions and the same governance.</li><li>An agent asking a question sees the model a planner sees, within what it is allowed to see.</li></ul><p>How agent requests are scheduled is not published.</p>', src: ['gblog', 'news'], act: ['scene:access', 'See who sees what'] } },
+        { y: 1.2, c: '--c-lost', t: 'Dynamic modeling', short: 'Dynamic modeling', info: { tag: 'doc', title: 'Dynamic modeling', body: '<ul><li>Flexible structures and relationships, so the same numbers can be viewed from several angles.</li><li>Native scenarios, backed by the Elastic Engine, so scenario planning is not capped by data volume.</li><li>Plans adapt as new information arrives without losing trust in the governed data underneath.</li></ul>', src: ['gblog', 'scn'], act: ['scene:scenarios', 'Open scenarios'] } },
+        { y: -1.2, c: '--c-calc', t: 'Elastic Engine', short: 'Elastic Engine', info: { tag: 'doc', title: 'Elastic Engine', body: '<ul><li>Storage is separated from compute, so a model is not limited to what fits in one machine’s memory.</li><li>Reading and writing is spread across cloud nodes, and capacity ramps up at peak planning time.</li><li>Calculations are prioritised, so the model stays usable for analysis while changes apply and agents run heavy work in the background, without locking.</li></ul><p>The node columns here are a picture of elastic capacity, not Pigment’s real topology.</p>', src: ['gblog', 'pilotia'], act: ['scene:recalc', 'Watch a scoped recalculation'] } },
+        { y: -3.6, c: '--c-input', t: 'Unified, governed data', short: 'Unified, governed data', info: { tag: 'doc', title: 'Unified, governed data', body: '<ul><li>Data is stored once and shared across teams and processes.</li><li>Security controls limit each person to what they are allowed to see.</li><li>Changes propagate across models in real time.</li><li>A shared semantic layer gives one source of truth, which is also what lets AI work with full context.</li></ul>', src: ['gblog', 'ar'], act: ['scene:access', 'Open access rights'] } }
       ];
-      slabs.forEach((s) => {
-        const m = pick(box(7.5, 0.9, 4.6, col(s.c), { opacity: 0.9 }), s.info); m.position.y = s.y; G.group.add(m);
-        const w = wire(7.5, 0.9, 4.6, col('--ink'), 0.25); w.position.y = s.y; G.group.add(w);
-        const l = label(s.t, { size: 30, weight: 600, bg: css('--surface'), color: css('--ink') }); l.position.set(0, s.y + 0.95, 2.4); G.group.add(l);
-        els.push({ label: s.t, info: s.info, mesh: m });
+      if (!G.ok) return { elements: LAYERS.map((L) => ({ label: L.t, info: L.info })), controls: ovControls };
+      G.spin = st.on < 0;
+      const W = 7.6, D = 4.6;
+      LAYERS.forEach((L, k) => {
+        const g = new T.Group(); g.position.y = L.y; G.group.add(g); L.g = g; L.mats = [];
+        const mat = (c, o) => { const m = new T.MeshLambertMaterial({ color: col(c), transparent: true, opacity: o == null ? 0.92 : o, emissive: col(c), emissiveIntensity: 0 }); m.userData = { base: m.opacity }; L.mats.push(m); return m; };
+        const slab = pick(new T.Mesh(new T.BoxGeometry(W, k === 0 ? 0.35 : 0.7, D), mat(L.c, k === 0 ? 0.55 : 0.92)), L.info); slab.userData.layer = k; g.add(slab); L.slab = slab;
+        const w = wire(W, k === 0 ? 0.35 : 0.7, D, col('--ink'), 0.22); g.add(w);
+        const top = k === 0 ? 0.18 : 0.35;
+        if (k === 0) {   /* people (spheres) and agents (diamonds) on the working layer */
+          for (let i = 0; i < 9; i++) {
+            const agent = i % 3 === 2, m = new T.Mesh(agent ? new T.OctahedronGeometry(0.26) : new T.SphereGeometry(0.22, 14, 12), mat(agent ? '--c-calc' : '--accent', 1));
+            m.position.set(-3 + (i % 5) * 1.5, top + 0.42 + (i > 4 ? 0.35 : 0), i > 4 ? 0.9 : -0.9); m.userData.layer = k; g.add(pick(m, L.info));
+          }
+        } else if (k === 1) {   /* scenarios branching from one plan */
+          [-0.42, 0, 0.42].forEach((a, i) => { const b = new T.Mesh(new T.BoxGeometry(3.6, 0.12, 0.16), mat(['--c-lost', '--accent', '--c-input'][i], 1)); b.position.set(-0.6 + Math.cos(a) * 1.8, top + 0.12, Math.sin(a) * 1.8); b.rotation.y = -a; g.add(b); });
+          const hub = new T.Mesh(new T.SphereGeometry(0.28, 14, 12), mat('--ink', 1)); hub.position.set(-2.4, top + 0.12, 0); g.add(hub);
+        } else if (k === 2) {   /* compute nodes that stretch with load */
+          L.nodes = [];
+          for (let i = 0; i < 7; i++) { const n = new T.Mesh(new T.BoxGeometry(0.5, 1, 0.5), mat('--c-calc', 1)); n.position.set(-3 + i, top + 0.5, 0); n.userData.base = top; g.add(n); L.nodes.push(n); }
+        } else {   /* data stored once: a grid of tiles */
+          for (let x = 0; x < 6; x++) for (let z = 0; z < 3; z++) { const t = new T.Mesh(new T.BoxGeometry(0.8, 0.14, 0.8), mat(x === 2 && z === 1 ? '--ink' : '--c-input', 1)); t.position.set(-2.75 + x * 1.1, top + 0.08, -1.1 + z * 1.1); g.add(t); }
+        }
+        const l = label((4 - k) + '  ' + L.t, { size: 28, weight: 600, bg: css('--surface'), color: css('--ink') }); l.position.set(0, (k === 0 ? 0.2 : 0.38) + 0.85, D / 2 + 0.4); g.add(l);
+        els.push({ label: L.t, info: L.info, mesh: slab });
       });
-      // people and agents orbiting the same model
-      const usersInfo = { tag: 'doc', title: 'People and AI agents on one model', body: '<p>Pigment says Graphite lets thousands of AI agents and people work on the same governed model at once, and that results stay deterministic and traceable.</p><p>The orbiting dots are decoration; how concurrent writes are ordered is not published.</p>', src: ['news'] };
-      const dots = [];
-      for (let i = 0; i < 14; i++) { const d = pick(new T.Mesh(new T.SphereGeometry(0.16, 12, 12), new T.MeshLambertMaterial({ color: col(i % 3 ? '--accent' : '--c-input') })), usersInfo); d.userData.a = (i / 14) * Math.PI * 2; d.userData.h = -2.5 + (i % 5) * 1.3; G.group.add(d); dots.push(d); }
-      els.push({ label: 'People and agents', info: usersInfo });
-      const spin = () => { const t = performance.now() / (reduce ? 1e9 : 5200); dots.forEach((d) => d.position.set(Math.cos(d.userData.a + t) * 5.6, d.userData.h, Math.sin(d.userData.a + t) * 4)); tw(1e7, spin); };
-      tw(16, spin);
-      paintHud([['Engine', 'Graphite'], ['Published internals', 'none']]);
-      return { elements: els, controls: () => '<div><div class="sec-t">Scenes</div><div class="ctl">' + Object.keys(SCENES).filter((k) => k !== 'overview').map((k) => '<button type="button" class="chipb" data-act="scene:' + k + '">' + esc(SCENES[k].name) + '</button>').join('') + '</div></div>' };
+      /* one spine runs through every layer: the same model, top to bottom */
+      const spine = new T.Mesh(new T.CylinderGeometry(0.06, 0.06, 8.4, 8), new T.MeshBasicMaterial({ color: col('--ink'), transparent: true, opacity: 0.25 })); spine.position.set(W / 2 + 0.6, 0, -D / 2 + 0.3); G.group.add(spine);
+      /* elastic nodes keep breathing; more when the engine is in focus */
+      const breathe = () => { const t = performance.now() / 1000, L = LAYERS[2], hot = st.on === 2 ? 1 : 0.35;
+        L.nodes.forEach((n, i) => { const h = 0.6 + hot * (0.9 + 0.8 * Math.sin(t * 1.6 + i * 0.9)) * (reduce ? 0 : 1); n.scale.y = h; n.position.y = n.userData.base + h / 2; }); };
+      every(breathe);
+      function focus(k, fromWalk) {
+        st.on = k; G.spin = k < 0; if (!fromWalk) st.walk = false;
+        const spread = k < 0 ? 1 : 1.45;
+        LAYERS.forEach((L, i) => {
+          const fromY = L.g.position.y, toY = L.y * spread + (i === k ? 0.35 : 0), on = k < 0 || i === k;
+          const from = L.mats.map((m) => [m.opacity, m.emissiveIntensity]);
+          tw(650, (e) => { L.g.position.y = fromY + (toY - fromY) * e; L.mats.forEach((m, j) => { const to = on ? m.userData.base : 0.12; m.opacity = from[j][0] + (to - from[j][0]) * e; const ei = i === k ? 0.28 : 0; m.emissiveIntensity = from[j][1] + (ei - from[j][1]) * e; }); });
+        });
+        if (k >= 0) { camTo({ ty: LAYERS[k].y * spread * 0.55, r: 17 }, 700); state.info = LAYERS[k].info; } else { camTo({ ty: 0, r: 19 }, 700); state.info = null; }
+        paintHud([['Engine', 'Graphite'], ['Layer', k < 0 ? 'All four' : LAYERS[k].short]]);
+        paintPanel();
+      }
+      function walk(k) { if (!st.walk) return; focus(k % 4, true); later(() => walk(k + 1), reduce ? 4000 : 6500); }
+      function ovControls() {
+        return '<div><div class="sec-t">Layers</div><div class="ctl">' + LAYERS.map((L, i) => '<button type="button" class="chipb" data-act="ov:' + i + '" aria-pressed="' + (st.on === i) + '">' + (4 - i) + ' · ' + esc(L.short) + '</button>').join('') +
+          '</div><div class="ctl"><button type="button" class="btn primary" data-act="ov:walk">' + (st.walk ? 'Stop the walk' : 'Walk the layers') + '</button>' + (st.on >= 0 ? '<button type="button" class="btn" data-act="ov:all">Show all four</button>' : '') + '</div></div>' +
+          '<div><div class="sec-t">Scenes</div><div class="ctl">' + Object.keys(SCENES).filter((k) => k !== 'overview').map((k) => '<button type="button" class="chipb" data-act="scene:' + k + '">' + esc(SCENES[k].name) + '</button>').join('') + '</div></div>';
+      }
+      paintHud([['Engine', 'Graphite'], ['Layer', st.on < 0 ? 'All four' : LAYERS[st.on].short]]);
+      if (st.on >= 0) later(() => focus(st.on), 30);
+      return {
+        elements: els,
+        controls: ovControls,
+        onPick(m) { if (m && m.userData && m.userData.layer != null) focus(m.userData.layer); },
+        onAct(act) {
+          if (act === 'ov:all') { focus(-1); return; }
+          if (act === 'ov:walk') { st.walk = !st.walk; if (st.walk) walk(Math.max(0, st.on + 1) % 4); else paintPanel(); return; }
+          if (act.indexOf('ov:') === 0) focus(+act.slice(3));
+        }
+      };
     },
   };
 
