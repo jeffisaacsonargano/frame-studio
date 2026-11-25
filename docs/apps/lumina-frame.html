@@ -677,7 +677,7 @@
   // the warehouse plane in the 3D stack: how far below the Blockflow plane, and how it is scaled and centred
   var SRC3D = { drop: 540, s: 0.92, tx: function () { return -(SRC_W / 2 - 640) * SRC3D.s; } };
   function zOf(k) {
-    var g = S.gap, base = { frame: 0, logic: -g, blocks: -2 * g, upstream: -3 * g, land: -3 * g, ext: -4 * g }[k];
+    var g = S.gap, base = { frame: 0, logic: -g, blocks: -2 * g, upstream: -3 * g, land: -3 * g, ext: S.hidden.flow ? -4 * g : null }[k];
     if (base != null) return base;
     var flowZ = -2 * g - Math.max(320, g * 1.4);
     if (k === 'sources') return S.scene === 'strata' ? flowZ - SRC3D.drop : flowZ;
@@ -845,7 +845,7 @@ else if (a === 'mv') WB.mv = WB.mv ? 0 : 1; else if (a === 'close') { wbClose();
 wbBar();
 }
 var FS = { sort: 'lo', sel: {}, css: 0 };
-var FS_T = 1043730, FS_AT = '25 Nov 2026 (v5.22)', FS_P = [["Walk the Frame",89069,3,"The first-person 3D walk through the frame, Blockflow, the warehouse and Graphite.",-1],["Architecture Studio",122158,3,"The 2D and 3D modelling studio for planning a build.",-1],["Collaboration",106748,3,"Meeting transcripts to flow, the decision log, threads and the digest.",-1],["Pulse view",8488,3,"The Pulse view: what moved, recomposed around one priority.",-1],["Command panel",4397,3,"The command center panel and its quick actions.",-1],["Edit frame",23435,3,"Tune, copy and restore the frame setup from inside the frame.",-1],["Data sources scene",13924,3,"The NetSuite, Snowflake and file sources scene upstream of Pigment.",-1],["Ask why",42583,2,"Rule-based answers to why a number moved, with pictures.",-1],["Whiteboard",17142,2,"Drawing over the frame, saved boards and shared boards.",-1],["Toolkit scene",30737,2,"The scene of plugin skills behind the build.",-1],["Build plans library",14071,2,"Ready-made build plans; their titles could stay as links.",-1],["Suggested blocks",11966,2,"Ghost blocks that build plans propose.",-1],["Goals and advisor",12436,2,"Goals and the advisor suggestions that lead to builds.",-1],["Shared notes",10428,2,"Notes pinned to widgets, private or shared.",-1],["Formula lens",7155,2,"The plain-words formula explainer for a block.",-1],["Formula cube story",16076,1,"The animated cube walkthrough; Formula Studio in the artifact covers it.",9],["Guided tour",5020,1,"The step-by-step tour of Framecraft 3D.",-1],["The vision panel",2603,1,"The short vision panel in the layers rail.",-1],["Frame size panel",9899,1,"This list.",-1],["Sample transcripts",7123,1,"The demo meeting transcripts in Collaboration.",2],["Studio templates",1467,1,"Head-start templates in Architecture Studio.",1],["Warehouse SQL text",7211,1,"The SQL shown at warehouse tables in Walk the Frame.",0],["Graphite level",4132,1,"The engine level under Blockflow in Walk the Frame (about).",0],["Styles",61774,0,"The stylesheet for the dashboard, panes and dock.",-1],["Dashboard views",38772,0,"Outlook, Regions, Channels, Launches and Bridge.",-1],["Lineage model",16106,0,"The block and view map behind lineage, Framecraft and Blockflow.",-1],["App state and wiring",34568,0,"State, the rail, panes and their wiring.",-1],["Framecraft 3D",21865,0,"The layered 3D view of the frame.",-1],["Blockflow",97226,0,"The whole-model data-flow map.",-1],["Edit layout and pivots",82485,0,"Hands-on layout editing and pivots.",-1],["Startup and requests",22523,0,"Loading Pigment data and the requests queue.",-1],["Approvals, writes and modules",136152,0,"Every write to Pigment goes through here, plus versions and the module host.",-1]];
+var FS_T = 1043864, FS_AT = '25 Nov 2026 (v5.23)', FS_P = [["Walk the Frame",89069,3,"The first-person 3D walk through the frame, Blockflow, the warehouse and Graphite.",-1],["Architecture Studio",122158,3,"The 2D and 3D modelling studio for planning a build.",-1],["Collaboration",106748,3,"Meeting transcripts to flow, the decision log, threads and the digest.",-1],["Pulse view",8488,3,"The Pulse view: what moved, recomposed around one priority.",-1],["Command panel",4397,3,"The command center panel and its quick actions.",-1],["Edit frame",23435,3,"Tune, copy and restore the frame setup from inside the frame.",-1],["Data sources scene",13924,3,"The NetSuite, Snowflake and file sources scene upstream of Pigment.",-1],["Ask why",42583,2,"Rule-based answers to why a number moved, with pictures.",-1],["Whiteboard",17142,2,"Drawing over the frame, saved boards and shared boards.",-1],["Toolkit scene",30737,2,"The scene of plugin skills behind the build.",-1],["Build plans library",14071,2,"Ready-made build plans; their titles could stay as links.",-1],["Suggested blocks",11966,2,"Ghost blocks that build plans propose.",-1],["Goals and advisor",12436,2,"Goals and the advisor suggestions that lead to builds.",-1],["Shared notes",10428,2,"Notes pinned to widgets, private or shared.",-1],["Formula lens",7155,2,"The plain-words formula explainer for a block.",-1],["Formula cube story",16076,1,"The animated cube walkthrough; Formula Studio in the artifact covers it.",9],["Guided tour",5020,1,"The step-by-step tour of Framecraft 3D.",-1],["The vision panel",2603,1,"The short vision panel in the layers rail.",-1],["Frame size panel",9899,1,"This list.",-1],["Sample transcripts",7123,1,"The demo meeting transcripts in Collaboration.",2],["Studio templates",1467,1,"Head-start templates in Architecture Studio.",1],["Warehouse SQL text",7211,1,"The SQL shown at warehouse tables in Walk the Frame.",0],["Graphite level",4132,1,"The engine level under Blockflow in Walk the Frame (about).",0],["Styles",61774,0,"The stylesheet for the dashboard, panes and dock.",-1],["Dashboard views",38772,0,"Outlook, Regions, Channels, Launches and Bridge.",-1],["Lineage model",16106,0,"The block and view map behind lineage, Framecraft and Blockflow.",-1],["App state and wiring",34766,0,"State, the rail, panes and their wiring.",-1],["Framecraft 3D",21819,0,"The layered 3D view of the frame.",-1],["Blockflow",97226,0,"The whole-model data-flow map.",-1],["Edit layout and pivots",82485,0,"Hands-on layout editing and pivots.",-1],["Startup and requests",22505,0,"Loading Pigment data and the requests queue.",-1],["Approvals, writes and modules",136152,0,"Every write to Pigment goes through here, plus versions and the module host.",-1]];
 function fsKb(b) { return (b / 1024).toFixed(1) + ' KB'; }
 function fsPick() { return FS_P.map(function (p, i) { return i; }).filter(function (i) { return FS.sel[i] && !(FS_P[i][4] >= 0 && FS.sel[FS_P[i][4]]); }); }
 function fsFree() { return fsPick().reduce(function (n, i) { return n + FS_P[i][1]; }, 0); }
@@ -1007,9 +1007,10 @@ renderRail();
     Object.keys(L).forEach(function (k) {
       // in the 3D stack the warehouse lies beneath the Blockflow plane, centred under it; elsewhere it sits to the left
       if (k === 'sources') { L[k].style.transform = S.scene === 'strata' ? 'translate3d(' + SRC3D.tx() + 'px,0,' + zOf(k) + 'px) scale(' + SRC3D.s + ')' : 'translate3d(-2520px,0,' + zOf(k) + 'px)'; return; }
-      L[k].style.transform = 'translateZ(' + zOf(k) + 'px)' + (k === 'flow' && S.scene === 'strata' ? ' scale(1.7)' : '');
-    });
-    placeBeams();
+      L[k].style.transform = 'translateZ(' + zOf(k) + 'px)' + (S.scene !== 'strata' ? '' : k === 'flow' ? ' scale(1.7)' : k === 'ext' ? (S.hidden.flow ? ' scale(1.12)' : ' scale(1.82)') : '');
+});
+var eb = L.ext && L.ext.querySelector('.lum-tag b'); if (eb) eb.textContent = S.hidden.flow ? '5' : '6';
+placeBeams();
     if (typeof bf3dSync === 'function') bf3dSync();
   }
   function goto(id, opts) {
@@ -2077,7 +2078,7 @@ renderRail();
     el.innerHTML = UPS.slice(0, n).map(function (u, i) { var k = n - i; return "<div class='lum-pk' data-go='" + u[2] + "' title='Go up to " + u[1] + "' style='left:" + (x - k * d) + 'px;top:' + (y - k * d) + "px;width:360px;height:220px'><b><i>↑</i>" + u[1] + '</b></div>'; }).join('');
     el.classList.add('on');
   }
-  var ORDER = ['frame', 'logic', 'blocks', 'land', 'ext', 'flow'];
+  var ORDER = ['frame', 'logic', 'blocks', 'land', 'flow', 'ext'];
   function focusLayer(k) {
     if (!L[k] || lyHidden(k)) return; S.focus = k; var i = ORDER.indexOf(k), map = {};
     ORDER.forEach(function (o, j) { map[o] = lyHidden(o) || j < i ? 0 : j === i ? true : 'dim'; });
@@ -4862,7 +4863,7 @@ ntPins(dash);
   /* The 3D stack reads top to bottom as five planes: frame, frame logic, Pigment blocks, ingest and landing,
      external data sources. The two lower planes are drawn from the lineage model (SRC) the warehouse view uses.
      The dense Blockflow map and the full warehouse stay available as an opt-in layer ("Full model map"). */
-  function lyHidden(k) { if (k === 'land' || k === 'ext') return !S.hidden.flow || !!S.hidden[k]; if (k === 'sources') return !!S.hidden.flow || !!S.hidden.sources; return !!S.hidden[k]; }
+  function lyHidden(k) { if (k === 'land') return !S.hidden.flow || !!S.hidden.land; if (k === 'sources') return true; return !!S.hidden[k]; }
   function lyExtra() { return !S.hidden.flow ? 0 : !S.hidden.ext ? 2 : !S.hidden.land ? 1 : 0; }
   function lyNode(n) { return "<button class='ly-node' data-src='" + n.id + "' title='" + esc(n.says || n.name) + "'><b>" + esc(n.name) + '</b><span>' + esc(n.sub || '') + '</span></button>'; }
   function lyGroup(x, y, w, hh, title, sub, col, nodes, cols) {
@@ -5006,7 +5007,7 @@ var a = t.closest('[data-act],[data-awf],[data-sysblock],[data-go],[data-region]
     }
     if (a.hasAttribute('data-cam')) { var c = A('data-cam').split(','); S.preset = { ax: +c[0], az: +c[1] }; camTo(camFor('strata'), 900); return; }
     if (a.hasAttribute('data-zoom')) { S.zoom3d = Math.max(0.3, Math.min(3, S.zoom3d * +A('data-zoom'))); camTo(camFor('strata'), 350); return; }
-    if (a.hasAttribute('data-layer-toggle')) { var lk = A('data-layer-toggle'); S.hidden[lk] = !S.hidden[lk]; if (lk === 'flow') { S.hidden.sources = S.hidden.flow; applyLayerZ(); } else if ((lk === 'land' || lk === 'ext') && !S.hidden.flow && !S.hidden[lk]) { S.hidden.flow = true; S.hidden.sources = true; applyLayerZ(); } if (S.scene === 'strata') camTo(camFor('strata'), 700); applyLayers(layersFor(S.scene)); renderDock(); return; }
+    if (a.hasAttribute('data-layer-toggle')) { var lk = A('data-layer-toggle'); S.hidden[lk] = !S.hidden[lk]; if (lk === 'flow') { S.hidden.sources = S.hidden.flow; applyLayerZ(); } else if (lk === 'land' && !S.hidden.flow && !S.hidden[lk]) { S.hidden.flow = true; S.hidden.sources = true; applyLayerZ(); } if (S.scene === 'strata') camTo(camFor('strata'), 700); applyLayers(layersFor(S.scene)); renderDock(); return; }
     if (a.hasAttribute('data-plan')) { if (S.scene !== 'flow') goto('flow'); openPlan(A('data-plan'), 0); return; }
     if (a.hasAttribute('data-pstep')) { openPlan(S.plan, +A('data-pstep')); return; }
     if (a.hasAttribute('data-skill')) { S.skill = A('data-skill'); renderToolkit(); if (S.scene !== 'toolkit') goto('toolkit'); return; }
