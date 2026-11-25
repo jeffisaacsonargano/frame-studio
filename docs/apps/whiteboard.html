@@ -24,6 +24,12 @@ button.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 label.op{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:12px}
 label.op input{width:110px;accent-color:var(--accent)}
 .st{margin-left:auto;font-size:11px;color:var(--muted)}
+.gal{position:absolute;left:0;right:0;top:0;z-index:4;box-shadow:0 6px 18px rgba(0,0,0,.18);display:flex;gap:10px;overflow-x:auto;padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--line);font-size:11px;color:var(--muted)}
+.card{flex:none;width:184px;border:1px solid var(--line);border-radius:10px;padding:6px;background:var(--raise)}
+.card canvas{position:static;display:block;width:170px;height:106px;border-radius:6px;background:#FFFDF8;cursor:pointer}
+.card input{width:100%;margin:5px 0 2px;font:600 12px system-ui,sans-serif;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:6px;padding:2px 4px}
+.card input:hover,.card input:focus{border-color:var(--line);outline:0}
+.card button{padding:2px 8px;font-size:11px;margin:4px 4px 0 0}
 .stage{position:relative;flex:1;min-height:0;overflow:hidden}
 .stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg)}
 .paper{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle,rgba(var(--dot),calc(var(--o)*.1)) 1px,transparent 1.5px) 0 0/24px 24px rgba(var(--paper),var(--o))}
@@ -48,14 +54,17 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor
   <button id="redo" title="Redo (Ctrl or Cmd Shift Z)">Redo</button>
   <button id="clear" title="Clear; Undo brings it back">Clear</button>
   <span class="sep"></span>
-  <select id="bk" aria-label="Behind the paper" title="Call a part of Frame Studio in behind the paper"></select>
+  <label class="op">Behind <select id="bk" title="Call a part of Frame Studio in behind the paper"></select></label>
   <label class="op" title="How solid the paper is: 0 shows what is behind, 100 hides it">Paper <input id="op" type="range" min="0" max="100" step="5"></label>
   <button id="mv" title="Let clicks through to pan, zoom or orbit what is behind">Move it</button>
   <span class="sep"></span>
+  <button id="save" title="Save this board to your gallery">Save</button>
+  <button id="galB" title="Your saved boards">Boards</button>
   <button id="png" title="Download the drawing as a PNG">Download PNG</button>
   <span class="st" id="st"></span>
 </div>
 <div class="stage" id="stage">
+  <div class="gal" id="gal" hidden></div>
   <div class="paper" id="paper"></div>
   <canvas id="cv" aria-label="Drawing area"></canvas>
   <div class="hint" id="hint"><b>Draw anything</b>Pick what sits behind the paper, slide the paper from solid to clear, and sketch on top. Your board is kept in this browser.</div>
@@ -76,7 +85,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor
 
   COL.forEach(function (col, i) { var b = document.createElement('button'); b.className = 'sw'; b.style.background = col; b.setAttribute('aria-label', 'Colour ' + (i + 1)); b.onclick = function () { c = i; if (tool === 'er') setTool('pen'); paint(); }; $('cols').appendChild(b); });
   SIZES.forEach(function (sz, i) { var b = document.createElement('button'); b.className = 'sz'; b.setAttribute('aria-label', 'Size ' + (i + 1)); b.innerHTML = '<i style="width:' + (sz + 2) + 'px;height:' + (sz + 2) + 'px"></i>'; b.onclick = function () { w = i; paint(); }; $('sizes').appendChild(b); });
-  BK.forEach(function (q) { var o = document.createElement('option'); o.value = q[0]; o.textContent = 'Behind: ' + q[1]; $('bk').appendChild(o); });
+  BK.forEach(function (q) { var o = document.createElement('option'); o.value = q[0]; o.textContent = q[1]; $('bk').appendChild(o); });
   function paint() {
     Array.prototype.forEach.call($('cols').children, function (b, i) { b.classList.toggle('on', i === c && tool !== 'er'); });
     Array.prototype.forEach.call($('sizes').children, function (b, i) { b.classList.toggle('on', i === w); });
@@ -135,16 +144,47 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor
     e.preventDefault(); if (e.shiftKey) redoIt(); else undo();
   });
 
-  $('png').onclick = function () {
-    var out = document.createElement('canvas'); out.width = cv.width; out.height = cv.height; var o = out.getContext('2d');
-    var cs = getComputedStyle(document.documentElement), rgb = cs.getPropertyValue('--paper').trim();
-    if (S.o > 0) { o.fillStyle = 'rgba(' + rgb + ',' + (S.o / 100) + ')'; o.fillRect(0, 0, out.width, out.height); }
-    o.drawImage(cv, 0, 0);
-    var a = document.createElement('a'); a.download = 'whiteboard.png'; a.href = out.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove();
+
+  /* Saved boards: a gallery kept in this browser, each with a thumbnail, a name, Open, PNG and Delete */
+  var GKEY = 'frame-studio:boards', G = [], galOpen = false;
+  try { G = JSON.parse(localStorage.getItem(GKEY) || '[]') || []; } catch (e) { G = []; }
+  function gKeep() { try { localStorage.setItem(GKEY, JSON.stringify(G)); } catch (e) { $('st').textContent = 'This browser cannot keep boards; download a PNG instead.'; } }
+  function render(ctx, strokes, W, H, d) {
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    strokes.forEach(function (s) { var p = s.p; if (!p || p.length < 2) return;
+      ctx.globalCompositeOperation = s.t === 'er' ? 'destination-out' : 'source-over'; ctx.globalAlpha = s.t === 'hl' ? 0.32 : 1; ctx.strokeStyle = COL[s.c] || '#000'; ctx.lineWidth = s.w * d;
+      ctx.beginPath(); ctx.moveTo(p[0] * W, p[1] * H); if (p.length < 4) ctx.lineTo(p[0] * W + 0.1, p[1] * H); for (var i = 2; i < p.length; i += 2) ctx.lineTo(p[i] * W, p[i + 1] * H); ctx.stroke(); });
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  }
+  function pngOf(strokes, name) {
+    var out = document.createElement('canvas'); out.width = 2000; out.height = 1250; var o = out.getContext('2d');
+    render(o, strokes, 2000, 1250, 2000 / Math.max(1, stage.clientWidth)); o.globalCompositeOperation = 'destination-over'; o.fillStyle = '#FFFDF8'; o.fillRect(0, 0, 2000, 1250);
+    var a = document.createElement('a'); a.download = (name || 'whiteboard').replace(/[^\w -]+/g, '').trim().replace(/ +/g, '-') + '.png'; a.href = out.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove();
+  }
+  function gal() {
+    var g = $('gal'); g.hidden = !galOpen; $('galB').classList.toggle('on', galOpen); $('galB').textContent = 'Boards' + (G.length ? ' (' + G.length + ')' : ''); if (!galOpen) return; g.innerHTML = '';
+    if (!G.length) { g.textContent = 'No saved boards yet. Save keeps this board here, with what is behind it and how solid the paper is.'; return; }
+    G.forEach(function (b, i) {
+      var c = document.createElement('div'); c.className = 'card';
+      var t = document.createElement('canvas'); t.width = 340; t.height = 212; t.title = 'Open this board'; render(t.getContext('2d'), b.s, 340, 212, 340 / Math.max(1, stage.clientWidth)); t.onclick = function () { open(i); };
+      var n = document.createElement('input'); n.value = b.n; n.setAttribute('aria-label', 'Board name'); n.onchange = function () { b.n = n.value.slice(0, 60) || 'Untitled board'; gKeep(); };
+      var m = document.createElement('div'); m.textContent = new Date(b.at).toLocaleDateString() + ' · ' + b.s.length + ' strokes' + (b.b ? ' · over ' + ((BK.filter(function (q) { return q[0] === b.b; })[0] || [0, 'an app'])[1]) : '');
+      var r = document.createElement('div');
+      [['Open', function () { open(i); }], ['PNG', function () { pngOf(b.s, b.n); }], ['Delete', function () { if (this.textContent !== 'Sure? Delete') { this.textContent = 'Sure? Delete'; return; } G.splice(i, 1); gKeep(); gal(); }]].forEach(function (q) { var x = document.createElement('button'); x.textContent = q[0]; x.onclick = q[1]; r.appendChild(x); });
+      c.append(t, n, m, r); g.appendChild(c);
+    });
+  }
+  function open(i) { var b = G[i]; if (!b) return; cleared = S.s; S.s = JSON.parse(JSON.stringify(b.s)); redo = []; setOp(b.o); if (b.b !== S.b) setBack(b.b); draw(); keep(); }
+  $('save').onclick = function () {
+    if (!S.s.length) { $('st').textContent = 'Draw something first, then save.'; return; }
+    G.unshift({ n: 'Board ' + new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), at: Date.now(), s: JSON.parse(JSON.stringify(S.s)), b: S.b, o: S.o }); gKeep(); galOpen = true; gal();
+    var f = $('gal').querySelector('input'); if (f) { f.focus(); f.select(); }
   };
+  $('galB').onclick = function () { galOpen = !galOpen; gal(); };
+  $('png').onclick = function () { pngOf(S.s, 'whiteboard'); };
 
   window.addEventListener('resize', fit);
-  setOp(S.o); setBack(S.b); paint(); fit(); status();
+  setOp(S.o); setBack(S.b); paint(); fit(); status(); gal();
 })();
 </script>
 </body>
