@@ -395,10 +395,55 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
   }
 
   /* ============================================================ SCENE: overview */
+  /* The Graphite sculpture: an original drawing in the spirit of Pigment's own Graphite illustrations.
+     Top, a sphere of stacked layers (Elastic Engine); middle, a cage of connected nodes (unified, governed data);
+     bottom, a broken bowl of curved panels (dynamic modeling); above it all, a halo of people and AI agents.
+     The part for the layer in focus is drawn in colour; the rest fade to a pale grey. Layer order: 0 halo, 1 bowl, 2 sphere, 3 network. */
+  function makeSculpture(T) {
+    const g = new T.Group(), parts = [[], [], [], []];
+    const M = (c) => { const m = new T.MeshLambertMaterial({ color: c, transparent: true, side: T.DoubleSide }); m.userData.lit = new T.Color(c); return m; };
+    /* the sphere: discs cut from a ball, nudged and tilted so the bands ripple */
+    const og = new T.Group(); og.position.y = 3.7; g.add(og);
+    const N = 9, R = 1.55, ORB = ['#1F2A55', '#2B3A67', '#56407A', '#C2407E', '#F0508C', '#F57BB0', '#9AA7E8', '#3FC7E0', '#2B3A67'];
+    for (let i = 0; i < N; i++) {
+      const y = -R + (i + 0.5) * (2 * R / N), r = Math.sqrt(Math.max(0.03, R * R - y * y)), d = new T.Mesh(new T.CylinderGeometry(r, r * 0.97, (2 * R / N) * 0.78, 40), M(ORB[i]));
+      d.position.set(Math.sin(i * 1.3) * 0.12, y, Math.cos(i * 0.9) * 0.08); d.rotation.z = Math.sin(i * 0.7) * 0.13; d.userData.layer = 2; og.add(d); parts[2].push(d);
+    }
+    /* the network: nodes on a shell, each joined to its nearest neighbours; a few carry colour */
+    const ng = new T.Group(); ng.position.y = 1.05; g.add(ng);
+    const pts = [], NN = 40, RN = 2.7, NC = ['#F0508C', '#3FC7E0', '#F26B3A'];
+    for (let i = 0; i < NN; i++) { const yy = 0.95 - (i / (NN - 1)) * 1.7, rr = Math.sqrt(Math.max(0, 1 - yy * yy)), th = i * 2.399963, j = 0.88 + ((i * 37) % 11) / 50; pts.push(new T.Vector3(Math.cos(th) * rr * RN * j, yy * RN * 0.8, Math.sin(th) * rr * RN * j)); }
+    pts.forEach((p, i) => { const c = i % 5 === 0 ? NC[(i / 5) % 3] : '#8F97AE', s = new T.Mesh(new T.SphereGeometry(0.06 + ((i * 13) % 7) * 0.013, 12, 10), M(c)); s.position.copy(p); s.userData.layer = 3; ng.add(s); parts[3].push(s); });
+    const seg = [], seen = {};
+    pts.forEach((p, i) => { pts.map((q, j) => [p.distanceTo(q), j]).filter((x) => x[1] !== i).sort((a, b) => a[0] - b[0]).slice(0, 3).forEach((x) => { const k = Math.min(i, x[1]) + ':' + Math.max(i, x[1]); if (seen[k]) return; seen[k] = 1; const q = pts[x[1]]; seg.push(p.x, p.y, p.z, q.x, q.y, q.z); }); });
+    const lg = new T.BufferGeometry(); lg.setAttribute('position', new T.Float32BufferAttribute(seg, 3));
+    const lm = new T.LineBasicMaterial({ color: '#2B3A67', transparent: true, opacity: 0.65 }); lm.userData.lit = new T.Color('#2B3A67'); const ln = new T.LineSegments(lg, lm); ng.add(ln); parts[3].push(ln);
+    /* the bowl: three broken rings of curved panels, wider at the top */
+    const bg = new T.Group(); bg.position.y = -1.0; g.add(bg);
+    const RINGS = [[0, 3.1, 1.25, 7], [-1.15, 2.7, 1.0, 6], [-2.05, 2.0, 0.7, 5]], BC = ['#2B3A67', '#3A4A7A', '#F0508C', '#2B3A67', '#3FC7E0', '#46557F', '#2B3A67', '#F57BB0'];
+    let bi = 0;
+    RINGS.forEach((q, ri) => { const n = q[3]; for (let k = 0; k < n; k++) {
+      const t0 = (k / n) * Math.PI * 2 + ri * 0.4 + ((k * 7) % 3) * 0.04, tl = (Math.PI * 2) / n - 0.12 - ((k * 5) % 3) * 0.05;
+      const pn = new T.Mesh(new T.CylinderGeometry(q[1], q[1] * 0.86, q[2], 16, 1, true, t0, tl), M(BC[bi++ % BC.length]));
+      pn.position.y = q[0] + ((k * 3) % 4) * 0.06; pn.rotation.x = (((k * 11) % 5) - 2) * 0.025; pn.userData.layer = 1; bg.add(pn); parts[1].push(pn);
+    } });
+    /* the halo: people (spheres) and AI agents (diamonds) working on top */
+    const hg = new T.Group(); hg.position.y = 6.1; g.add(hg);
+    for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2, agent = i % 3 === 2, s = new T.Mesh(agent ? new T.OctahedronGeometry(0.17) : new T.SphereGeometry(0.15, 12, 10), M(agent ? '#3FC7E0' : '#F0508C')); s.position.set(Math.cos(a) * 2.1, Math.sin(i * 1.7) * 0.15, Math.sin(a) * 2.1); s.userData.layer = 0; hg.add(s); parts[0].push(s); }
+    const hr = new T.Mesh(new T.TorusGeometry(2.1, 0.022, 6, 80), M('#8F97AE')); hr.rotation.x = Math.PI / 2; hr.userData.layer = 0; hg.add(hr); parts[0].push(hr);
+    return { g, og, ng, bg, hg, parts, y: [6.1, -2.0, 3.7, 1.05] };
+  }
+  /* each frame: colour flows into the layer in focus (on < 0 lights all four) and out of the others */
+  function paintSculpture(S, on, pale, dt, spin) {
+    const k = Math.min(1, dt * 5);
+    S.parts.forEach((list, layer) => { const lit = on < 0 || on === layer; list.forEach((o) => { const m = o.material; m.color.lerp(lit ? m.userData.lit : pale, k); }); });
+    if (spin) { S.og.rotation.y += dt * 0.25; S.ng.rotation.y -= dt * 0.07; S.hg.rotation.y += dt * 0.18; }
+  }
+
   SCENES.overview = {
     name: 'Overview', eyebrow: 'Graphite', title: 'The engine under every Pigment model',
-    intro: 'Pigment describes Graphite as three pillars, with the Pigment app and its MCP server for AI agents working on top. Pick a layer, or walk them in order: the stack opens up, the layer lights, and its scene is one click away.',
-    cam: { th: 0.62, ph: 1.12, r: 19 },
+    intro: 'Pigment describes Graphite as three pillars, with the Pigment app and its MCP server for AI agents working on top. Pick a layer, or walk them in order: its part of the engine lights up and the rest fade back.',
+    cam: { th: 0.62, ph: 1.18, r: 20, ty: 1.4 },
     info: { tag: 'doc', title: 'What Pigment has said about Graphite', body: '<ul><li>It is Pigment’s “proprietary, patent-pending compute engine”, and its AI agents run on it.</li><li>Thousands of AI agents and people can work on the same governed model at once.</li><li>It scales to hundreds of billions of data points with deterministic, fully traceable results.</li></ul><p>These are Pigment’s own statements from its October 2026 funding announcement. They are not independently benchmarked.</p>', src: ['news'] },
     build() {
       const els = [];
@@ -411,45 +456,20 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
       ];
       if (!G.ok) return { elements: LAYERS.map((L) => ({ label: L.t, info: L.info })), controls: ovControls };
       G.spin = st.on < 0;
-      const W = 7.6, D = 4.6;
+      const S = makeSculpture(T); S.g.position.y = -0.8; G.group.add(S.g);
+      S.parts.forEach((list, k) => list.forEach((o) => { if (o.isMesh) pick(o, LAYERS[k].info); }));
       LAYERS.forEach((L, k) => {
-        const g = new T.Group(); g.position.y = L.y; G.group.add(g); L.g = g; L.mats = [];
-        const mat = (c, o) => { const m = new T.MeshLambertMaterial({ color: col(c), transparent: true, opacity: o == null ? 0.92 : o, emissive: col(c), emissiveIntensity: 0 }); m.userData = { base: m.opacity }; L.mats.push(m); return m; };
-        const slab = pick(new T.Mesh(new T.BoxGeometry(W, k === 0 ? 0.35 : 0.7, D), mat(L.c, k === 0 ? 0.55 : 0.92)), L.info); slab.userData.layer = k; g.add(slab); L.slab = slab;
-        const w = wire(W, k === 0 ? 0.35 : 0.7, D, col('--ink'), 0.22); g.add(w);
-        const top = k === 0 ? 0.18 : 0.35;
-        if (k === 0) {   /* people (spheres) and agents (diamonds) on the working layer */
-          for (let i = 0; i < 9; i++) {
-            const agent = i % 3 === 2, m = new T.Mesh(agent ? new T.OctahedronGeometry(0.26) : new T.SphereGeometry(0.22, 14, 12), mat(agent ? '--c-calc' : '--accent', 1));
-            m.position.set(-3 + (i % 5) * 1.5, top + 0.42 + (i > 4 ? 0.35 : 0), i > 4 ? 0.9 : -0.9); m.userData.layer = k; g.add(pick(m, L.info));
-          }
-        } else if (k === 1) {   /* scenarios branching from one plan */
-          [-0.42, 0, 0.42].forEach((a, i) => { const b = new T.Mesh(new T.BoxGeometry(3.6, 0.12, 0.16), mat(['--c-lost', '--accent', '--c-input'][i], 1)); b.position.set(-0.6 + Math.cos(a) * 1.8, top + 0.12, Math.sin(a) * 1.8); b.rotation.y = -a; g.add(b); });
-          const hub = new T.Mesh(new T.SphereGeometry(0.28, 14, 12), mat('--ink', 1)); hub.position.set(-2.4, top + 0.12, 0); g.add(hub);
-        } else if (k === 2) {   /* compute nodes that stretch with load */
-          L.nodes = [];
-          for (let i = 0; i < 7; i++) { const n = new T.Mesh(new T.BoxGeometry(0.5, 1, 0.5), mat('--c-calc', 1)); n.position.set(-3 + i, top + 0.5, 0); n.userData.base = top; g.add(n); L.nodes.push(n); }
-        } else {   /* data stored once: a grid of tiles */
-          for (let x = 0; x < 6; x++) for (let z = 0; z < 3; z++) { const t = new T.Mesh(new T.BoxGeometry(0.8, 0.14, 0.8), mat(x === 2 && z === 1 ? '--ink' : '--c-input', 1)); t.position.set(-2.75 + x * 1.1, top + 0.08, -1.1 + z * 1.1); g.add(t); }
-        }
-        const l = label((4 - k) + '  ' + L.t, { size: 28, weight: 600, bg: css('--surface'), color: css('--ink') }); l.position.set(0, (k === 0 ? 0.2 : 0.38) + 0.85, D / 2 + 0.4); g.add(l);
-        els.push({ label: L.t, info: L.info, mesh: slab });
+        const l = label((4 - k) + '  ' + L.short, { size: 26, weight: 600, bg: css('--surface'), color: css('--ink') });
+        l.position.set(k === 1 ? 4.4 : 4.2, S.y[k] - 0.8 + (k === 1 ? 0.9 : 0), 0); G.group.add(l);
+        els.push({ label: L.t, info: L.info, mesh: S.parts[k][0] });
       });
-      /* one spine runs through every layer: the same model, top to bottom */
-      const spine = new T.Mesh(new T.CylinderGeometry(0.06, 0.06, 8.4, 8), new T.MeshBasicMaterial({ color: col('--ink'), transparent: true, opacity: 0.25 })); spine.position.set(W / 2 + 0.6, 0, -D / 2 + 0.3); G.group.add(spine);
-      /* elastic nodes keep breathing; more when the engine is in focus */
-      const breathe = () => { const t = performance.now() / 1000, L = LAYERS[2], hot = st.on === 2 ? 1 : 0.35;
-        L.nodes.forEach((n, i) => { const h = 0.6 + hot * (0.9 + 0.8 * Math.sin(t * 1.6 + i * 0.9)) * (reduce ? 0 : 1); n.scale.y = h; n.position.y = n.userData.base + h / 2; }); };
-      every(breathe);
+      const pale = new T.Color(document.documentElement.getAttribute('data-theme') === 'dark' ? '#4A5066' : '#D5D9E2');
+      paintSculpture(S, st.on, pale, 1, false);
+      let lastT = performance.now();
+      every((now) => { const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now; paintSculpture(S, st.on, pale, dt, !reduce); });
       function focus(k, fromWalk) {
         st.on = k; G.spin = k < 0; if (!fromWalk) st.walk = false;
-        const spread = k < 0 ? 1 : 1.45;
-        LAYERS.forEach((L, i) => {
-          const fromY = L.g.position.y, toY = L.y * spread + (i === k ? 0.35 : 0), on = k < 0 || i === k;
-          const from = L.mats.map((m) => [m.opacity, m.emissiveIntensity]);
-          tw(650, (e) => { L.g.position.y = fromY + (toY - fromY) * e; L.mats.forEach((m, j) => { const to = on ? m.userData.base : 0.12; m.opacity = from[j][0] + (to - from[j][0]) * e; const ei = i === k ? 0.28 : 0; m.emissiveIntensity = from[j][1] + (ei - from[j][1]) * e; }); });
-        });
-        if (k >= 0) { camTo({ ty: LAYERS[k].y * spread * 0.55, r: 17 }, 700); state.info = LAYERS[k].info; } else { camTo({ ty: 0, r: 19 }, 700); state.info = null; }
+        if (k >= 0) { camTo({ ty: S.y[k] - 0.8, r: 15 }, 700); state.info = LAYERS[k].info; } else { camTo({ ty: 1.4, r: 20 }, 700); state.info = null; }
         paintHud([['Engine', 'Graphite'], ['Layer', k < 0 ? 'All four' : LAYERS[k].short]]);
         paintPanel();
       }
