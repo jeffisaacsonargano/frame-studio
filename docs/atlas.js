@@ -501,7 +501,17 @@
     x.addEventListener('click', () => { store.set('path-hint-off', true); el.remove(); });
     return el;
   }
+  /* the menu tabs lift off the page one after another, quick and light, like a finger run down piano keys */
+  let navPlayed = false;
+  function playKeys(root) {
+    try { if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) { return; }
+    Array.prototype.forEach.call((root || document).querySelectorAll('.navbtn'), (b, i) => {
+      if (!b.animate || !b.offsetParent) return;
+      try { b.animate([{ opacity: 0, transform: 'translateY(8px) scale(.97)', boxShadow: '0 0 0 rgba(0,0,0,0)' }, { opacity: 1, transform: 'translateY(-4px) scale(1.04)', boxShadow: '0 8px 18px rgba(0,0,0,.18)', offset: 0.5 }, { opacity: 1, transform: 'none', boxShadow: '0 0 0 rgba(0,0,0,0)' }], { duration: 380, delay: 80 + i * 24, easing: 'cubic-bezier(.3,.7,.3,1)', fill: 'backwards' }); } catch (e) {}
+    });
+  }
   function renderNav() {
+    if (!navPlayed) { navPlayed = true; setTimeout(() => playKeys(document), 60); }
     const nav = $('#nav');
     nav.replaceChildren();
     if (!nav.dataset.gbound) { bindGroupDrop(nav); nav.dataset.gbound = '1'; }
@@ -542,7 +552,7 @@
       apply();
       const gutter = $(':scope > .gutter', el);
       if (!gutter) return;
-      const toggle = () => { st.collapsed = !st.collapsed; apply(); store.set(key, st); };
+      const toggle = () => { st.collapsed = !st.collapsed; apply(); store.set(key, st); if (!st.collapsed) playKeys(el); };
       $('.gutter-btn', gutter).addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
       gutter.addEventListener('dblclick', toggle);
       gutter.addEventListener('keydown', (e) => {

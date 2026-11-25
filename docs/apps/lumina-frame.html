@@ -773,8 +773,10 @@ arch: '<circle cx="9" cy="4" r="1.5"/><path d="M8.3 5.3 4.5 15.5M9.7 5.3l3.8 10.
       var el = $(p[0]); if (!el || !el.animate) return;
       try { el.animate([{ opacity: 0, transform: 'translateX(' + p[1] + 'px)' }, { opacity: 1, transform: 'none' }], { duration: 560, delay: p[2], easing: ease, fill: 'backwards' }); } catch (e) {}
     });
-  }
-  function applyGrid() {
+/* the tabs lift off the page one after another, quick and light, like a finger run down piano keys */
+Array.prototype.forEach.call(document.querySelectorAll('#lumNav .lum-navbtn, .lum-side .lum-tab'), function (b, i) { if (!b.animate) return; try { b.animate([{ opacity: 0, transform: 'translateY(8px) scale(.97)', boxShadow: '0 0 0 rgba(0,0,0,0)' }, { opacity: 1, transform: 'translateY(-4px) scale(1.04)', boxShadow: '0 8px 18px rgba(0,0,0,.28)', offset: 0.5 }, { opacity: 1, transform: 'none', boxShadow: '0 0 0 rgba(0,0,0,0)' }], { duration: 380, delay: 140 + i * 24, easing: 'cubic-bezier(.3,.7,.3,1)', fill: 'backwards' }); } catch (e) {} });
+}
+function applyGrid() {
     root.style.setProperty('--rail', (S.railMini ? 64 : S.railW) + 'px');
     root.style.setProperty('--insp', (S.inspHidden ? 0 : S.inspW) + 'px'); root.style.setProperty('--insph', (S.inspHidden ? 0 : ST.inspH) + 'px');
     $('.g1 .lum-gbtn').textContent = S.railMini ? '›' : '‹';
