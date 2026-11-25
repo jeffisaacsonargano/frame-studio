@@ -478,6 +478,13 @@ label([{ t: 'Dependency graph', s: 70, w: 800 }, { t: 'a change recalculates onl
 label([{ t: 'Unified, governed data', s: 66, w: 800 }, { t: 'stored once and shared; access rights filter what each role sees', s: 44 }, { t: 'documented | shield illustrative', s: 44, c: 'muted' }], 5.6, 1.3, -23, GY + 3.8, -3, { px: 512, lvl: 2 });
 label([{ t: 'Elastic Engine', s: 66, w: 800 }, { t: 'storage apart from compute; capacity added during peaks', s: 44 }, { t: 'interactive work is prioritised over background analysis', s: 44 }, { t: 'documented | not drawn in this lighter level', s: 40, c: 'muted' }], 6.4, 1.7, 22, GY + 2.6, 6, { px: 512, lvl: 2 });
 label([{ t: "Based on Pigment's published description of Graphite", s: 50, w: 800 }, { t: 'Pigment blog: Graphite, the architecture powering what is possible in Pigment', s: 34 }, { t: 'Pigment KB: scoped calculations, access rights, scenarios', s: 34 }, { t: 'Pigment Community: architectural foundations, sparse engine', s: 34 }, { t: 'Every drawing here is original and illustrative.', s: 30, c: 'muted' }], 8.6, 2, -15, GY + 2.7, 19.5, { px: 1024, lvl: 2 });
+/* the Graphite stack, after Pigment's description: three pillars with people and AI agents on top. Stand at a station and its layer lights; on the pad the layers take turns. */
+var STK = { x: 8, z: -15, L: [['People and AI agents', 'in Pigment and through MCP: same definitions, same governance', '#B79BFF'], ['Dynamic modeling', 'flexible structures and native scenarios', '#E5B567'], ['Elastic Engine', 'storage apart from compute, capacity on demand, prioritised work', '#E07B5A', 22, 6], ['Unified, governed data', 'stored once, access rights, one source of truth', '#7FD1A3', -23, -3]] };
+L2.cyl(STK.x, GY + 0.125, STK.z, 2.7, 0.25, '#0A0D18');
+STK.L.forEach(function (q, k) { label([{ t: (4 - k) + '  ' + q[0], s: 62, w: 800 }, { t: q[1], s: 38, c: 'muted' }], 5.4, 0.85, STK.x + 5.2, GY + 2 + (3 - k) * 1.45, STK.z, { px: 512, lvl: 2 }); });
+label([{ t: 'The Graphite stack', s: 74, w: 800 }, { t: 'stand on the ring to walk the layers', s: 44, c: 'muted' }], 5.6, 1.1, STK.x, GY + 9.4, STK.z, { px: 512, lvl: 2 });
+col(STK.x - 2.6, STK.x + 2.6, STK.z - 2.6, STK.z + 2.6, GY + 0.25, GY, function () { var q = STK.L[STK.on < 0 ? 0 : STK.on]; return { b: 'The Graphite stack | ' + (4 - (STK.on < 0 ? 0 : STK.on)) + ' ' + q[0], t: q[1] + '.', s: ['Pigment describes three pillars, with people and AI agents working on top. Based on the Pigment blog (June 2026).'] }; });
+STK.on = -1;
 L0.done(); L1.done(); L2.done();
 })();
 
@@ -671,6 +678,10 @@ dbox(-23, GY + 0.32, -9 + G.role * 6, 3.1, 0.06, 0.12, WHITE, 1); dbox(-23, GY +
 gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
 if (ey > -41) dbox(-14, -0.55, 9.5, 3, 0.02, 3, rgb(ACC.pink), 1, 0.3 + Math.sin(time * 3) * (reduce ? 0 : 0.12));
 if (ey < -40.7) dbox(0, GY + 19, -2, 40, 0.05, 40, rgb(ACC.cyan), 1, G.shield);
+if (ey < -40.7) { STK.on = P.y > -60 ? -1 : P.x < -18 ? 3 : P.x > 17 ? 2 : Math.sqrt(Math.pow(P.x - STK.x, 2) + Math.pow(P.z - STK.z, 2)) < 2.7 ? Math.floor(time / 3) % 4 : -1;
+STK.L.forEach(function (q, k) { var on = k === STK.on, c = rgb(q[2]), y = GY + 2 + (3 - k) * 1.45; dbox(STK.x, y, STK.z, 4.6, 0.5, 3, c, 1, on ? 0.95 : 0.4); dbox(STK.x, y + 0.28, STK.z, 4.7, 0.05, 3.1, WHITE, 1, on ? 0.7 : 0.12);
+if (q[3] != null) { var dx = q[3] - STK.x, dz = q[4] - STK.z; dbox(STK.x + dx / 2, GY + 0.04, STK.z + dz / 2, 0.32, 0.03, Math.sqrt(dx * dx + dz * dz), c, 1, on ? 0.85 : 0.22, Math.atan2(dx, dz)); } });
+dbox(STK.x, GY + 0.27, STK.z, 5, 0.04, 5, WHITE, 1, 0.2 + 0.15 * Math.sin(time * 2.2)); }
 if (ey < -3 && ey > -70) dbox(0, -31, 44, 18, 78, 8, [0.1, 0.2, 0.34], 1, 0.3); dbox(-21, -36, 44, 11, 8, 10, [0.45, 0.22, 0.1], 1, 0.14);   /* the glass warehouse and the lakehouse */
 GH.forEach(function (o) { dbox(o.n.x, o.y, o.n.z, 2.8, 1, 1.2, rgb(hx(o.key)), 0, 0.3); dbox(o.n.x, o.y + 0.53, o.n.z, 2.9, 0.05, 1.3, WHITE, 1, 0.8); }); GH.length = 0;   /* proposed blocks, as ghosts */
 if (HR.flash > 0) { HR.flash -= dt; HR.stamp.vis = HR.flash > 0; }
