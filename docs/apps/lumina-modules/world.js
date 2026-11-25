@@ -477,7 +477,7 @@ label([{ t: 'Unified, governed data', s: 66, w: 800 }, { t: 'stored once and sha
 label([{ t: 'Elastic Engine', s: 66, w: 800 }, { t: 'storage apart from compute; capacity added during peaks', s: 44 }, { t: 'interactive work is prioritised over background analysis', s: 44 }, { t: 'documented | not drawn in this lighter level', s: 40, c: 'muted' }], 6.4, 1.7, 22, GY + 2.6, 6, { px: 512, lvl: 2 });
 label([{ t: "Based on Pigment's published description of Graphite", s: 50, w: 800 }, { t: 'Pigment blog: Graphite, the architecture powering what is possible in Pigment', s: 34 }, { t: 'Pigment KB: scoped calculations, access rights, scenarios', s: 34 }, { t: 'Pigment Community: architectural foundations, sparse engine', s: 34 }, { t: 'Every drawing here is original and illustrative.', s: 30, c: 'muted' }], 8.6, 2, -15, GY + 2.7, 19.5, { px: 1024, lvl: 2 });
 /* Graphite, drawn in the spirit of Pigment's own illustrations (an original drawing): a sphere of layers for the Elastic Engine, a cage of connected nodes for unified, governed data, and a broken bowl of curved panels for dynamic modeling. The part for the layer in focus is in colour; the rest fade to grey. */
-var SC = { on: -1, off: -1, F: 2.6, y0: GY + 9.2, parts: [], L: [['People and AI agents', 'in Pigment and through MCP: same definitions, same governance'], ['Dynamic modeling', 'flexible structures and native scenarios'], ['Elastic Engine', 'storage apart from compute, capacity on demand, prioritised work'], ['Unified, governed data', 'stored once, access rights, one source of truth']] };
+SC = { on: -1, off: -1, F: 2.6, y0: GY + 9.2, parts: [], L: [['People and AI agents', 'in Pigment and through MCP: same definitions, same governance'], ['Dynamic modeling', 'flexible structures and native scenarios'], ['Elastic Engine', 'storage apart from compute, capacity on demand, prioritised work'], ['Unified, governed data', 'stored once, access rights, one source of truth']] };
 function scQuad(B, a, b, c, d) { [a, b, c, a, c, d].forEach(function (p) { B.v.push(p[0], p[1], p[2], p[3], p[4], p[5], 1, 1, 1, 1); }); }
 function scZone(B, R, t0, t1, tx, ry, ox) {
 var n = 36, m = 4, i, j, P = function (t, a) { var x = R * Math.sin(t) * Math.cos(a), y = R * Math.cos(t), z = R * Math.sin(t) * Math.sin(a), c = Math.cos(tx), s = Math.sin(tx), y2 = y * c - z * s, z2 = y * s + z * c, cr = Math.cos(ry), sr = Math.sin(ry), x3 = x * cr + z2 * sr, z3 = -x * sr + z2 * cr; return [x3 + ox, y2, z3, x3 / R, y2 / R, z3 / R]; };
@@ -509,7 +509,7 @@ L0.done(); L1.done(); L2.done();
 
 /* Graphite's moving parts: the lattice and three rings are small batches in local space, turned by a model matrix */
 var G = { role: 2, rip: null, ov: 0, on: false, ova: 0, ovh: 9, rot: 0, ring: [0, 0, 0], txt: '', glow: {}, beams: {}, shield: 0.1, rn: {} };
-var coreB = new Batch(), ringB = [], RR = [7, 10.5, 14];
+var coreB = new Batch(), ringB = [], RR = [7, 10.5, 14], SC = SC || null;
 (function () {
 var a, b, c, N = 6, def;
 for (a = 0; a < N; a++) for (b = 0; b < N; b++) for (c = 0; c < N; c++) { def = (a * 7 + b * 13 + c * 5 + a * b * c) % 10 < 4; coreB.box((a - 2.5) * 0.8, (b - 2.5) * 0.8, (c - 2.5) * 0.8, def ? 0.42 : 0.07, def ? 0.42 : 0.07, def ? 0.42 : 0.07, def ? ['#A889D9', '#A889D9', ACC.blue, ACC.pink, ACC.yellow][(a + b * 2 + c) % 5] : '#2A3350', 0); }
@@ -576,14 +576,14 @@ P.yaw += P.lvy * dt; P.pitch = clamp(P.pitch + P.lvp * dt, -1.25, 1.25);
 }
 if (P.rc) { P.pitch += (0 - P.pitch) * Math.min(1, dt * 10); if (Math.abs(P.pitch) < 0.01) { P.pitch = 0; P.rc = false; } }
 var sn = Math.sin(P.yaw), cs = Math.cos(P.yaw), dx = -sn * f + cs * s, dz = -cs * f - sn * s, l = Math.sqrt(dx * dx + dz * dz); if (l > 1) { dx /= l; dz /= l; }
-var sh = P.y < -0.2 && P.y > -39.4 && inRect(HATCH, P.x, P.z, -0.4) ? HATCH : P.y < -40.2 && P.y > GY + 0.6 && inRect(H2, P.x, P.z, -0.4) ? H2 : null, inS = !!sh && !P.ground, sp = (inS ? 2.5 : 11) * dt;
+var sh = P.y < -0.2 && P.y > -39.4 && inRect(HATCH, P.x, P.z, -0.4) ? HATCH : P.y < -40.2 && P.y > GY + 0.6 && inRect(H2, P.x, P.z, -0.4) ? H2 : null, inS = !!sh && !P.ground, sp = (inS ? 2.5 : 12.5) * dt;
 var nx = P.x + dx * sp, nz = P.z + dz * sp;
 if (inS) { nx = clamp(nx, sh.x0 + 0.45, sh.x1 - 0.45); nz = clamp(nz, sh.z0 + 0.45, sh.z1 - 0.45); }
 else if (P.y < -60) { nx = clamp(nx, -30.5, 30.5); nz = clamp(nz, -26.5, 22.5); }
 else if (P.y > -1.5) { nx = clamp(nx, -23.6, 23.6); nz = clamp(nz, -16.6, 16.6); }
 else { nx = clamp(nx, -31.5, 31.5); nz = clamp(nz, -27.5, 80); }
 if (!blocked(nx, P.z)) P.x = nx; if (!blocked(P.x, nz)) P.z = nz;
-if (inS) P.vy = Math.max(P.vy - 12 * dt, reduce ? -5.5 : -9.5); else P.vy -= 26 * dt;
+if (inS) P.vy = Math.max(P.vy - 30 * dt, reduce ? -8 : -22); else P.vy -= 26 * dt;
 P.y += P.vy * dt;
 if (P.y < -56 && P.z > 24.4) { P.x = 0; P.y = -40; P.z = 19; P.vy = 0; P.pitch = 0; P.ground = true; flash(); return; }
 var g = groundAt(P.x, P.z);
@@ -591,7 +591,7 @@ if (P.y <= g) { if (!P.ground && g < -30 && g > -41) mark('fall'); if (g < -70) 
 focusN = P.ground && P.cur && P.cur.node ? P.cur.node : null;
 var LV = [0, -39.85, GY + 0.15], onL = inRect(LIFT, P.x, P.z) && Math.abs(P.y - lift.y) < 0.4;
 if (lift.to == null && !onL && P.ground) { var want = P.y > -1 ? 0 : P.y < -70 ? 2 : P.y < -30 && P.y > -41 ? 1 : -1; if (want >= 0 && Math.abs(lift.y - LV[want]) > 0.01) lift.to = LV[want]; }
-if (lift.to != null) { var dd = lift.to > lift.y ? 1 : -1; lift.y += dd * 7.5 * dt; if ((lift.to - lift.y) * dd <= 0) { lift.y = lift.to; lift.to = null; } }
+if (lift.to != null) { var dd = lift.to > lift.y ? 1 : -1; lift.y += dd * 12 * dt; if ((lift.to - lift.y) * dd <= 0) { lift.y = lift.to; lift.to = null; } }
 if (G.on && !(P.ground && P.cur && P.cur.ov)) G.on = false;
 G.ov += ((G.on ? 1 : 0) - G.ov) * Math.min(1, dt * (reduce ? 20 : 3.5));
 }
