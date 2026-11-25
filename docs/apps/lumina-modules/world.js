@@ -576,7 +576,7 @@ P.yaw += P.lvy * dt; P.pitch = clamp(P.pitch + P.lvp * dt, -1.25, 1.25);
 }
 if (P.rc) { P.pitch += (0 - P.pitch) * Math.min(1, dt * 10); if (Math.abs(P.pitch) < 0.01) { P.pitch = 0; P.rc = false; } }
 var sn = Math.sin(P.yaw), cs = Math.cos(P.yaw), dx = -sn * f + cs * s, dz = -cs * f - sn * s, l = Math.sqrt(dx * dx + dz * dz); if (l > 1) { dx /= l; dz /= l; }
-var sh = P.y < -0.2 && P.y > -39.4 && inRect(HATCH, P.x, P.z, -0.4) ? HATCH : P.y < -40.2 && P.y > GY + 0.6 && inRect(H2, P.x, P.z, -0.4) ? H2 : null, inS = !!sh && !P.ground, sp = (inS ? 2.5 : 7.4) * dt;
+var sh = P.y < -0.2 && P.y > -39.4 && inRect(HATCH, P.x, P.z, -0.4) ? HATCH : P.y < -40.2 && P.y > GY + 0.6 && inRect(H2, P.x, P.z, -0.4) ? H2 : null, inS = !!sh && !P.ground, sp = (inS ? 2.5 : 11) * dt;
 var nx = P.x + dx * sp, nz = P.z + dz * sp;
 if (inS) { nx = clamp(nx, sh.x0 + 0.45, sh.x1 - 0.45); nz = clamp(nz, sh.z0 + 0.45, sh.z1 - 0.45); }
 else if (P.y < -60) { nx = clamp(nx, -30.5, 30.5); nz = clamp(nz, -26.5, 22.5); }
