@@ -473,18 +473,39 @@ L2.cyl(0, GY + 0.25, -2, 2.2, 0.5, '#0A0D18');
 ['Viewer', 'Planner', 'Admin'].forEach(function (r, k) { var z = -9 + k * 6; L2.cyl(-23, GY + 0.125, z, 1.3, 0.25, ['blue', 'yellow', 'pink'][k]); label([{ t: r, s: 170, w: 800 }], 2.2, 0.62, -23, GY + 2.4, z, { lvl: 2 });
 col(-24.15, -21.85, z - 1.15, z + 1.15, GY + 0.25, GY, function () { return { b: r + ' role', t: (G.role === k ? 'active' : 'press Space to switch') + '. Access rights decide which results rise through the shield for this role (rule shown is illustrative).' }; }).role = k; });
 [[19.5, 21, 1.2], [18, 19.5, 2.4], [15, 18, 3.6]].forEach(function (q, k) { L2.box(0, GY + q[2] / 2, (q[0] + q[1]) / 2, 3, q[2], q[1] - q[0], '#0A0D18'); L2.box(0, GY + q[2], (q[0] + q[1]) / 2, 3.04, 0.06, q[1] - q[0] + 0.04, 'metric', 0); var c = col(-1.5, 1.5, q[0], q[1], GY + q[2], GY, k === 2 ? function () { return { b: 'Overview deck', t: 'press Space for the overview camera: the whole engine, with the access shield above.' }; } : null); if (k === 2) c.ov = true; });
-label([{ t: 'Sparse engine', s: 70, w: 800 }, { t: 'only cells that hold data are stored and calculated', s: 50 }, { t: 'documented | lattice and counts illustrative', s: 44, c: 'muted' }], 6.2, 1.3, 5, GY + 2.2, 3.5, { px: 512, lvl: 2 });
-label([{ t: 'Dependency graph', s: 70, w: 800 }, { t: 'a change recalculates only what depends on it', s: 50 }, { t: 'documented | rings illustrative', s: 44, c: 'muted' }], 6, 1.3, -10, GY + 2.2, 7, { px: 512, lvl: 2 });
 label([{ t: 'Unified, governed data', s: 66, w: 800 }, { t: 'stored once and shared; access rights filter what each role sees', s: 44 }, { t: 'documented | shield illustrative', s: 44, c: 'muted' }], 5.6, 1.3, -23, GY + 3.8, -3, { px: 512, lvl: 2 });
 label([{ t: 'Elastic Engine', s: 66, w: 800 }, { t: 'storage apart from compute; capacity added during peaks', s: 44 }, { t: 'interactive work is prioritised over background analysis', s: 44 }, { t: 'documented | not drawn in this lighter level', s: 40, c: 'muted' }], 6.4, 1.7, 22, GY + 2.6, 6, { px: 512, lvl: 2 });
 label([{ t: "Based on Pigment's published description of Graphite", s: 50, w: 800 }, { t: 'Pigment blog: Graphite, the architecture powering what is possible in Pigment', s: 34 }, { t: 'Pigment KB: scoped calculations, access rights, scenarios', s: 34 }, { t: 'Pigment Community: architectural foundations, sparse engine', s: 34 }, { t: 'Every drawing here is original and illustrative.', s: 30, c: 'muted' }], 8.6, 2, -15, GY + 2.7, 19.5, { px: 1024, lvl: 2 });
-/* the Graphite stack, after Pigment's description: three pillars with people and AI agents on top. Stand at a station and its layer lights; on the pad the layers take turns. */
-var STK = { x: 8, z: -15, L: [['People and AI agents', 'in Pigment and through MCP: same definitions, same governance', '#B79BFF'], ['Dynamic modeling', 'flexible structures and native scenarios', '#E5B567'], ['Elastic Engine', 'storage apart from compute, capacity on demand, prioritised work', '#E07B5A', 22, 6], ['Unified, governed data', 'stored once, access rights, one source of truth', '#7FD1A3', -23, -3]] };
-L2.cyl(STK.x, GY + 0.125, STK.z, 2.7, 0.25, '#0A0D18');
-STK.L.forEach(function (q, k) { label([{ t: (4 - k) + '  ' + q[0], s: 62, w: 800 }, { t: q[1], s: 38, c: 'muted' }], 5.4, 0.85, STK.x + 5.2, GY + 2 + (3 - k) * 1.45, STK.z, { px: 512, lvl: 2 }); });
-label([{ t: 'The Graphite stack', s: 74, w: 800 }, { t: 'stand on the ring to walk the layers', s: 44, c: 'muted' }], 5.6, 1.1, STK.x, GY + 9.4, STK.z, { px: 512, lvl: 2 });
-col(STK.x - 2.6, STK.x + 2.6, STK.z - 2.6, STK.z + 2.6, GY + 0.25, GY, function () { var q = STK.L[STK.on < 0 ? 0 : STK.on]; return { b: 'The Graphite stack | ' + (4 - (STK.on < 0 ? 0 : STK.on)) + ' ' + q[0], t: q[1] + '.', s: ['Pigment describes three pillars, with people and AI agents working on top. Based on the Pigment blog (June 2026).'] }; });
-STK.on = -1;
+/* Graphite, drawn in the spirit of Pigment's own illustrations (an original drawing): a sphere of layers for the Elastic Engine, a cage of connected nodes for unified, governed data, a broken bowl of curved panels for dynamic modeling, and faint lines rising above for the people and AI agents working on top. The part for the layer in focus is in colour; the rest fade to grey. */
+var SC = { on: -1, F: 2.2, y0: GY + 5.6, parts: [], L: [['People and AI agents', 'in Pigment and through MCP: same definitions, same governance'], ['Dynamic modeling', 'flexible structures and native scenarios'], ['Elastic Engine', 'storage apart from compute, capacity on demand, prioritised work'], ['Unified, governed data', 'stored once, access rights, one source of truth']] };
+function scQuad(B, a, b, c, d) { [a, b, c, a, c, d].forEach(function (p) { B.v.push(p[0], p[1], p[2], p[3], p[4], p[5], 1, 1, 1, 1); }); }
+function scZone(B, R, t0, t1, tx, ry, ox) {
+var n = 36, m = 4, i, j, P = function (t, a) { var x = R * Math.sin(t) * Math.cos(a), y = R * Math.cos(t), z = R * Math.sin(t) * Math.sin(a), c = Math.cos(tx), s = Math.sin(tx), y2 = y * c - z * s, z2 = y * s + z * c, cr = Math.cos(ry), sr = Math.sin(ry), x3 = x * cr + z2 * sr, z3 = -x * sr + z2 * cr; return [x3 + ox, y2, z3, x3 / R, y2 / R, z3 / R]; };
+for (i = 0; i < m; i++) for (j = 0; j < n; j++) scQuad(B, P(t0 + (t1 - t0) * i / m, j / n * 6.28319), P(t0 + (t1 - t0) * (i + 1) / m, j / n * 6.28319), P(t0 + (t1 - t0) * (i + 1) / m, (j + 1) / n * 6.28319), P(t0 + (t1 - t0) * i / m, (j + 1) / n * 6.28319));
+return B;
+}
+function scArc(B, r0, r1, y0, y1, a0, a1) {
+for (var j = 0; j < 8; j++) { var a = a0 + (a1 - a0) * j / 8, b = a0 + (a1 - a0) * (j + 1) / 8, ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(b), sb = Math.sin(b);
+scQuad(B, [ca * r0, y0, sa * r0, ca, 0, sa], [cb * r0, y0, sb * r0, cb, 0, sb], [cb * r1, y1, sb * r1, cb, 0, sb], [ca * r1, y1, sa * r1, ca, 0, sa]); }
+return B;
+}
+(function () {
+var i, R = 1.55, ORB = ['#1F2A55', '#2B3A67', '#C2407E', '#F0508C', '#F57BB0', '#9AA7E8', '#3FC7E0'], N = ORB.length;
+for (i = 0; i < N; i++) SC.parts.push({ k: 2, c: rgb(ORB[i]), b: scZone(new Batch(), R * (1 - i * 0.012), i / N * Math.PI + 0.035, (i + 1) / N * Math.PI - 0.035, 0.55 + Math.sin(i * 1.1) * 0.08, i * 0.35, Math.sin(i * 1.7) * 0.05).done(), y: 3.7 });
+var pts = [], NB = [new Batch(), new Batch(), new Batch(), new Batch()], NC = ['#8F97AE', '#F0508C', '#3FC7E0', '#F26B3A'], LB = new Batch(), seen = {};
+for (i = 0; i < 40; i++) { var yy = 0.95 - i / 39 * 1.7, rr = Math.sqrt(Math.max(0, 1 - yy * yy)), th = i * 2.399963, jj = 0.88 + (i * 37 % 11) / 50; pts.push([Math.cos(th) * rr * 2.7 * jj, yy * 2.16, Math.sin(th) * rr * 2.7 * jj]); }
+pts.forEach(function (p, i) { var s = 0.13 + (i * 13 % 7) * 0.025; NB[i % 5 === 0 ? 1 + (i / 5) % 3 : 0].box(p[0], p[1], p[2], s, s, s, 'white');
+pts.map(function (q, j) { return [Math.pow(p[0] - q[0], 2) + Math.pow(p[1] - q[1], 2) + Math.pow(p[2] - q[2], 2), j]; }).filter(function (x) { return x[1] !== i; }).sort(function (a, b) { return a[0] - b[0]; }).slice(0, 3).forEach(function (x) { var key = Math.min(i, x[1]) + ':' + Math.max(i, x[1]); if (!seen[key]) { seen[key] = 1; LB.beam(p, pts[x[1]], 0.025, 'white', 0); } }); });
+NB.forEach(function (B, q) { SC.parts.push({ k: 3, c: rgb(NC[q]), b: B.done(), y: 1.05 }); });
+SC.parts.push({ k: 3, c: rgb('#6E7BA8'), b: LB.done(), y: 1.05, line: 1 });
+var BC = ['#2B3A67', '#3A4A7A', '#F0508C', '#2B3A67', '#3FC7E0', '#46557F', '#2B3A67', '#F57BB0'], bi = 0, BB = {};
+[[0, 3.1, 1.25, 7], [-1.15, 2.7, 1, 6], [-2.05, 2, 0.7, 5]].forEach(function (q, ri) { for (var k = 0; k < q[3]; k++) { var a0 = k / q[3] * 6.28319 + ri * 0.4 + (k * 7 % 3) * 0.04, col = BC[bi++ % BC.length], yo = q[0] + (k * 3 % 4) * 0.06; scArc(BB[col] = BB[col] || new Batch(), q[1] * 0.86, q[1], yo - q[2] / 2, yo + q[2] / 2, a0, a0 + 6.28319 / q[3] - 0.12 - (k * 5 % 3) * 0.05); } });
+Object.keys(BB).forEach(function (col) { SC.parts.push({ k: 1, c: rgb(col), b: BB[col].done(), y: -1 }); });
+var UB = new Batch(); for (i = 0; i < 30; i++) { var a = i * 2.399963, r0 = 0.2 + (i % 5) * 0.12, len = 1.1 + (i * 7 % 9) * 0.24, lean = 0.22 + (i % 4) * 0.1; UB.beam([Math.cos(a) * r0, 0, Math.sin(a) * r0], [Math.cos(a) * (r0 + lean * len), len, Math.sin(a) * (r0 + lean * len)], 0.02, 'white', 0); }
+SC.parts.push({ k: 0, c: rgb('#C9D2FF'), b: UB.done(), y: 5, up: 1 });
+SC.parts.forEach(function (p) { p.cur = p.c.slice(); });
+[[2, 3.7], [3, 1.05], [1, -2.3], [0, 5.9]].forEach(function (q) { label([{ t: SC.L[q[0]][0], s: 54, w: 500, c: 'muted' }], 4.4, 0.5, 8.4, SC.y0 + q[1] * SC.F, -2, { px: 512, lvl: 2 }); });
+})();
 L0.done(); L1.done(); L2.done();
 })();
 
@@ -592,7 +613,7 @@ function updateWhere() {
 var w, nb;
 if (G.on) { setWhere({ b: 'Overview', t: 'drag, or J and L, to orbit the engine; I and K raise and lower the camera. Space or Esc returns you to the deck.', s: G.rip ? [G.txt] : [] }); return; }
 if (P.y < -0.8 && P.y > -39.5 && !P.ground && inRect(HATCH, P.x, P.z, -0.5)) w = { b: 'Falling', t: 'through the frame, its data sources, its views and its metrics, down to Blockflow.' };
-else if (P.y < -60) w = G.rip ? { b: 'Graphite', t: G.txt } : P.cur && P.cur.info && P.ground ? P.cur.info() : Math.sqrt(P.x * P.x + (P.z + 2) * (P.z + 2)) < 7.5 ? { b: 'Sparse cube core', t: 'only defined cells are stored and calculated. Press Space to run a recalculation.' } : { b: 'Graphite, the calculation engine', t: 'role pads to the west, the overview deck to the north. The cyan lift goes back up.', s: ['A lighter version of the Frame Studio level. What the engine does is documented; how it looks here is illustrative.'] };
+else if (P.y < -60) w = G.rip ? { b: 'Graphite', t: G.txt } : P.cur && P.cur.info && P.ground ? P.cur.info() : Math.sqrt(P.x * P.x + (P.z + 2) * (P.z + 2)) < 8 ? { b: 'Graphite | ' + SC.L[SC.on < 0 ? 2 : SC.on][0], t: SC.L[SC.on < 0 ? 2 : SC.on][1] + '. Press Space to run a recalculation.', s: ['Pigment describes three pillars, with people and AI agents working on top (Pigment blog, June 2026). An original drawing.'] } : { b: 'Graphite, the calculation engine', t: 'role pads to the west, the overview deck to the north. The cyan lift goes back up.', s: ['A lighter version of the Frame Studio level. What the engine does is documented; how it looks here is illustrative.'] };
 else if (P.y < -30 && (sqlOpen || nearTable())) { var tq = nearTable(); if (sqlOpen && Math.sqrt(Math.pow(P.x - sqlOpen.x, 2) + Math.pow(P.z - sqlOpen.z, 2)) > 5) sqlOpen = null; var sd = sqlOpen ? WSQL[sqlOpen.nm] : null;
 w = sqlOpen ? { b: sqlOpen.nm, t: sd.kind + ' | ' + sd.rows + ' rows (illustrative)', q: sd.q, s: (sd.note ? [sd.note] : []).concat(['Illustrative SQL: column names are examples, not from a real warehouse. Space or Esc closes.']) } : tq ? { b: tq.nm, t: WSQL[tq.nm].kind + ' | press Space to open its SQL' } : { b: 'Blockflow level', t: 'walk up to a block or a warehouse table.' }; }
 else if (P.y < -30) { nb = nearNode(4.6); w = P.cur && P.cur.info && P.ground ? P.cur.info() : nb ? { b: nb.n.n, t: KIND[nb.n.k], f: nb.n.f, s: ['Jump on top to see what it depends on.'] } : { b: 'Blockflow level', t: 'jump on a block to see what it depends on. Bridges at the far edge lead to Snowflake and NetSuite; the violet hatch drops to the Graphite engine.' }; }
@@ -666,22 +687,17 @@ var stp = Math.floor(time / (reduce ? 2.6 : 1.5)) % 5; [0, 1, 2, 3].forEach(func
 if (stp !== G.air) { G.air = stp; if (!G.airL) G.airL = label('', 5.4, 2.6, 19, -34.4, 43.4, { px: 512, lvl: 1 }); var tasks = ['extract NetSuite', 'load RAW', 'run dbt', 'refresh Pigment import'];
 G.airL.set([{ t: 'Airflow | schedule: daily 02:00', s: 40, w: 800 }].concat(tasks.map(function (tk, q) { return { t: (q === stp ? '> ' : q < stp ? 'done: ' : '') + tk, s: 36, w: q === stp ? 800 : 500, c: q === stp ? 'clay' : q < stp ? 'ink' : 'muted' }; }), [{ t: 'schedules and orchestrates each step (illustrative)', s: 28, c: 'muted' }])); }
 }
-Object.keys(G.beams).forEach(function (id) { var B = G.beams[id]; if (B.a <= 0.002 && B.h === 0) return; B.h += (B.to - B.h) * Math.min(1, dt * 7); if (!G.rip || G.rip.t > 3.4) { B.a *= Math.max(0, 1 - dt * 3); if (B.a < 0.01) { B.a = 0; B.h = 0; B.to = 0; } } if (B.h > 0.05) dbox(NODES[id].x, GY + 0.6 + B.h / 2, NODES[id].z, 0.2, B.h, 0.2, rgb(hx(KC[NODES[id].k])), 1); });
 if (ey < -40.7) {
-draw(coreB, mTRS(0, GY + 5.4, -2, G.rot, 1, 1, 1, 0.35), G.rip ? [1.25, 1.25, 1.25] : WHITE);
-ringB.forEach(function (B, k) { draw(B, mTRS(0, GY + 0.6 + k * 0.3, -2, G.ring[k], 1, 1, 1)); });
-Object.keys(G.rn).forEach(function (id) { var q = G.rn[id], a = q.a - G.ring[q.ring], r = RR[q.ring], c = rgb(hx(KC[NODES[id].k])), g = 1 + G.glow[id]; G.glow[id] *= Math.max(0, 1 - dt * 1.2); var s = reduce ? 1 : 1 + G.glow[id] * 0.5;
-dbox(Math.cos(a) * r, GY + 0.95 + q.ring * 0.3, -2 + Math.sin(a) * r, 1.1 * s, 0.6 * s, 0.7 * s, [c[0] * g, c[1] * g, c[2] * g], 0, 1, -a); });
+SC.on = P.y > -60 ? -1 : P.x < -18 ? 3 : P.x > 17 ? 2 : Math.sqrt(P.x * P.x + (P.z + 2) * (P.z + 2)) < 8 ? Math.floor(time / 3.5) % 4 : -1;
+var scPale = [0.36, 0.39, 0.48], scF = G.rip ? 1.3 : 1, scK = Math.min(1, dt * 5);
+SC.parts.forEach(function (p) { var t = SC.on < 0 || SC.on === p.k ? p.c : scPale; for (var q = 0; q < 3; q++) p.cur[q] += (t[q] * scF - p.cur[q]) * scK; if (!p.up) draw(p.b, mTRS(0, SC.y0 + p.y * SC.F, -2, p.k === 2 ? G.rot * 2 : p.k === 3 ? -G.rot * 0.6 : 0, SC.F, SC.F, SC.F), p.cur, p.line ? 0 : 1); });
 dbox(-23, GY + 0.32, -9 + G.role * 6, 3.1, 0.06, 0.12, WHITE, 1); dbox(-23, GY + 0.32, -9 + G.role * 6, 0.12, 0.06, 3.1, WHITE, 1);
 }
 /* transparent things last: glows, the shield, then labels */
 gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
 if (ey > -41) dbox(-14, -0.55, 9.5, 3, 0.02, 3, rgb(ACC.pink), 1, 0.3 + Math.sin(time * 3) * (reduce ? 0 : 0.12));
 if (ey < -40.7) dbox(0, GY + 19, -2, 40, 0.05, 40, rgb(ACC.cyan), 1, G.shield);
-if (ey < -40.7) { STK.on = P.y > -60 ? -1 : P.x < -18 ? 3 : P.x > 17 ? 2 : Math.sqrt(Math.pow(P.x - STK.x, 2) + Math.pow(P.z - STK.z, 2)) < 2.7 ? Math.floor(time / 3) % 4 : -1;
-STK.L.forEach(function (q, k) { var on = k === STK.on, c = rgb(q[2]), y = GY + 2 + (3 - k) * 1.45; dbox(STK.x, y, STK.z, 4.6, 0.5, 3, c, 1, on ? 0.95 : 0.4); dbox(STK.x, y + 0.28, STK.z, 4.7, 0.05, 3.1, WHITE, 1, on ? 0.7 : 0.12);
-if (q[3] != null) { var dx = q[3] - STK.x, dz = q[4] - STK.z; dbox(STK.x + dx / 2, GY + 0.04, STK.z + dz / 2, 0.32, 0.03, Math.sqrt(dx * dx + dz * dz), c, 1, on ? 0.85 : 0.22, Math.atan2(dx, dz)); } });
-dbox(STK.x, GY + 0.27, STK.z, 5, 0.04, 5, WHITE, 1, 0.2 + 0.15 * Math.sin(time * 2.2)); }
+if (ey < -40.7) SC.parts.forEach(function (p) { if (p.up) draw(p.b, mTRS(0, SC.y0 + p.y * SC.F, -2, G.rot, SC.F, SC.F * (1 + (reduce ? 0 : 0.07 * Math.sin(time * 1.6))), SC.F), p.cur, 0, (SC.on < 0 || SC.on === 0 ? 0.45 : 0.16) + (reduce ? 0 : 0.1 * Math.sin(time * 2.1))); });
 if (ey < -3 && ey > -70) dbox(0, -31, 44, 18, 78, 8, [0.1, 0.2, 0.34], 1, 0.3); dbox(-21, -36, 44, 11, 8, 10, [0.45, 0.22, 0.1], 1, 0.14);   /* the glass warehouse and the lakehouse */
 GH.forEach(function (o) { dbox(o.n.x, o.y, o.n.z, 2.8, 1, 1.2, rgb(hx(o.key)), 0, 0.3); dbox(o.n.x, o.y + 0.53, o.n.z, 2.9, 0.05, 1.3, WHITE, 1, 0.8); }); GH.length = 0;   /* proposed blocks, as ghosts */
 if (HR.flash > 0) { HR.flash -= dt; HR.stamp.vis = HR.flash > 0; }
