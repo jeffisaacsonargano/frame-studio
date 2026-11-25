@@ -1815,7 +1815,7 @@ window.FrameWorld = (function () {
       else if (n === 7) { if (!flow) host.fade(1, 0); mode = 'cine'; actLearn(S, flow); }
       else if (n === 1 || n === 8) {
         G1.visible = true; G2.visible = G3.visible = false; focus(0, 0, 30); if (n === 8) { A1.field = true; ST.note.visible = true; hireCalc(); }
-        Object.assign(P, n === 8 ? { x: 4, y: 0, z: 9.5, vy: 0, yaw: 0, pitch: 0.12, ground: true } : { x: 0, y: 0, z: 14.5, vy: 0, yaw: 0, pitch: -0.04, ground: true }); A1.lift.y = 0; A1.lift.to = null; GP.rip = null; GP.ov = 0; GP.on = false;
+        Object.assign(P, n === 8 ? { x: 4, y: 0, z: 9.5, vy: 0, yaw: 0, pitch: 0.12, ground: true } : { x: 0, y: 0, z: 14.5, vy: 0, yaw: 0, pitch: -0.04, ground: true }); if (n === 1 && /graphite/.test(location.hash)) Object.assign(P, { x: 0, y: GY + 0.3, z: 17, yaw: 0, pitch: 0.3 });   /* #graphite: start on the engine level, facing it */ A1.lift.y = 0; A1.lift.to = null; GP.rip = null; GP.ov = 0; GP.on = false;
         A1.found = {}; A1.t = 0; A1.portalT = 1.5; A1.shareLv = 0; A1.humOn = false; A1.focus = null; if (propLeft() === 0) A1.found.build = true; host.quest(A1.found); mode = 'walk'; lastWhere = ''; setRegion(n === 8 ? 'All' : A1.region, true); host.fade(0, 350); if (n === 8) host.banner('Frame updated from the field');
       } else if (n === 2) { host.fade(from === 1 && mode !== 'attract' ? 0 : 1, 0); const fw = from === 1 && (mode === 'walk'); if (!fw) host.fade(1, 0); mode = 'cine'; act2(S, fw); }
       else if (n === 4) {   /* the hiring floor: free roam in the office */
