@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Graphite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Graphite: a 3D explainer for Pigment's calculation engine. Canvas stage on the left, explanation panel on the right.
+   Tokens mirror the Frame Studio shell so the app follows the shell's light/dark switch (data-theme on <html>). */
+:root {
+  --bg: #F0EBE1; --surface: #FBF8F3; --sunk: #E8E1D4; --raise: #FDFBF7;
+  --ink: #1F1E1D; --ink-2: #3D3A35; --muted: #655F55; --faint: #857E72;
+  --line: #DCD4C5; --line-soft: #E9E2D6;
+  --accent: #B04F2B; --accent-ink: #FFFDF9; --accent-soft: #F2DDD0; --accent-deep: #8F3F22;
+  --ok: #2F6B3F; --warn: #8A5600; --bad: #A8322B;
+  --c-input: #3A7049; --c-calc: #B04F2B; --c-lost: #8F5A06; --c-idle: #C4BBAB; --c-zero: #A39A8A;
+  --stage: #ECE6DA;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #1F1E1D; --surface: #262624; --sunk: #30302E; --raise: #2A2927;
+  --ink: #FAF9F5; --ink-2: #E5E3DA; --muted: #B5B3A9; --faint: #8A887F;
+  --line: rgba(250,249,245,.12); --line-soft: rgba(250,249,245,.07);
+  --accent: #D97757; --accent-ink: #1F1E1D; --accent-soft: rgba(217,119,87,.18); --accent-deep: #EBA487;
+  --ok: #8FC6A0; --warn: #E5B567; --bad: #E58F86;
+  --c-input: #8FC6A0; --c-calc: #D97757; --c-lost: #E5B567; --c-idle: #55534E; --c-zero: #77756D;
+  --stage: #191817;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.5 var(--f-body); -webkit-font-smoothing: antialiased; overflow: hidden; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+a { color: var(--accent-deep); }
+h1, h2, h3 { font-family: var(--f-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+code, .mono { font-family: var(--f-mono); font-size: .9em; }
+
+.app { display: grid; grid-template-rows: auto minmax(0,1fr); height: 100%; }
+.top { display: flex; align-items: center; gap: 14px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line); min-width: 0; }
+/* Inside Frame Studio the shell's app bar already names the app. */
+.in-canvas .top .name { display: none; }
+.top .name { display: flex; flex-direction: column; line-height: 1.15; flex: none; }
+.top .name b { font-family: var(--f-display); font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+.top .name span { font-size: 11.5px; color: var(--muted); }
+.tabs { display: flex; gap: 2px; background: var(--sunk); border-radius: 9px; padding: 3px; overflow-x: auto; min-width: 0; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button { border: 0; background: transparent; padding: 5px 11px; border-radius: 7px; font-size: 12.5px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+
+.work { display: grid; grid-template-columns: minmax(0,1fr) 372px; min-height: 0; }
+.stage { position: relative; min-width: 0; min-height: 0; background: var(--stage); }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.stage canvas:focus-visible { outline-offset: -3px; }
+.hud { position: absolute; left: 12px; top: 12px; display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none; max-width: calc(100% - 24px); }
+.pill { background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 4px 11px; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill b { font-weight: 600; color: var(--ink); }
+.pill.warn b { color: var(--warn); }
+.hint { position: absolute; left: 12px; right: 124px; bottom: 10px; font-size: 11.5px; color: var(--faint); pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zoom { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 4px; }
+.zoom button { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font-size: 16px; line-height: 1; }
+.fallback { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); }
+
+.panel { background: var(--surface); border-left: 1px solid var(--line); overflow-y: auto; padding: 16px 16px 28px; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+.panel h2 { font-size: 19px; font-weight: 650; line-height: 1.2; }
+.panel p { margin: 0; color: var(--ink-2); }
+.eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.sec-t { font-size: 10.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--faint); margin-bottom: 6px; }
+.ctl { display: flex; flex-wrap: wrap; gap: 6px; }
+.chipb { border: 1px solid var(--line); background: var(--raise); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; font-weight: 500; }
+.chipb:hover { border-color: var(--faint); }
+.chipb[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-deep); }
+.chipb.mono { font-family: var(--f-mono); font-size: 12px; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 12px; font-weight: 500; font-size: 13px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.link { border-color: transparent; background: transparent; color: var(--accent-deep); padding-inline: 2px; }
+.fx { font-family: var(--f-mono); font-size: 12px; background: var(--sunk); border-radius: 8px; padding: 8px 10px; overflow-x: auto; white-space: pre; color: var(--ink-2); }
+.info { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; background: var(--raise); }
+.info h3 { font-size: 15.5px; font-weight: 650; }
+.info p, .info li { font-size: 13px; color: var(--ink-2); }
+.info ul { margin: 0; padding-left: 18px; }
+.tag { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; align-self: flex-start; }
+.tag.doc { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+.tag.inf { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
+.tag.ill { background: var(--sunk); color: var(--muted); }
+.srcs { font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+.stat { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+.stat b { display: block; font-family: var(--f-display); font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.stat span { font-size: 11px; color: var(--muted); }
+.stat.hot b { color: var(--warn); }
+.rows { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; }
+.rows button { display: flex; justify-content: space-between; gap: 8px; text-align: left; border: 0; background: transparent; padding: 4px 6px; border-radius: 6px; }
+.rows button:hover { background: var(--sunk); }
+.rows .n { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+.rows .lost .n { color: var(--warn); font-weight: 600; }
+.rows .idle { color: var(--faint); }
+details { border-top: 1px solid var(--line); padding-top: 10px; }
+summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink-2); }
+.els { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.els button { border: 1px solid var(--line-soft); background: transparent; border-radius: 6px; padding: 2px 8px; font-size: 12px; color: var(--ink-2); }
+.srclist { margin: 8px 0 0; padding-left: 18px; font-size: 12.5px; color: var(--ink-2); display: flex; flex-direction: column; gap: 6px; }
+.srclist small { display: block; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11.5px; color: var(--muted); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.note { font-size: 12px; color: var(--muted); border-left: 3px solid var(--line); padding-left: 10px; margin: 0; }
+
+@media (max-width: 860px) {
+  body { overflow: auto; }
+  .app { height: auto; min-height: 100%; }
+  .work { grid-template-columns: minmax(0,1fr); }
+  .stage { height: 56vh; min-height: 320px; }
+  .panel { border-left: 0; border-top: 1px solid var(--line); overflow: visible; }
+  .top { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+  .tabs { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="name"><b>Graphite</b><span>Inside Pigment's calculation engine</span></div>
+    <div class="tabs" id="tabs" role="tablist" aria-label="Scenes"></div>
+  </header>
+  <div class="work">
+    <main class="stage" id="stage">
+      <canvas id="cv" tabindex="0" aria-label="3D scene. Drag to orbit, scroll to zoom, arrow keys to rotate, plus and minus to zoom. Every element is also listed in the panel."></canvas>
+      <div class="hud" id="hud" aria-live="polite"></div>
+      <div class="hint" id="hint">Drag to orbit · scroll to zoom · click anything to explain it</div>
+      <div class="zoom"><button type="button" data-zoom="1.2" aria-label="Zoom out">−</button><button type="button" data-zoom="0.83" aria-label="Zoom in">+</button><button type="button" data-zoom="0" aria-label="Reset view" title="Reset view">⟲</button></div>
+      <div class="fallback" id="fallback" hidden>The 3D library could not be loaded, so the scene is unavailable. The explanations and sources in the panel still work.</div>
+    </main>
+    <aside class="panel" id="panel" aria-label="Explanation"></aside>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* Deep-link contract (any of these focus a scene, and for the sparse-cube scene a modifier):
+     1. Canvas bridge:   window.parent.__canvas.open('graphite', { scene: 'cube', modifier: 'BY' })
+                         -> the shell calls this page's window.__canvasReceive({ target: 'graphite', payload })
+     2. postMessage:     graphiteWindow.postMessage({ type: 'graphite:focus', scene: 'cube', modifier: 'REMOVE' }, '*')
+     3. URL hash:        apps/graphite.html#cube/BY   or   #scene=recalc   or   #modifier=FILTER
+   Formula Studio sends payload { from: 'Formula Studio', focus: { modifier, method, op, code, block, formula,
+     before: { dims, sizes, dense, defined }, after: { dims, sizes, dense, defined }, illustrative: true } }.
+     Graphite then opens the sparse cube on that modifier, shows the formula and the real before/after cell counts,
+     and offers a way back (window.parent.__canvas.open('formula-lens')). KEEP is shown with REMOVE, EXCLUDE with FILTER.
+   scene: overview | cube | recalc | pipeline | access | scenarios.   modifier: BY | REMOVE | ADD | SELECT | FILTER | DENSIFY | NONE. */
+(function () {
+  'use strict';
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  /* ------------------------------------------------------------ sources */
+  const SRC = {
+    news: { t: 'Pigment newsroom: Series E announcement (Graphite named)', u: 'https://www.pigment.com/newsroom/pigment-raises-250m-series-e', n: 'Graphite as the proprietary, patent-pending compute engine; scale and concurrency claims.' },
+    pilotia: { t: 'Pilotia: Pigment unveils Graphite (secondary coverage)', u: 'https://www.pilotia.com/en/pigment-devoile-graphite-le-moteur-technologique-de-sa-plateforme-de-planification/', n: 'Three pillars: elastic engine with storage separated from compute, unified governed data, dynamic modeling.' },
+    arch: { t: 'Pigment Community: Architectural foundations: dimensions, sparsity, scale and the discipline of scope', u: 'https://community.pigment.com/technical-tips-182/architectural-foundations-dimensions-sparsity-scale-and-the-discipline-of-scope-3973', n: 'Sparse engine, cardinality, densifying functions, dependency graph, parallelised calculation, scope.' },
+    sparse: { t: 'Pigment Community: Sparse engine concept', u: 'https://community.pigment.com/questions-conversations-40/sparse-engine-concept-1886', n: 'Pigment staff on blanks being skipped, and why cells still count.' },
+    scope: { t: 'Pigment KB: Optimize formulas with scoped calculations', u: 'https://kb.pigment.com/docs/optimize-formulas-scoped-calculations', n: 'What scope is, how it passes down a calculation path, and which functions lose it.' },
+    hints: { t: 'Pigment KB: Performance improvement hints', u: 'https://kb.pigment.com/docs/performance-hints', n: 'ADD, ADD then FILTER, IF with a constant, ISBLANK and ISDEFINED and their effect on density.' },
+    prof: { t: 'Pigment KB: Use profiling to optimize calculation paths', u: 'https://kb.pigment.com/docs/profile-calculation-paths', n: 'The profiler, the Scope column and rows computed.' },
+    ar: { t: 'Pigment KB: Introduction to Access Rights', u: 'https://kb.pigment.com/docs/introduction-access-rights', n: 'Role defaults, rules, most restrictive wins.' },
+    arm: { t: 'Pigment KB: About Access Rights Metrics and Rules', u: 'https://kb.pigment.com/docs/access-rights-metrics-rules', n: 'Read/Write values, blank treated as restrictive.' },
+    scn: { t: 'Pigment KB: Get started with Scenarios', u: 'https://kb.pigment.com/docs/get-started-scenarios', n: 'Default Scenario inherits existing inputs and formulas; new scenarios start from a source scenario.' },
+    scnCopy: { t: 'Pigment KB: Copy inputs between Scenarios', u: 'https://kb.pigment.com/docs/copy-inputs-between-scenarios', n: 'Copying overrides, manual inputs and imported data to a target scenario.' },
+    scnComm: { t: 'Pigment Community: using a scenario as an overlay to the default', u: 'https://community.pigment.com/questions-conversations-40/is-it-possible-to-use-scenario-s-as-an-overlay-to-the-default-scenario-3435', n: 'User reports that scenarios behave as separate layers.' },
+  };
+  const TAGS = { doc: 'Documented', inf: 'Inferred', ill: 'Illustrative' };
+  function srcLinks(ids) { return (ids || []).map((id) => SRC[id] ? '<a href="' + SRC[id].u + '" target="_blank" rel="noopener">' + esc(SRC[id].t.split(':')[0]) + ' ↗</a>' : '').join(''); }
+  function infoHtml(i) {
+    if (!i) return '';
+    return '<div class="info"><span class="tag ' + i.tag + '">' + TAGS[i.tag] + '</span><h3>' + esc(i.title) + '</h3>' + i.body +
+      (i.src && i.src.length ? '<div class="srcs">' + srcLinks(i.src) + '</div>' : '') +
+      (i.act ? '<div><button type="button" class="btn link" data-act="' + esc(i.act[0]) + '">' + esc(i.act[1]) + ' →</button></div>' : '') + '</div>';
+  }
+
+  /* ------------------------------------------------------------ three.js stage */
+  const T = window.THREE;
+  const cv = $('#cv'), stage = $('#stage');
+  const G = { ok: !!T, picks: [], tweens: [], timers: [], orbit: { th: 0.7, ph: 1.05, r: 16, tx: 0, ty: 0, tz: 0 }, home: null, group: null, token: 0 };
+  let renderer, scene3, camera, ray, amb, sun;
+  if (G.ok) {
+    try {
+      renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+      scene3 = new T.Scene();
+      camera = new T.PerspectiveCamera(42, 1, 0.1, 400);
+      ray = new T.Raycaster();
+      amb = new T.AmbientLight(0xffffff, 0.75); scene3.add(amb);
+      sun = new T.DirectionalLight(0xffffff, 0.65); sun.position.set(6, 12, 8); scene3.add(sun);
+    } catch (e) { G.ok = false; }
+  }
+  if (!G.ok) { $('#fallback').hidden = false; $('#hint').hidden = true; }
+
+  const col = (n) => new T.Color(css(n) || '#888');
+  function resize() {
+    if (!G.ok) return;
+    const w = stage.clientWidth || 1, h = stage.clientHeight || 1;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  function placeCam() {
+    const o = G.orbit;
+    o.ph = Math.max(0.12, Math.min(Math.PI - 0.12, o.ph)); o.r = Math.max(4, Math.min(80, o.r));
+    camera.position.set(o.tx + o.r * Math.sin(o.ph) * Math.sin(o.th), o.ty + o.r * Math.cos(o.ph), o.tz + o.r * Math.sin(o.ph) * Math.cos(o.th));
+    camera.lookAt(o.tx, o.ty, o.tz);
+  }
+  const ease = (k) => k * k * (3 - 2 * k);
+  function tw(ms, fn, done) { const t = { t0: performance.now(), ms: reduce ? 1 : ms, fn, done, tok: G.token }; G.tweens.push(t); return t; }
+  function later(fn, ms) { const tok = G.token; const id = setTimeout(() => { if (tok === G.token) fn(); }, reduce ? Math.min(ms, 30) : ms); G.timers.push(id); }
+  function camTo(to, ms) {
+    const o = G.orbit, from = Object.assign({}, o);
+    tw(ms || 700, (k) => { Object.keys(to).forEach((p) => { o[p] = from[p] + (to[p] - from[p]) * k; }); });
+  }
+  function loop(now) {
+    requestAnimationFrame(loop);
+    if (!G.ok || document.hidden) return;
+    for (let i = G.tweens.length - 1; i >= 0; i--) {
+      const t = G.tweens[i];
+      if (t.tok !== G.token) { G.tweens.splice(i, 1); continue; }
+      const k = Math.min(1, (now - t.t0) / t.ms);
+      if (k < 0) continue;
+      t.fn(ease(k));
+      if (k >= 1) { G.tweens.splice(i, 1); if (t.done) t.done(); }
+    }
+    if (G.spin && !reduce && !G.dragging) G.orbit.th += 0.0012;
+    placeCam();
+    renderer.render(scene3, camera);
+  }
+  function clearScene() {
+    G.token++; G.tweens.length = 0; G.timers.forEach(clearTimeout); G.timers.length = 0; G.picks = [];
+    if (G.group) {
+      scene3.remove(G.group);
+      G.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } });
+    }
+    G.group = new T.Group(); scene3.add(G.group);
+  }
+  /* text sprite */
+  function label(text, o) {
+    o = o || {};
+    const fs = o.size || 26, pad = o.bg ? 12 : 4;
+    const c = document.createElement('canvas'), x = c.getContext('2d');
+    const font = (o.weight || 500) + ' ' + fs + 'px Inter, "Segoe UI", system-ui, sans-serif';
+    x.font = font;
+    const w = Math.ceil(x.measureText(text).width) + pad * 2, h = fs + pad * 2;
+    c.width = w * 2; c.height = h * 2; x.scale(2, 2); x.font = font;
+    if (o.bg) { x.fillStyle = o.bg; const r = h / 2; x.beginPath(); x.moveTo(r, 0); x.arcTo(w, 0, w, h, r); x.arcTo(w, h, 0, h, r); x.arcTo(0, h, 0, 0, r); x.arcTo(0, 0, w, 0, r); x.fill(); }
+    x.fillStyle = o.color || css('--ink-2'); x.textBaseline = 'middle'; x.fillText(text, pad, h / 2 + 1);
+    const tex = new T.CanvasTexture(c); tex.minFilter = T.LinearFilter;
+    const s = new T.Sprite(new T.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
+    const k = o.scale || 0.0125; s.scale.set(w * k, h * k, 1); s.renderOrder = 10;
+    return s;
+  }
+  function box(w, h, d, color, o) {
+    o = o || {};
+    const m = new T.Mesh(new T.BoxGeometry(w, h, d), new T.MeshLambertMaterial({ color, transparent: true, opacity: o.opacity == null ? 1 : o.opacity, emissive: o.emissive || 0x000000, emissiveIntensity: o.ei == null ? 0 : o.ei }));
+    return m;
+  }
+  function wire(w, h, d, color, opacity) {
+    const l = new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(w, h, d)), new T.LineBasicMaterial({ color, transparent: true, opacity: opacity == null ? 0.5 : opacity }));
+    return l;
+  }
+  function line(a, b, color, opacity) {
+    const g = new T.BufferGeometry().setFromPoints([new T.Vector3(a[0], a[1], a[2]), new T.Vector3(b[0], b[1], b[2])]);
+    return new T.Line(g, new T.LineBasicMaterial({ color, transparent: true, opacity: opacity == null ? 0.6 : opacity }));
+  }
+  function pick(mesh, info) { mesh.userData.info = info; G.picks.push(mesh); return mesh; }
+
+  /* ------------------------------------------------------------ pointer + keyboard orbit */
+  if (G.ok) {
+    let down = null, moved = 0, pinch = null; const pts = new Map();
+    cv.addEventListener('pointerdown', (e) => { pts.set(e.pointerId, [e.clientX, e.clientY]); down = [e.clientX, e.clientY]; moved = 0; G.dragging = true; try { cv.setPointerCapture(e.pointerId); } catch (err) {} });
+    cv.addEventListener('pointermove', (e) => {
+      if (pts.has(e.pointerId)) {
+        const p = pts.get(e.pointerId), dx = e.clientX - p[0], dy = e.clientY - p[1];
+        pts.set(e.pointerId, [e.clientX, e.clientY]);
+        if (pts.size === 2) {
+          const a = Array.from(pts.values()), d = Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]);
+          if (pinch) G.orbit.r *= pinch / d; pinch = d; moved = 99; return;
+        }
+        moved += Math.abs(dx) + Math.abs(dy);
+        G.orbit.th -= dx * 0.008; G.orbit.ph -= dy * 0.008;
+      } else {
+        cv.style.cursor = hit(e) ? 'pointer' : 'grab';
+      }
+    });
+    const up = (e) => { pts.delete(e.pointerId); pinch = null; G.dragging = pts.size > 0; if (down && moved < 6 && e.type === 'pointerup') { const m = hit(e); if (m) showInfo(m.userData.info, m); } down = null; };
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+    cv.addEventListener('wheel', (e) => { e.preventDefault(); G.orbit.r *= e.deltaY > 0 ? 1.08 : 0.93; }, { passive: false });
+    cv.addEventListener('keydown', (e) => {
+      const o = G.orbit, k = e.key;
+      if (k === 'ArrowLeft') o.th -= 0.12; else if (k === 'ArrowRight') o.th += 0.12; else if (k === 'ArrowUp') o.ph -= 0.1; else if (k === 'ArrowDown') o.ph += 0.1;
+      else if (k === '+' || k === '=') o.r *= 0.9; else if (k === '-' || k === '_') o.r *= 1.1; else if (k === '0') resetCam(); else return;
+      e.preventDefault();
+    });
+    $$('[data-zoom]').forEach((b) => b.addEventListener('click', () => { const z = +b.dataset.zoom; if (!z) resetCam(); else camTo({ r: G.orbit.r * z }, 220); }));
+    window.addEventListener('resize', resize);
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
+  }
+  function hit(e) {
+    const r = cv.getBoundingClientRect();
+    ray.setFromCamera({ x: ((e.clientX - r.left) / r.width) * 2 - 1, y: -((e.clientY - r.top) / r.height) * 2 + 1 }, camera);
+    const hits = ray.intersectObjects(G.picks.filter((m) => m.visible && (!m.material || m.material.opacity > 0.05)), false);
+    return hits.length ? hits[0].object : null;
+  }
+  function resetCam() { if (G.home) camTo(G.home, 500); }
+
+  /* ------------------------------------------------------------ app state + panel */
+  const state = { scene: 'overview', info: null, cube: { op: 'NONE', stage: 'result', ext: null }, recalc: { edit: 'e1', scoped: true, ran: null }, access: { role: 'member', r1: true, r2: true }, scn: null, pipe: { step: 0 } };
+  const SCENES = {};
+  let live = null; // current scene handle { controls(), onAct(), elements }
+  function showInfo(info, mesh) {
+    if (typeof info === 'function') info = info();
+    state.info = info; paintPanel();
+    if (mesh && live && live.onPick) live.onPick(mesh);
+  }
+  function paintPanel() {
+    const sc = SCENES[state.scene];
+    let h = '<div><div class="eyebrow">' + esc(sc.eyebrow) + '</div><h2>' + esc(sc.title) + '</h2></div><p>' + sc.intro + '</p>';
+    if (live && live.controls) h += live.controls();
+    h += infoHtml(state.info || sc.info);
+    if (live && live.after) h += live.after();
+    if (live && live.elements && live.elements.length) h += '<details><summary>Everything in this scene (' + live.elements.length + ')</summary><div class="els">' + live.elements.map((e, i) => '<button type="button" data-el="' + i + '">' + esc(e.label) + '</button>').join('') + '</div></details>';
+    h += '<details' + (state.scene === 'overview' ? ' open' : '') + '><summary>Sources and how to read the labels</summary><p class="note" style="margin-top:8px"><b>Documented</b> means Pigment says it in the linked page. <b>Inferred</b> follows from documented behaviour but is not stated outright. <b>Illustrative</b> is a teaching picture: the numbers, shapes and internal steps are made up to show the idea, since Pigment has not published Graphite’s internals.</p><ol class="srclist">' + Object.keys(SRC).map((k) => '<li><a href="' + SRC[k].u + '" target="_blank" rel="noopener">' + esc(SRC[k].t) + '</a><small>' + esc(SRC[k].n) + '</small></li>').join('') + '</ol></details>';
+    $('#panel').innerHTML = h;
+  }
+  function paintHud(pills) { $('#hud').innerHTML = (pills || []).map((p) => '<span class="pill' + (p[2] ? ' warn' : '') + '">' + esc(p[0]) + ' <b>' + esc(p[1]) + '</b></span>').join(''); }
+  function setScene(id, keepInfo) {
+    if (!SCENES[id]) id = 'overview';
+    state.scene = id; if (!keepInfo) state.info = null;
+    $$('#tabs button').forEach((b) => { const on = b.dataset.scene === id; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+    paintHud([]);
+    if (G.ok) { clearScene(); G.spin = false; }
+    live = SCENES[id].build() || {};
+    if (G.ok && SCENES[id].cam && !keepInfo) { G.home = Object.assign({ tx: 0, ty: 0, tz: 0 }, SCENES[id].cam); Object.assign(G.orbit, G.home); }
+    paintPanel();
+    try { history.replaceState(null, '', '#' + id + (id === 'cube' && state.cube.op !== 'NONE' ? '/' + state.cube.op : '')); } catch (e) {}
+  }
+  $('#tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-scene]'); if (b) setScene(b.dataset.scene); });
+  $('#tabs').addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const ids = Object.keys(SCENES), i = ids.indexOf(state.scene), n = ids[(i + (e.key === 'ArrowRight' ? 1 : ids.length - 1)) % ids.length];
+    setScene(n); const b = $('#tabs [data-scene="' + n + '"]'); if (b) b.focus();
+  });
+  $('#panel').addEventListener('click', (e) => {
+    const el = e.target.closest('[data-el]');
+    if (el && live && live.elements) { const it = live.elements[+el.dataset.el]; showInfo(it.info, it.mesh); return; }
+    const a = e.target.closest('[data-act]');
+    if (!a) return;
+    const act = a.dataset.act;
+    if (act.indexOf('scene:') === 0) { const p = act.slice(6).split('/'); if (p[1]) state.cube.op = p[1]; setScene(p[0]); return; }
+    if (act.indexOf('studio:') === 0) { openStudio(act.slice(7)); return; }
+    if (live && live.onAct) live.onAct(act, a);
+  });
+  $('#panel').addEventListener('change', (e) => { const a = e.target.closest('[data-chg]'); if (a && live && live.onAct) live.onAct(a.dataset.chg, a); });
+
+  /* ---------- cross-app: open Formula Studio on a formula that uses this modifier ---------- */
+  function bridge() { try { return window.parent !== window ? window.parent.__canvas || null : null; } catch (e) { return null; } }
+  function openStudio(op) {
+    const c = CUBE.OPS[op]; const b = bridge();
+    if (!b || !c) return;
+    b.open('formula-studio', { from: 'Graphite', block: { name: c.block, kind: 'metric', formula: c.fx, dims: c.dims, app: 'Graphite sample' } });
+  }
+
+  /* ============================================================ SCENE: overview */
+  SCENES.overview = {
+    name: 'Overview', eyebrow: 'Graphite', title: 'The engine under every Pigment model',
+    intro: 'Graphite is the name Pigment gives its compute engine. Pigment has published what it does, not how it is built, so this tab pairs the public statements with pictures of the documented behaviour. Click a slab to see what is claimed, then follow it into a scene.',
+    cam: { th: 0.6, ph: 1.1, r: 17 },
+    info: { tag: 'doc', title: 'What Pigment has said about Graphite', body: '<ul><li>It is Pigment’s “proprietary, patent-pending compute engine”, and its AI agents run on it.</li><li>Thousands of AI agents and people can work on the same governed model at once.</li><li>It scales to hundreds of billions of data points with deterministic, fully traceable results.</li></ul><p>These are Pigment’s own statements from its October 2026 funding announcement. They are not independently benchmarked.</p>', src: ['news'] },
+    build() {
+      const els = [];
+      if (!G.ok) return { elements: els };
+      G.spin = true;
+      const slabs = [
+        { y: -2.4, c: '--c-input', t: 'Unified, governed data', info: { tag: 'doc', title: 'Unified, governed data', body: '<p>Coverage of the Graphite launch describes one source of truth whose updates propagate across models, with security controls limiting each person to the data they may see.</p><p>The <b>Access rights</b> scene shows the documented rule evaluation that sits behind that.</p>', src: ['pilotia', 'ar'], act: ['scene:access', 'See access rights evaluated'] } },
+        { y: 0, c: '--c-calc', t: 'Elastic calculation engine', info: { tag: 'doc', title: 'Elastic calculation engine', body: '<p>Described as a cloud architecture that separates storage from compute so performance holds at peak load and with many concurrent users. That description comes from secondary coverage citing Pigment.</p><p>What Pigment documents in detail is the engine’s behaviour: it is sparse, it keeps a dependency graph, and it recalculates only what a change affects.</p>', src: ['pilotia', 'arch', 'scope'], act: ['scene:cube', 'Open the sparse cube'] } },
+        { y: 2.4, c: '--c-lost', t: 'Dynamic modeling', info: { tag: 'doc', title: 'Dynamic modeling', body: '<p>Teams create, change and compare scenarios quickly, and adjust plans without breaking consistency. Structure changes ripple through formulas the same way value changes do.</p>', src: ['pilotia', 'scn'], act: ['scene:scenarios', 'See scenarios as layers'] } },
+      ];
+      slabs.forEach((s) => {
+        const m = pick(box(7.5, 0.9, 4.6, col(s.c), { opacity: 0.9 }), s.info); m.position.y = s.y; G.group.add(m);
+        const w = wire(7.5, 0.9, 4.6, col('--ink'), 0.25); w.position.y = s.y; G.group.add(w);
+        const l = label(s.t, { size: 30, weight: 600, bg: css('--surface'), color: css('--ink') }); l.position.set(0, s.y + 0.95, 2.4); G.group.add(l);
+        els.push({ label: s.t, info: s.info, mesh: m });
+      });
+      // people and agents orbiting the same model
+      const usersInfo = { tag: 'doc', title: 'People and AI agents on one model', body: '<p>Pigment says Graphite lets thousands of AI agents and people work on the same governed model at once, and that results stay deterministic and traceable.</p><p>The orbiting dots are decoration; how concurrent writes are ordered is not published.</p>', src: ['news'] };
+      const dots = [];
+      for (let i = 0; i < 14; i++) { const d = pick(new T.Mesh(new T.SphereGeometry(0.16, 12, 12), new T.MeshLambertMaterial({ color: col(i % 3 ? '--accent' : '--c-input') })), usersInfo); d.userData.a = (i / 14) * Math.PI * 2; d.userData.h = -2.5 + (i % 5) * 1.3; G.group.add(d); dots.push(d); }
+      els.push({ label: 'People and agents', info: usersInfo });
+      const spin = () => { const t = performance.now() / (reduce ? 1e9 : 5200); dots.forEach((d) => d.position.set(Math.cos(d.userData.a + t) * 5.6, d.userData.h, Math.sin(d.userData.a + t) * 4)); tw(1e7, spin); };
+      tw(16, spin);
+      paintHud([['Engine', 'Graphite'], ['Published internals', 'none']]);
+      return { elements: els, controls: () => '<div><div class="sec-t">Scenes</div><div class="ctl">' + Object.keys(SCENES).filter((k) => k !== 'overview').map((k) => '<button type="button" class="chipb" data-act="scene:' + k + '">' + esc(SCENES[k].name) + '</button>').join('') + '</div></div>' };
+    },
+  };
+
+  /* ============================================================ SCENE: sparse cube */
+  function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  const CUBE = (function () {
+    const D = {
+      Product: ['Widget A', 'Widget B', 'Gadget C', 'Gadget D', 'Service E', 'Service F'],
+      Category: ['Widgets', 'Gadgets', 'Services'],
+      Region: ['AMER', 'EMEA', 'APAC', 'LATAM'],
+      Month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    };
+    const catOf = (p) => Math.floor(p / 2);
+    const r = rng(7);
+    const rev = [];   // Revenue[Product, Region, Month], about a quarter populated: each product sells in some regions, from some month on
+    for (let p = 0; p < 6; p++) for (let g = 0; g < 4; g++) { if (r() > 0.42) continue; const start = Math.floor(r() * 4); for (let m = start; m < 6; m++) if (r() > 0.25) rev.push({ p, g, m, v: 2 + Math.floor(r() * 8) }); }
+    const price = []; // Price[Product, Month]
+    for (let p = 0; p < 6; p++) for (let m = 0; m < 6; m++) if (r() > 0.2) price.push({ p, m, v: 1 + Math.floor(r() * 6) });
+    const OPS = {
+      NONE: { name: 'Source', fx: "'Revenue'", block: 'Revenue', dims: ['Product', 'Region', 'Month'], src: 'rev', axes: ['Month', 'Region', 'Product'], map: (c) => [[c.m, c.g, c.p]],
+        info: { tag: 'doc', title: 'A metric is a sparse grid', body: '<p>Revenue is dimensioned by Product, Region and Month: 6 × 4 × 6 = 144 possible cells. Only the glowing ones hold a value. Pigment “does not store empty cells” and skips them when calculating, which is why a mostly blank metric is cheap.</p><p>The faint dots are intersections that exist in principle and cost nothing.</p>', src: ['arch', 'sparse'] } },
+      BY: { name: 'BY', fx: "'Revenue'[BY SUM: 'Product'.'Category']", block: 'Revenue by Category', dims: ['Category', 'Region', 'Month'], src: 'rev', axes: ['Month', 'Region', 'Category'], map: (c) => [[c.m, c.g, catOf(c.p)]],
+        info: { tag: 'doc', title: 'BY: regroup along a mapping', body: '<p>BY replaces Product with Category by following the Category property on each product. Populated cells slide into their category and add up; blanks contribute nothing, so the result is still sparse.</p><p>Aggregating this way keeps a link between each source cell and one target cell. The exact scope behaviour of BY is not spelled out in the scoping article; <code>BY CONSTANT</code> is listed there as losing scope.</p>', src: ['scope', 'hints'], act: ['studio:BY', 'Step through this formula in Formula Studio'] } },
+      REMOVE: { name: 'REMOVE', fx: "'Revenue'[REMOVE SUM: 'Region']", block: 'Revenue all regions', dims: ['Product', 'Month'], src: 'rev', axes: ['Month', null, 'Product'], map: (c) => [[c.m, 0, c.p]],
+        info: { tag: 'doc', title: 'REMOVE: collapse a dimension', body: '<p>REMOVE aggregates every region into one cell per Product and Month. The region axis flattens to a single layer.</p><p>Because each result cell now depends on all regions, the community guide notes that dependents recalculate across the whole removed dimension when any one item changes.</p>', src: ['arch'], act: ['studio:REMOVE', 'Step through this formula in Formula Studio'] } },
+      ADD: { name: 'ADD', fx: "'Price'[ADD: 'Region']", block: 'Price by Region', dims: ['Product', 'Region', 'Month'], src: 'price', axes: ['Month', 'Region', 'Product'], map: (c) => [0, 1, 2, 3].map((g) => [c.m, g, c.p]),
+        info: { tag: 'doc', title: 'ADD: copy across a new dimension', body: '<p>Price has no Region. ADD repeats each value on every region, so one populated cell becomes four. Pigment’s hints call ADD a last resort because the output is dense along the added dimension, and the scoping article lists ADD among the functions whose output scope is None.</p><p><code>ADD</code> followed by <code>FILTER</code> is worse: every cell is created first and then most are thrown away.</p>', src: ['hints', 'scope'], act: ['studio:ADD', 'Step through this formula in Formula Studio'] } },
+      SELECT: { name: 'SELECT', fx: "'Revenue'[SELECT: 'Region'.\"EMEA\"]", block: 'Revenue EMEA', dims: ['Product', 'Month'], src: 'rev', axes: ['Month', null, 'Product'], map: (c) => (c.g === 1 ? [[c.m, 0, c.p]] : []),
+        info: { tag: 'doc', title: 'SELECT: take one slice', body: '<p>SELECT keeps the EMEA layer and drops Region from the result. Everything outside the slice is never read.</p><p class="note">That the engine touches only the selected slice is inferred from the sparse model; the docs describe the result, not the read path.</p>', src: ['arch'], act: ['studio:SELECT', 'Step through this formula in Formula Studio'] } },
+      FILTER: { name: 'FILTER', fx: "'Revenue'[FILTER: 'Month' >= 'Month'.\"Apr\"]", block: 'Revenue from April', dims: ['Product', 'Region', 'Month'], src: 'rev', axes: ['Month', 'Region', 'Product'], map: (c) => (c.m >= 3 ? [[c.m, c.g, c.p]] : []),
+        info: { tag: 'doc', title: 'FILTER: keep the shape, blank the rest', body: '<p>FILTER keeps all three dimensions and blanks every cell that fails the condition. Fewer stored cells, same structure.</p><p>Pigment’s hints note that <code>Metric[FILTER: condition]</code> evaluates the expression once and then filters, which can beat an equivalent IF on large metrics.</p>', src: ['hints'], act: ['studio:FILTER', 'Step through this formula in Formula Studio'] } },
+      DENSIFY: { name: 'IF(…, 0)', fx: "IF(ISBLANK('Revenue'), 0, 'Revenue')", block: 'Revenue densified', dims: ['Product', 'Region', 'Month'], src: 'rev', axes: ['Month', 'Region', 'Product'], dense: true, map: (c) => [[c.m, c.g, c.p]],
+        info: { tag: 'doc', title: 'Densifying: zeros are values', body: '<p>A constant in the else branch is stored in every cell where the test fails, and <code>ISBLANK</code> returns TRUE or FALSE for every possible cell. All 144 intersections now hold something, and every formula downstream has to visit all of them.</p><p>Leaving the third argument out, or using <code>IFDEFINED</code> / <code>ISDEFINED</code>, keeps the result sparse.</p>', src: ['hints', 'arch'] } },
+    };
+    return { D, OPS, rev, price };
+  })();
+  SCENES.cube = {
+    name: 'Sparse cube', eyebrow: 'Storage and modifiers', title: 'A metric as a sparse tensor',
+    intro: 'Each glowing cube is one stored value. Pick a modifier to watch what it does to the cells, and to the count the engine has to carry.',
+    cam: { th: 0.75, ph: 1.05, r: 17, tx: -1.2 },
+    build() {
+      const st = state.cube, op = CUBE.OPS[st.op] || CUBE.OPS.NONE, D = CUBE.D;
+      const srcCells = CUBE[op.src];
+      const srcAxes = op.src === 'price' ? ['Month', null, 'Product'] : ['Month', 'Region', 'Product'];
+      const size = (axes) => axes.map((a) => (a ? D[a].length : 1));
+      const P = (axes, c) => { const n = size(axes); return [(c[0] - (n[0] - 1) / 2) * 1.05, (c[1] - (n[1] - 1) / 2) * 1.05, (c[2] - (n[2] - 1) / 2) * 1.05]; };
+      // result cells, unique by coordinate
+      const res = new Map();
+      srcCells.forEach((c) => op.map(c).forEach((t) => { const k = t.join(','); const e = res.get(k) || { c: t, v: 0, n: 0 }; e.v += op.name === 'ADD' ? 0 : c.v; if (op.name === 'ADD') e.v = c.v; e.n++; res.set(k, e); }));
+      const nT = size(op.axes), potential = nT[0] * nT[1] * nT[2];
+      if (op.dense) for (let a = 0; a < nT[0]; a++) for (let b = 0; b < nT[1]; b++) for (let c = 0; c < nT[2]; c++) { const k = [a, b, c].join(','); if (!res.has(k)) res.set(k, { c: [a, b, c], v: 0, n: 0, zero: true }); }
+      const stored = res.size, srcPot = size(srcAxes).reduce((a, b) => a * b, 1);
+      const els = [];
+      const name = (axes, c) => axes.map((a, i) => (a ? D[a][c[i]] : null)).filter(Boolean).reverse().join(', ');
+      const hud = () => paintHud(st.stage === 'source' && st.op !== 'NONE'
+        ? [['Possible cells', srcPot], ['Stored', srcCells.length], ['Density', Math.round((srcCells.length / srcPot) * 100) + '%']]
+        : [['Possible cells', potential], ['Stored', stored, stored / potential > 0.6], ['Density', Math.round((stored / potential) * 100) + '%', stored / potential > 0.6]]);
+      function draw(animate) {
+        if (!G.ok) { hud(); return; }
+        clearScene();
+        const showSrc = st.stage === 'source' && st.op !== 'NONE';
+        const axes = showSrc ? srcAxes : op.axes, n = size(axes);
+        // frame + blank intersections
+        const fr = wire(n[0] * 1.05, n[1] * 1.05, n[2] * 1.05, col('--faint'), 0.45); G.group.add(fr);
+        const blanks = [];
+        const have = new Set(showSrc ? srcCells.map((c) => (op.src === 'price' ? [c.m, 0, c.p] : [c.m, c.g, c.p]).join(',')) : Array.from(res.keys()));
+        for (let a = 0; a < n[0]; a++) for (let b = 0; b < n[1]; b++) for (let c = 0; c < n[2]; c++) if (!have.has([a, b, c].join(','))) blanks.push(...P(axes, [a, b, c]));
+        if (blanks.length) { const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(blanks, 3)); G.group.add(new T.Points(g, new T.PointsMaterial({ color: col('--faint'), size: 0.09, transparent: true, opacity: 0.7 }))); }
+        // axis labels
+        const lab = (axis, i) => { const a = axes[i]; if (!a) return; const h = [n[0] * 0.525, n[1] * 0.525, n[2] * 0.525];
+          const t = label(a, { size: 26, weight: 600, color: css('--ink') }); t.position.set(i === 0 ? 0 : -h[0] - 2.3, i === 1 ? 0 : -h[1] - 1.0, i === 2 ? 0 : h[2] + 1.2); if (i === 1) t.position.set(-h[0] - 2.2, 0, h[2] + 0.3); G.group.add(t);
+          D[a].forEach((it, k) => { const c = [0, 0, 0]; c[i] = k; const p = P(axes, c); const s = label(it, { size: 18, color: css('--muted') });
+            if (i === 0) s.position.set(p[0], -h[1] - 0.4, h[2] + 0.45); if (i === 1) s.position.set(-h[0] - 0.75, p[1], h[2] + 0.3); if (i === 2) s.position.set(-h[0] - 0.85, -h[1] - 0.4, p[2]); G.group.add(s); }); };
+        [0, 1, 2].forEach((i) => lab(axes, i));
+        const geo = new T.BoxGeometry(0.8, 0.8, 0.8);
+        const accent = col('--accent'), zero = col('--c-zero');
+        const mk = (pos, v, isZero, info) => {
+          const k = Math.min(1, v / 14);
+          const m = new T.Mesh(geo, new T.MeshLambertMaterial({ color: isZero ? zero : accent.clone().lerp(col('--surface'), 0.45 - k * 0.45), emissive: isZero ? 0x000000 : accent, emissiveIntensity: isZero ? 0 : 0.25 + k * 0.4, transparent: true, opacity: isZero ? 0.55 : 0.95 }));
+          m.position.set(pos[0], pos[1], pos[2]); G.group.add(m); return pick(m, info);
+        };
+        const cellInfo = (e) => ({ tag: e.zero ? 'doc' : 'ill', title: op.block + ' [' + name(op.axes, e.c) + ']', body: e.zero ? '<p>Value <b>0</b>. This cell was blank in the source. The formula wrote a constant into it, so it is now stored and every downstream formula will visit it.</p>' : '<p>Value <b>' + e.v + '</b>' + (e.n > 1 ? ', the sum of ' + e.n + ' source cells.' : op.name === 'ADD' ? ', copied from Price for this product and month.' : '.') + '</p><p>Sample data. One stored value at one combination of items.</p>', src: e.zero ? ['hints'] : [] });
+        if (showSrc) {
+          srcCells.forEach((c) => { const cc = op.src === 'price' ? [c.m, 0, c.p] : [c.m, c.g, c.p]; mk(P(srcAxes, cc), c.v, false, { tag: 'ill', title: (op.src === 'price' ? 'Price' : 'Revenue') + ' [' + name(srcAxes, cc) + ']', body: '<p>Value <b>' + c.v + '</b>. A stored source cell (sample data).</p>' }); });
+        } else if (animate && st.op !== 'NONE') {
+          // every contribution flies from its source position to its target, then the unique result replaces them
+          const movers = [];
+          srcCells.forEach((c) => { const from = P(srcAxes, op.src === 'price' ? [c.m, 0, c.p] : [c.m, c.g, c.p]); const ts = op.map(c);
+            if (!ts.length) { const m = mk(from, c.v, false, null); movers.push({ m, from, to: from, drop: true }); }
+            ts.forEach((t) => { const m = mk(from, c.v, false, null); movers.push({ m, from, to: P(op.axes, t) }); }); });
+          G.picks = [];
+          tw(1100, (k) => movers.forEach((o) => { o.m.position.set(o.from[0] + (o.to[0] - o.from[0]) * k, o.from[1] + (o.to[1] - o.from[1]) * k, o.from[2] + (o.to[2] - o.from[2]) * k); if (o.drop) { o.m.material.opacity = 0.95 * (1 - k); o.m.scale.setScalar(1 - k * 0.6); } }), () => draw(false));
+        } else {
+          res.forEach((e) => { const m = mk(P(op.axes, e.c), e.v, e.zero, cellInfo(e)); if (animate && e.zero) { m.scale.setScalar(0.01); tw(600, (k) => m.scale.setScalar(Math.max(0.01, k))); } });
+        }
+        hud();
+      }
+      // a step handed over by Formula Studio: its own formula and its real before/after cell counts
+      function extCard() {
+        const x = st.ext; if (!x) return '';
+        const shape = (c) => (c && c.dims ? (c.dims.length ? c.dims.map((d, i) => esc(d) + (c.sizes && c.sizes[i] != null ? ' (' + c.sizes[i] + ')' : '')).join(' \u00d7 ') : 'a single value') : '\u2014');
+        const cnt = (c) => (c && c.dense != null ? '<b>' + (c.defined != null ? c.defined : '?') + '</b> stored of ' + c.dense + ' possible' + (c.dense && c.defined != null ? ' (' + Math.round((c.defined / c.dense) * 100) + '%)' : '') : '');
+        const grew = x.before && x.after && x.after.defined > x.before.defined;
+        return '<div class="info"><span class="tag ill">From ' + esc(x.from || 'Formula Studio') + '</span><h3>' + esc(x.modifier || '') + (x.block ? ' in ' + esc(x.block) : '') + '</h3>' +
+          (x.code || x.formula ? '<div class="fx">' + esc(x.code || x.formula) + '</div>' : '') +
+          (x.before || x.after ? '<ul><li>Before: ' + shape(x.before) + (x.before ? '. ' + cnt(x.before) : '') + '</li><li>After: ' + shape(x.after) + (x.after ? '. ' + cnt(x.after) : '') + '</li></ul>' : '') +
+          '<p>' + (grew ? 'This step stores more cells than it read. ' : '') + (x.before || x.after ? 'Those counts come from Formula Studio\u2019s sample model. The cube on the left shows the same modifier on Graphite\u2019s own small sample, so the shapes differ but the mechanism is the same.' : 'The cube on the left shows this modifier on Graphite\u2019s own small sample. Step through the formula in Formula Studio to see its real shapes and cell counts.') + (x.mapped ? ' ' + esc(x.mapped) : '') + '</p>' +
+          '<div class="ctl">' + (bridge() ? '<button type="button" class="btn primary" data-act="back-studio">' + (x.before || x.after ? '← Back to Formula Studio' : 'Step through it in Formula Studio') + '</button>' : '') + '<button type="button" class="btn" data-act="ext-clear">Dismiss</button></div></div>';
+      }
+      draw(st.op !== 'NONE' && st.stage === 'result');
+      els.push({ label: 'The grid frame', info: { tag: 'doc', title: 'Cardinality: the frame is what could exist', body: '<p>Multiplying the item counts of the dimensions gives the possible cell count. Each extra dimension multiplies it, which is why the guidance is to keep structures lean even though blanks are free to store.</p>', src: ['arch'] } });
+      els.push({ label: 'Blank intersections', info: { tag: 'doc', title: 'Blank is not zero', body: '<p>The faint dots are blanks. They are not stored and the engine skips them. Staff note that cells “do still count”: the fewer you compute, the faster the model.</p>', src: ['sparse', 'arch'] } });
+      return {
+        elements: els,
+        controls: () => {
+          const o = CUBE.OPS[st.op];
+          return extCard() + '<div><div class="sec-t">Modifier</div><div class="ctl">' + Object.keys(CUBE.OPS).map((k) => '<button type="button" class="chipb mono" data-act="op:' + k + '" aria-pressed="' + (k === st.op) + '">' + esc(CUBE.OPS[k].name) + '</button>').join('') + '</div></div>' +
+            '<div class="fx">' + esc(o.fx) + '</div>' +
+            (st.op !== 'NONE' ? '<div class="ctl"><button type="button" class="chipb" data-act="stage:source" aria-pressed="' + (st.stage === 'source') + '">Before</button><button type="button" class="chipb" data-act="stage:result" aria-pressed="' + (st.stage === 'result') + '">After</button><button type="button" class="btn" data-act="replay">Replay</button></div>' : '') +
+            '<div class="stats"><div class="stat"><b>' + srcCells.length + '</b><span>source cells stored</span></div><div class="stat' + (stored > srcCells.length ? ' hot' : '') + '"><b>' + stored + '</b><span>result cells stored</span></div><div class="stat' + (stored / potential > 0.6 ? ' hot' : '') + '"><b>' + Math.round((stored / potential) * 100) + '%</b><span>of ' + potential + ' possible</span></div></div>';
+        },
+        onAct(act) {
+          if (act === 'back-studio') { const b = bridge(); if (!b) return; const f = b.getFocus && b.getFocus(); if (st.ext && !st.ext.before && !st.ext.after && f && f.name === st.ext.block) b.open('formula-studio', { from: 'Graphite', block: f }); else b.open('formula-lens'); return; }
+          if (act === 'ext-clear') { st.ext = null; paintPanel(); return; }
+          if (act.indexOf('op:') === 0) { st.op = act.slice(3); st.stage = 'result'; state.info = CUBE.OPS[st.op].info; setScene('cube', true); return; }
+          if (act.indexOf('stage:') === 0) { st.stage = act.slice(6); draw(false); paintPanel(); return; }
+          if (act === 'replay') { st.stage = 'result'; draw(true); paintPanel(); }
+        },
+      };
+    },
+  };
+  SCENES.cube.info = CUBE.OPS.NONE.info;
+
+  /* ============================================================ SCENE: dependency graph + scoped recalculation */
+  const RC = (function () {
+    const SZ = { P: 6, R: 4, M: 6 }, DN = { P: 'Product', R: 'Region', M: 'Month' };
+    const N = [
+      { id: 'vol', n: 'Volume', dims: 'PRM', lvl: 0, y: 3, input: 1 },
+      { id: 'price', n: 'Price', dims: 'PM', lvl: 0, y: 1, input: 1 },
+      { id: 'fx', n: 'FX Rate', dims: 'RM', lvl: 0, y: -1, input: 1 },
+      { id: 'hc', n: 'Headcount', dims: 'RM', lvl: 0, y: -3, input: 1, z: 2 },
+      { id: 'sal', n: 'Salary', dims: 'R', lvl: 0, y: -4.4, input: 1, z: -1.5 },
+      { id: 'rev', n: 'Revenue', dims: 'PRM', lvl: 1, y: 2.2, deps: ['vol', 'price'], fx: "'Volume' * 'Price'" },
+      { id: 'usd', n: 'Revenue USD', dims: 'PRM', lvl: 2, y: 1.4, deps: ['rev', 'fx'], fx: "'Revenue' * 'FX Rate'" },
+      { id: 'reg', n: 'Revenue by Region', dims: 'RM', lvl: 3, y: 1.2, deps: ['usd'], fx: "'Revenue USD'[REMOVE: 'Product']" },
+      { id: 'pay', n: 'Payroll', dims: 'RM', lvl: 1, y: -3.4, deps: ['hc', 'sal'], fx: "'Headcount' * 'Salary'", z: 1 },
+      { id: 'tot', n: 'Total Revenue', dims: 'M', lvl: 4, y: 2.8, deps: ['reg'], fx: "'Revenue by Region'[REMOVE: 'Region']", z: -1.5 },
+      { id: 'mar', n: 'Margin', dims: 'RM', lvl: 4, y: -1.2, deps: ['reg', 'pay'], fx: "'Revenue by Region' - 'Payroll'", z: 1.5 },
+      { id: 'cum', n: 'Cumulative Revenue', dims: 'M', lvl: 5, y: 3.6, deps: ['tot'], fx: "CUMULATE('Total Revenue', 'Month')", rule: 'none', why: 'CUMULATE has an output scope of None: one changed month can move every later month, so the whole time axis is recomputed.', z: -2.5 },
+      { id: 'alloc', n: 'Target by Product', dims: 'PM', lvl: 5, y: 1.2, deps: ['tot'], fx: "'Total Revenue'[ADD: 'Product'] * 'Share'", rule: 'none', why: 'ADD brings in a dimension the previous calculation did not have and has an output scope of None, so every Product and Month is recomputed.', z: -0.5 },
+      { id: 'kpi', n: 'Margin %', dims: 'RM', lvl: 5, y: -1.6, deps: ['mar', 'reg'], fx: "'Margin' / 'Revenue by Region'", z: 2 },
+    ];
+    const BY = {}; N.forEach((n) => { BY[n.id] = n; n.total = n.dims.split('').reduce((a, d) => a * SZ[d], 1); });
+    const EDITS = {
+      e1: { src: 'vol', pin: 'PRM', t: 'Volume [Gadget C, EMEA, Mar]' },
+      e2: { src: 'fx', pin: 'RM', t: 'FX Rate [EMEA, Mar]' },
+      e3: { src: 'sal', pin: 'R', t: 'Salary [EMEA]' },
+      e4: { src: 'price', pin: 'PM', t: 'Price [Gadget C, Mar]' },
+    };
+    // Walk the graph in dependency order. A dimension stays scoped on a node only if every changed parent hands it down.
+    function run(editId, scoped) {
+      const e = EDITS[editId], out = {}, res = {}; out[e.src] = new Set(e.pin.split(''));
+      N.slice().sort((a, b) => a.lvl - b.lvl).forEach((n) => {
+        if (!n.deps) return;
+        const hot = n.deps.filter((d) => out[d]);
+        if (!hot.length) return;
+        let pinned = n.dims.split('').filter((d) => hot.every((p) => out[p].has(d)));
+        if (n.rule === 'none' || !scoped) pinned = [];
+        const cells = n.dims.split('').reduce((a, d) => a * (pinned.indexOf(d) >= 0 ? 1 : SZ[d]), 1);
+        out[n.id] = new Set(pinned);
+        res[n.id] = { cells, total: n.total, pinned, lost: n.rule === 'none', from: hot };
+      });
+      return res;
+    }
+    return { N, BY, EDITS, run, SZ, DN };
+  })();
+  SCENES.recalc = {
+    name: 'Recalculation', eyebrow: 'Dependency graph', title: 'One edit, and only what depends on it',
+    intro: 'Blocks are nodes; formulas are the edges between them. Change one input cell and watch the recalculation walk downstream, level by level. Each chip shows cells computed out of cells in the metric.',
+    cam: { th: 0.3, ph: 1.2, r: 28 },
+    info: { tag: 'doc', title: 'The engine keeps a dependency graph', body: '<p>When an input changes, “the engine recalculates only the affected portions of the model”. Pigment manages a dependency graph and parallelises calculations where possible.</p><p>Scope narrows that further: within each recalculated metric, only the cells on a scoped dimension that the change touched are computed.</p><p class="note">The block names and cell counts here are a made-up example. Real counts also depend on which cells are populated.</p>', src: ['arch', 'scope'] },
+    build() {
+      const st = state.recalc, els = [], meshes = {}, chips = {}, edges = [];
+      const X = (n) => (n.lvl - 2.5) * 3.6, pos = (n) => [X(n), n.y, n.z || 0];
+      const nodeInfo = (n) => () => {
+        const r = st.ran && st.ran[n.id];
+        const dims = n.dims.split('').map((d) => RC.DN[d]).join(' × ');
+        let b = '<p>' + (n.input ? 'Input metric' : 'Calculated metric') + ' on ' + dims + ' (' + n.total + ' possible cells).</p>' + (n.fx ? '<div class="fx">' + esc(n.fx) + '</div>' : '');
+        if (st.ran) {
+          if (RC.EDITS[st.edit].src === n.id) b += '<p><b>Edited here.</b> One cell changed: ' + esc(RC.EDITS[st.edit].t) + '.</p>';
+          else if (r) b += '<p><b>' + r.cells + ' of ' + r.total + '</b> cells recomputed. ' + (!st.scoped ? 'Scoping is switched off in this demo, so the whole metric is recomputed.' : r.lost ? esc(n.why) : r.pinned.length ? 'Still scoped on ' + r.pinned.map((d) => RC.DN[d]).join(', ') + ': only the changed item on each is visited.' : 'No dimension is scoped any more, because scope was lost upstream.') + '</p>';
+          else b += '<p>Not downstream of the edit, so it is not recalculated at all.</p>';
+        }
+        return { tag: n.rule === 'none' ? 'doc' : 'ill', title: n.n, body: b, src: n.rule === 'none' ? ['scope'] : ['arch'] };
+      };
+      if (G.ok) {
+        RC.N.forEach((n) => {
+          const p = pos(n);
+          const m = pick(box(2.3, 0.8, 1.1, col(n.input ? '--c-input' : '--c-idle'), { opacity: 0.95 }), nodeInfo(n)); m.position.set(p[0], p[1], p[2]); G.group.add(m); meshes[n.id] = m;
+          const l = label(n.n, { size: 22, weight: 600, color: css('--ink') }); l.position.set(p[0], p[1] + 0.72, p[2]); G.group.add(l);
+          const d = label(n.dims.split('').map((x) => RC.DN[x]).join(' × '), { size: 15, color: css('--muted') }); d.position.set(p[0], p[1] - 0.66, p[2]); G.group.add(d);
+          (n.deps || []).forEach((dep) => { const a = pos(RC.BY[dep]); const ln = line([a[0] + 1.15, a[1], a[2]], [p[0] - 1.15, p[1], p[2]], col('--faint'), 0.55); G.group.add(ln); edges.push({ from: dep, to: n.id, ln, a: [a[0] + 1.15, a[1], a[2]], b: [p[0] - 1.15, p[1], p[2]] }); });
+        });
+      }
+      RC.N.forEach((n) => els.push({ label: n.n, info: nodeInfo(n), mesh: meshes[n.id] }));
+      function totals(res) { let c = 0, t = 0, k = 0; Object.keys(res).forEach((id) => { c += res[id].cells; t += res[id].total; k++; }); return { c, t, k }; }
+      function play() {
+        const res = RC.run(st.edit, st.scoped), e = RC.EDITS[st.edit];
+        st.ran = res; G.token++; G.tweens.length = 0; G.timers.forEach(clearTimeout); G.timers.length = 0;
+        const tt = totals(res), full = totals(RC.run(st.edit, false));
+        paintHud([['Recalculated', tt.k + ' of ' + RC.N.filter((n) => !n.input).length + ' metrics'], ['Cells computed', tt.c, !st.scoped], ['Without scoping', full.c]]);
+        paintPanel();
+        if (!G.ok) return;
+        Object.keys(chips).forEach((id) => { G.group.remove(chips[id]); });
+        RC.N.forEach((n) => { meshes[n.id].material.color.copy(col(n.input ? '--c-input' : '--c-idle')); meshes[n.id].material.emissiveIntensity = 0; meshes[n.id].material.opacity = res[n.id] || n.id === e.src ? 0.95 : 0.4; });
+        edges.forEach((ed) => { ed.ln.material.color.copy(col('--faint')); ed.ln.material.opacity = 0.3; });
+        const flash = (id, c) => { const m = meshes[id]; m.material.color.copy(col(c)); m.material.emissive.copy(col(c)); tw(700, (k) => { m.material.emissiveIntensity = 0.9 * (1 - k) + 0.15; m.scale.setScalar(1 + 0.18 * Math.sin(k * Math.PI)); }); };
+        flash(e.src, '--c-input');
+        const maxL = Math.max.apply(null, Object.keys(res).map((id) => RC.BY[id].lvl));
+        for (let L = 1; L <= maxL; L++) {
+          later(() => {
+            // every metric on the same level has no dependency on the others, so they light together
+            Object.keys(res).filter((id) => RC.BY[id].lvl === L).forEach((id) => {
+              const r = res[id], n = RC.BY[id], warn = r.lost || r.cells === r.total;
+              edges.filter((ed) => ed.to === id && r.from.indexOf(ed.from) >= 0).forEach((ed) => {
+                ed.ln.material.color.copy(col('--accent')); ed.ln.material.opacity = 0.95;
+                const s = new T.Mesh(new T.SphereGeometry(0.13, 10, 10), new T.MeshBasicMaterial({ color: col('--accent') })); G.group.add(s);
+                tw(520, (k) => s.position.set(ed.a[0] + (ed.b[0] - ed.a[0]) * k, ed.a[1] + (ed.b[1] - ed.a[1]) * k, ed.a[2] + (ed.b[2] - ed.a[2]) * k), () => G.group.remove(s));
+              });
+              later(() => {
+                flash(id, warn ? '--c-lost' : '--c-calc');
+                const p = pos(n), ch = label(r.cells + ' / ' + r.total + ' cells', { size: 17, weight: 600, bg: warn ? css('--c-lost') : css('--c-calc'), color: css('--accent-ink') });
+                ch.position.set(p[0], p[1] - 1.12, p[2]); G.group.add(ch); chips[id] = ch;
+              }, 480);
+            });
+          }, (L - 1) * 900 + 350);
+        }
+      }
+      function rows() {
+        if (!st.ran) return '';
+        const res = st.ran, tt = totals(res);
+        return '<div><div class="sec-t">This recalculation</div><div class="rows">' + RC.N.filter((n) => !n.input).sort((a, b) => a.lvl - b.lvl).map((n) => { const r = res[n.id], i = RC.N.indexOf(n);
+          return '<button type="button" data-el="' + i + '" class="' + (r ? (r.lost || r.cells === r.total ? 'lost' : '') : 'idle') + '"><span>' + esc(n.n) + '</span><span class="n">' + (r ? r.cells + ' / ' + r.total : 'untouched') + '</span></button>'; }).join('') + '</div><p class="note" style="margin-top:8px">' + tt.c + ' cells computed across ' + tt.k + ' metrics. Amber rows lost scope and recomputed in full.</p></div>';
+      }
+      later(play, 500);
+      return {
+        elements: els,
+        controls: () => '<div><div class="sec-t">Change one input cell</div><div class="ctl">' + Object.keys(RC.EDITS).map((k) => '<button type="button" class="chipb" data-act="edit:' + k + '" aria-pressed="' + (k === st.edit) + '">' + esc(RC.EDITS[k].t) + '</button>').join('') + '</div></div>' +
+          '<div class="ctl"><button type="button" class="chipb" data-act="scoped:1" aria-pressed="' + st.scoped + '">Scoped (how Pigment works)</button><button type="button" class="chipb" data-act="scoped:0" aria-pressed="' + !st.scoped + '">No scoping (for contrast)</button><button type="button" class="btn" data-act="play">Replay</button></div>' +
+          '<div class="legend"><span><i style="background:var(--c-input)"></i>Input</span><span><i style="background:var(--c-calc)"></i>Recomputed, scoped</span><span><i style="background:var(--c-lost)"></i>Scope lost, full recompute</span><span><i style="background:var(--c-idle)"></i>Untouched</span></div>',
+        after: rows,
+        onAct(act) {
+          if (act.indexOf('edit:') === 0) st.edit = act.slice(5);
+          if (act.indexOf('scoped:') === 0) st.scoped = act.slice(7) === '1';
+          state.info = null; play();
+        },
+      };
+    },
+  };
+
+  /* ============================================================ SCENE: formula pipeline */
+  const PIPE = [
+    { t: 'Formula text', s: "'Revenue'[BY SUM: 'Product'.'Category'] * 'FX Rate'", tag: 'doc', b: '<p>What the modeller writes on a metric. Pigment validates it as you type and refuses to save a formula it cannot resolve.</p>', src: [] },
+    { t: 'Parse', s: 'tokens → expression tree', tag: 'ill', b: '<p>Any formula language has to be read into a tree of references, operators, functions and modifiers before it can run. Pigment has not published how Graphite does this; the stage is here to make the next ones readable.</p>', src: [] },
+    { t: 'Resolve and align dimensions', s: 'Product×Region×Month → Category×Region×Month', tag: 'inf', b: '<p>Each reference carries its own dimensions. Modifiers such as BY, REMOVE, ADD, SELECT and FILTER reshape a source until it matches the target metric. Where shapes still differ, Pigment broadcasts or aggregates rather than failing.</p><p>The behaviour is documented in the modifier docs; treating it as a distinct compile step is an inference.</p>', src: ['hints'], act: ['scene:cube/BY', 'See BY on the sparse cube'] },
+    { t: 'Register dependencies', s: 'Revenue, FX Rate → this metric', tag: 'doc', b: '<p>Every reference becomes an edge in the model’s dependency graph. That graph is what lets the engine know, for any edit, exactly which metrics are downstream.</p>', src: ['arch'], act: ['scene:recalc', 'Watch the graph recalculate'] },
+    { t: 'Plan the scope', s: 'which dimensions stay pinned', tag: 'doc', b: '<p>For each calculation in the path, scope is assessed: which dimensions can be limited to the changed items. The profiler reports it per calculation as scoped dimensions over total, and shows what is handed to the next calculation.</p>', src: ['scope', 'prof'] },
+    { t: 'Execute over populated cells', s: 'skip blanks, run in parallel', tag: 'doc', b: '<p>The engine visits populated cells only, and parallelises calculations where it can. Cost follows the number of cells computed, which is why densifying formulas hurt.</p><p class="note">Thread and partition strategy are not published.</p>', src: ['arch', 'sparse'] },
+    { t: 'Store the sparse result', s: 'blank stays blank', tag: 'doc', b: '<p>Only cells that hold a value are stored. The result becomes the input of the next metric in the chain.</p><p class="note">Coverage of Graphite says storage is separated from compute; the storage format itself is not public.</p>', src: ['arch', 'pilotia'] },
+  ];
+  SCENES.pipeline = {
+    name: 'Formula pipeline', eyebrow: 'From text to cells', title: 'What happens to a formula',
+    intro: 'Seven stations from the text you type to the cells that get stored. Each is labelled for how much of it Pigment has actually documented. Step through, or click a station.',
+    cam: { th: 0.18, ph: 1.15, r: 28 },
+    info: { tag: 'ill', title: 'An illustrative pipeline', body: '<p>Pigment documents the observable behaviour at both ends: formulas are validated, dependencies are tracked, calculation is scoped and sparse. The stages in between are drawn the way any formula engine has to work, and are labelled where they are a teaching picture and not a published fact.</p>', src: ['scope', 'arch'] },
+    build() {
+      const st = state.pipe, els = [], ms = [];
+      const sInfo = (s, i) => ({ tag: s.tag, title: (i + 1) + '. ' + s.t, body: '<div class="fx">' + esc(s.s) + '</div>' + s.b, src: s.src, act: s.act });
+      const pos = (i) => [(i - 3) * 3.3, Math.sin(i * 0.9) * 0.6, (i % 2 ? 1 : -1) * 1.2];
+      let packet = null;
+      if (G.ok) {
+        PIPE.forEach((s, i) => {
+          const p = pos(i), c = s.tag === 'doc' ? '--c-calc' : s.tag === 'inf' ? '--c-lost' : '--c-idle';
+          const m = pick(box(2.5, 1.3, 1.8, col(c), { opacity: 0.9 }), sInfo(s, i)); m.position.set(p[0], p[1], p[2]); m.userData.i = i; G.group.add(m); ms.push(m);
+          const l = label((i + 1) + '  ' + s.t, { size: 21, weight: 600, color: css('--ink') }); l.position.set(p[0], p[1] + 1.05, p[2]); G.group.add(l);
+          const t = label(TAGS[s.tag], { size: 14, weight: 600, bg: css('--surface'), color: css('--muted') }); t.position.set(p[0], p[1] - 0.98, p[2]); G.group.add(t);
+          if (i) { const a = pos(i - 1); G.group.add(line([a[0] + 1.25, a[1], a[2]], [p[0] - 1.25, p[1], p[2]], col('--faint'), 0.7)); }
+        });
+        packet = new T.Mesh(new T.SphereGeometry(0.24, 16, 16), new T.MeshBasicMaterial({ color: col('--accent') })); G.group.add(packet);
+      }
+      PIPE.forEach((s, i) => els.push({ label: (i + 1) + '. ' + s.t, info: sInfo(s, i), mesh: ms[i] }));
+      function go(i, quiet) {
+        const from = st.step; st.step = Math.max(0, Math.min(PIPE.length - 1, i));
+        if (G.ok) {
+          const a = pos(from), b = pos(st.step);
+          tw(600, (k) => packet.position.set(a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k + 1.75, a[2] + (b[2] - a[2]) * k));
+          ms.forEach((m, k) => { m.material.emissive.copy(col('--accent')); m.material.emissiveIntensity = k === st.step ? 0.45 : 0; m.material.opacity = k <= st.step ? 0.95 : 0.55; });
+        }
+        paintHud([['Station', (st.step + 1) + ' of ' + PIPE.length], ['Status', TAGS[PIPE[st.step].tag]]]);
+        if (!quiet) { state.info = sInfo(PIPE[st.step], st.step); paintPanel(); }
+      }
+      go(st.step, true);
+      return {
+        elements: els,
+        onPick(m) { if (m.userData.i != null) go(m.userData.i, true); },
+        controls: () => '<div class="ctl"><button type="button" class="btn" data-act="prev"' + (st.step ? '' : ' disabled') + '>← Back</button><button type="button" class="btn primary" data-act="next"' + (st.step < PIPE.length - 1 ? '' : ' disabled') + '>Next station →</button></div><div class="legend"><span><i style="background:var(--c-calc)"></i>Documented</span><span><i style="background:var(--c-lost)"></i>Inferred</span><span><i style="background:var(--c-idle)"></i>Illustrative</span></div>',
+        onAct(act) { if (act === 'next') go(st.step + 1); if (act === 'prev') go(st.step - 1); },
+      };
+    },
+  };
+
+  /* ============================================================ SCENE: access rights */
+  const AR = {
+    regions: ['AMER', 'EMEA', 'APAC', 'LATAM'], depts: ['Finance', 'Sales', 'HR', 'Ops'],
+    r1: ['rw', 'rw', 'r', 'blank'],          // AR metric on Region
+    r2: ['rw', 'r', 'none', 'rw'],           // AR metric on Department
+    word: { rw: 'Read and write', r: 'Read only', none: 'No read, no write', blank: 'Blank' },
+  };
+  SCENES.access = {
+    name: 'Access rights', eyebrow: 'Security evaluation', title: 'Who can see which cell',
+    intro: 'Access rights are data too: rules are metrics, dimensioned by the lists they protect. Stack a role default and two rules, and the top layer shows what one member ends up with on every cell.',
+    cam: { th: 0.7, ph: 1.0, r: 19, tx: -1.6 },
+    info: { tag: 'doc', title: 'The most restrictive rule wins', body: '<ul><li>A role sets the default for the whole application. Most roles default to read and write; Reader has write off.</li><li>Each rule is an access rights metric holding Read / Write values per item.</li><li>A <b>blank</b> in a rule is restrictive: it results in no read and no write.</li><li>When several rules apply, the most restrictive permission takes over.</li></ul><p class="note">The member, lists and values are a made-up example. How Graphite evaluates rules at query time is not published.</p>', src: ['ar', 'arm'] },
+    build() {
+      const st = state.access, els = [];
+      const order = { rw: 3, r: 2, none: 0, blank: 0 };
+      const cell = (g, d) => {
+        const parts = [['Role default', st.role === 'member' ? 'rw' : 'r']];
+        if (st.r1) parts.push(['Region rule', AR.r1[g]]);
+        if (st.r2) parts.push(['Department rule', AR.r2[d]]);
+        let worst = parts[0]; parts.forEach((p) => { if (order[p[1]] < order[worst[1]]) worst = p; });
+        return { v: order[worst[1]] === 3 ? 'rw' : order[worst[1]] === 2 ? 'r' : 'none', by: worst, parts };
+      };
+      const colOf = (v) => col(v === 'rw' ? '--ok' : v === 'r' ? '--c-lost' : '--c-idle');
+      let nRW = 0, nR = 0, nN = 0;
+      for (let g = 0; g < 4; g++) for (let d = 0; d < 4; d++) { const v = cell(g, d).v; if (v === 'rw') nRW++; else if (v === 'r') nR++; else nN++; }
+      paintHud([['Read and write', nRW], ['Read only', nR], ['Hidden', nN, nN > 8]]);
+      if (G.ok) {
+        const layers = [
+          { y: -3, t: 'Role default: ' + (st.role === 'member' ? 'Member' : 'Reader'), on: true, f: () => (st.role === 'member' ? 'rw' : 'r'), info: { tag: 'doc', title: 'Role default', body: '<p>Every member needs a role. The role sets the starting permission for the whole application: read and write for most roles, read only for Reader. Rules then restrict from there.</p>', src: ['ar'] } },
+          { y: -1, t: 'Rule on Region', on: st.r1, f: (g) => AR.r1[g], info: { tag: 'doc', title: 'A rule dimensioned by Region', body: '<p>This access rights metric has one value per region for this member, so it paints stripes: the same answer for every department. LATAM is blank, and blank is restrictive.</p>', src: ['arm'] } },
+          { y: 1, t: 'Rule on Department', on: st.r2, f: (g, d) => AR.r2[d], info: { tag: 'doc', title: 'A rule dimensioned by Department', body: '<p>A second rule, on a different dimension. It stripes the other way. HR is explicitly no read, no write.</p>', src: ['arm'] } },
+        ];
+        const P = (g, d, y) => [(d - 1.5) * 1.25, y, (g - 1.5) * 1.25];
+        layers.forEach((L) => {
+          for (let g = 0; g < 4; g++) for (let d = 0; d < 4; d++) {
+            const v = L.f(g, d), p = P(g, d, L.y);
+            const m = pick(box(1.1, 0.14, 1.1, v === 'blank' ? col('--surface') : colOf(v), { opacity: L.on ? 0.9 : 0.15 }), Object.assign({}, L.info, { title: L.info.title + (L.on ? '' : ' (switched off)') })); m.position.set(p[0], p[1], p[2]); G.group.add(m);
+            if (v === 'blank' && L.on) { const w = wire(1.1, 0.14, 1.1, col('--bad'), 0.9); w.position.set(p[0], p[1], p[2]); G.group.add(w); }
+          }
+          const l = label(L.t, { size: 20, weight: 600, color: css(L.on ? '--ink' : '--faint') }); l.position.set(-5.4, L.y, 0); G.group.add(l);
+        });
+        for (let g = 0; g < 4; g++) for (let d = 0; d < 4; d++) {
+          const c = cell(g, d), p = P(g, d, 3.2), hgt = c.v === 'rw' ? 0.9 : c.v === 'r' ? 0.45 : 0.12;
+          const info = { tag: 'doc', title: AR.regions[g] + ' × ' + AR.depts[d] + ': ' + AR.word[c.v], body: '<ul>' + c.parts.map((x) => '<li>' + esc(x[0]) + ': <b>' + AR.word[x[1]] + '</b></li>').join('') + '</ul><p>Decided by the <b>' + esc(c.by[0].toLowerCase()) + '</b>' + (c.by[1] === 'blank' ? ', which is blank here. Blank overrides a read or write setting.' : c.v === 'rw' ? '; nothing restricts this cell.' : ', the most restrictive of the layers below.') + '</p>', src: ['ar', 'arm'] };
+          const m = pick(box(1.1, hgt, 1.1, colOf(c.v), { opacity: 0.95 }), info); m.position.set(p[0], p[1] + hgt / 2, p[2]); G.group.add(m);
+          G.group.add(line(P(g, d, -3), [p[0], p[1], p[2]], col('--faint'), 0.18));
+          els.push({ label: AR.regions[g] + ' × ' + AR.depts[d], info, mesh: m });
+        }
+        const top = label('What Ava can do', { size: 22, weight: 600, bg: css('--surface'), color: css('--ink') }); top.position.set(-5.4, 3.6, 0); G.group.add(top);
+        AR.depts.forEach((n, d) => { const s = label(n, { size: 17, color: css('--muted') }); s.position.set((d - 1.5) * 1.25, -3.5, 3.1); G.group.add(s); });
+        AR.regions.forEach((n, g) => { const s = label(n, { size: 17, color: css('--muted') }); s.position.set(3.4, -3.3, (g - 1.5) * 1.25); G.group.add(s); });
+      } else {
+        for (let g = 0; g < 4; g++) for (let d = 0; d < 4; d++) { const c = cell(g, d); els.push({ label: AR.regions[g] + ' × ' + AR.depts[d], info: { tag: 'doc', title: AR.regions[g] + ' × ' + AR.depts[d] + ': ' + AR.word[c.v], body: '<p>Decided by the ' + esc(c.by[0].toLowerCase()) + '.</p>', src: ['ar'] } }); }
+      }
+      return {
+        elements: els,
+        controls: () => '<div><div class="sec-t">Ava’s role</div><div class="ctl"><button type="button" class="chipb" data-act="role:member" aria-pressed="' + (st.role === 'member') + '">Member (read and write)</button><button type="button" class="chipb" data-act="role:reader" aria-pressed="' + (st.role === 'reader') + '">Reader (read only)</button></div></div>' +
+          '<div><div class="sec-t">Rules applied</div><div class="ctl"><button type="button" class="chipb" data-act="tog:r1" aria-pressed="' + st.r1 + '">Rule on Region</button><button type="button" class="chipb" data-act="tog:r2" aria-pressed="' + st.r2 + '">Rule on Department</button></div></div>' +
+          '<div class="legend"><span><i style="background:var(--ok)"></i>Read and write</span><span><i style="background:var(--c-lost)"></i>Read only</span><span><i style="background:var(--c-idle)"></i>No access</span><span><i style="border:1.5px solid var(--bad)"></i>Blank in the rule</span></div>',
+        onAct(act) { if (act.indexOf('role:') === 0) st.role = act.slice(5); if (act === 'tog:r1') st.r1 = !st.r1; if (act === 'tog:r2') st.r2 = !st.r2; state.info = null; setScene('access', true); },
+      };
+    },
+  };
+
+  /* ============================================================ SCENE: scenarios */
+  function scnFresh() {
+    const base = { Price: [10, 10, 10, 11, 11, 11], Volume: [5, 5, 6, 6, 7, 7], Discount: [1, 1, 1, 1, 1, 1] };
+    const cp = (o) => JSON.parse(JSON.stringify(o));
+    const up = cp(base), down = cp(base);
+    up.Volume = [5, 6, 7, 8, 9, 10]; down.Price = [10, 9, 9, 9, 9, 9]; down.Discount = [1, 2, 2, 2, 2, 2];
+    return { names: ['Default', 'Upside', 'Downside'], data: [base, up, down], seed: [cp(base), cp(base), cp(base)], log: 'Upside and Downside were created from Default, then edited.' };
+  }
+  SCENES.scenarios = {
+    name: 'Scenarios', eyebrow: 'What-if layers', title: 'Scenarios as parallel layers of inputs',
+    intro: 'Each plane is one scenario. They share the model and its formulas, but each carries its own inputs, so the same formula gives a different answer per layer. Tiles that differ from the layer’s starting point are outlined.',
+    cam: { th: 0.6, ph: 1.05, r: 22, tx: -1.6 },
+    info: { tag: 'doc', title: 'A scenario starts from a source', body: '<p>Turning scenarios on creates a Default Scenario that inherits all existing inputs and formulas. A new scenario is created from a source scenario you choose, which supplies its initial data.</p><p>Inputs can later be copied between scenarios: overrides, manual inputs and imported data, into any editable target.</p><p class="note">Drivers and numbers are a made-up example. How Graphite stores scenario data is not published.</p>', src: ['scn', 'scnCopy'] },
+    build() {
+      const S2 = state.scn || (state.scn = scnFresh()), els = [];
+      const DR = ['Price', 'Volume', 'Discount'];
+      const result = (d, m) => (d.Price[m] - d.Discount[m]) * d.Volume[m];
+      const tot = (d) => [0, 1, 2, 3, 4, 5].reduce((a, m) => a + result(d, m), 0);
+      paintHud(S2.names.map((n, i) => [n, tot(S2.data[i])]));
+      if (G.ok) {
+        const cols = ['--c-idle', '--ok', '--c-lost'];
+        S2.names.forEach((n, i) => {
+          const y = (i - 1) * 3.3, d = S2.data[i], seed = S2.seed[i];
+          const plane = box(9.6, 0.06, 5.6, col('--surface'), { opacity: 0.5 }); plane.position.set(0.4, y - 0.1, 0); G.group.add(plane);
+          const pw = wire(9.6, 0.06, 5.6, col(cols[i]), 0.8); pw.position.copy(plane.position); G.group.add(pw);
+          const l = label(n, { size: 24, weight: 600, bg: css('--surface'), color: css('--ink') }); l.position.set(-5.6, y + 0.4, 2.8); G.group.add(l);
+          DR.forEach((dr, r) => {
+            for (let m = 0; m < 6; m++) {
+              const changed = d[dr][m] !== seed[dr][m];
+              const info = { tag: 'ill', title: n + ' · ' + dr + ' · M' + (m + 1) + ' = ' + d[dr][m], body: '<p>An input cell in the ' + esc(n) + ' scenario.' + (changed ? ' It was edited after the scenario was created (it started at ' + seed[dr][m] + '), so it differs from the source.' : ' It still holds the value the scenario started with.') + '</p>', src: ['scn'] };
+              const t = pick(box(0.9, 0.12, 0.9, col(changed ? cols[i] : '--c-input'), { opacity: changed ? 0.95 : 0.55 }), info); t.position.set((m - 2.5) * 1.05 - 0.9, y, (r - 1) * 1.05 + 0.9); G.group.add(t);
+              if (changed) { const w = wire(0.94, 0.16, 0.94, col('--ink'), 0.9); w.position.copy(t.position); G.group.add(w); }
+            }
+            if (i === 0) { const s = label(dr, { size: 16, color: css('--muted') }); s.position.set(-5.2, y, (r - 1) * 1.05 + 0.9); G.group.add(s); }
+          });
+          for (let m = 0; m < 6; m++) {
+            const v = result(d, m), h = v / 42;
+            const info = { tag: 'ill', title: n + ' · Revenue · M' + (m + 1) + ' = ' + v, body: '<div class="fx">(' + "'Price' - 'Discount') * 'Volume'" + '</div><p>The same formula in every scenario, evaluated on this layer’s inputs: (' + d.Price[m] + ' − ' + d.Discount[m] + ') × ' + d.Volume[m] + '.</p>', src: ['scn'] };
+            const b = pick(box(0.7, h, 0.7, col('--accent'), { opacity: 0.9 }), info); b.position.set((m - 2.5) * 1.05 - 0.9, y + h / 2, -1.7); G.group.add(b);
+          }
+          els.push({ label: n + ' scenario', info: { tag: 'doc', title: n + ' scenario', body: '<p>Total revenue on this layer: <b>' + tot(d) + '</b>. ' + (i ? 'Created from Default.' : 'The Default Scenario: it inherited the model’s existing inputs and formulas when scenarios were switched on.') + '</p>', src: ['scn'] } });
+        });
+      }
+      return {
+        elements: els,
+        controls: () => '<div><div class="sec-t">Try it</div><div class="ctl"><button type="button" class="chipb" data-act="s:default">Raise Price in Default</button><button type="button" class="chipb" data-act="s:upside">Raise Volume in Upside</button><button type="button" class="chipb" data-act="s:copy">Copy Default inputs → Downside</button><button type="button" class="btn" data-act="s:reset">Reset</button></div></div><p class="note">' + esc(S2.log) + '</p>',
+        onAct(act) {
+          if (act === 's:reset') { state.scn = scnFresh(); state.info = null; }
+          if (act === 's:default') { S2.data[0].Price = S2.data[0].Price.map((v) => v + 1); S2.log = 'Default changed. Upside and Downside did not move.';
+            state.info = { tag: 'inf', title: 'An edit in Default stays in Default', body: '<p>Price went up by 1 in the Default layer only. Pigment users report that scenarios behave as separate layers: once a scenario exists, later input changes in Default do not flow into it unless you copy them across.</p><p>This is reported on the community forum and consistent with the copy-inputs feature, but it is not stated in those words in the docs. A workspace setting, “Inputs and imports populate data across all Scenarios”, changes this for chosen blocks.</p>', src: ['scnComm', 'scnCopy'] }; }
+          if (act === 's:upside') { S2.data[1].Volume = S2.data[1].Volume.map((v) => v + 1); S2.log = 'Upside changed. Only its layer recalculated.';
+            state.info = { tag: 'inf', title: 'A scenario edit recalculates one layer', body: '<p>Only the Upside inputs changed, so only Upside results move. The formula is shared; the dependency graph is the same; the data differs.</p><p class="note">That the engine recalculates only the edited scenario is inferred from scoped recalculation, not stated in the scenario docs.</p>', src: ['scn', 'scope'] }; }
+          if (act === 's:copy') { S2.data[2] = JSON.parse(JSON.stringify(S2.data[0])); S2.seed[2] = JSON.parse(JSON.stringify(S2.data[0])); S2.log = 'Downside now holds a copy of Default’s inputs.';
+            state.info = { tag: 'doc', title: 'Copy inputs between scenarios', body: '<p>Pigment can copy overrides, manual inputs and imported data from one scenario to an editable target. After the copy the two layers match, and drift apart again as soon as either is edited.</p>', src: ['scnCopy'] }; }
+          setScene('scenarios', true);
+        },
+      };
+    },
+  };
+
+  /* ------------------------------------------------------------ deep links */
+  function focus(p) {
+    p = p || {};
+    const f = p.focus && typeof p.focus === 'object' ? p.focus : (p.before || p.after || p.code ? p : null);
+    if (f && !p.modifier) p = Object.assign({}, p, { modifier: f.modifier });
+    let scene = p.scene, mod = p.modifier ? String(p.modifier).toUpperCase().replace(/[^A-Z]/g, '') : null;
+    let mapped = '';
+    if (mod === 'KEEP') { mod = 'REMOVE'; mapped = 'KEEP is REMOVE seen from the other side (it names the dimensions that stay), so the cube shows REMOVE.'; }
+    if (mod === 'EXCLUDE') { mod = 'FILTER'; mapped = 'EXCLUDE is FILTER with the condition reversed, so the cube shows FILTER.'; }
+    state.cube.ext = f && mod && CUBE.OPS[mod] ? { from: p.from || 'Formula Studio', modifier: String(f.modifier || mod).toUpperCase(), code: f.code, formula: f.formula, block: f.block, before: f.before, after: f.after, mapped } : null;
+    if (mod && CUBE.OPS[mod]) { state.cube.op = mod; state.cube.stage = 'result'; scene = scene || 'cube'; state.info = CUBE.OPS[mod].info; setScene('cube', true); Object.assign(G.orbit, SCENES.cube.cam); G.home = Object.assign({ tx: 0, ty: 0, tz: 0 }, SCENES.cube.cam); return true; }
+    if (scene && SCENES[scene]) { setScene(scene); return true; }
+    return false;
+  }
+  window.__canvasReceive = function (msg) { if (!msg || (msg.target && msg.target !== 'graphite')) return false; const p = msg.payload || {}; focus({ scene: p.scene, modifier: p.modifier, focus: p.focus, from: p.from }); return true; };
+  window.addEventListener('message', (e) => { const d = e.data; if (d && d.type === 'graphite:focus') focus(d); });
+  function fromHash() {
+    const h = decodeURIComponent(location.hash.slice(1)); if (!h) return false;
+    const q = {}; h.split('&').forEach((kv) => { const i = kv.indexOf('='); if (i > 0) q[kv.slice(0, i)] = kv.slice(i + 1); });
+    if (q.scene || q.modifier) return focus(q);
+    const p = h.split('/'); return focus({ scene: p[0], modifier: p[1] });
+  }
+  window.addEventListener('hashchange', fromHash);
+
+  /* ------------------------------------------------------------ theme: follow the shell (data-theme on <html>) */
+  const root = document.documentElement;
+  try { const pt = window.parent !== window && window.parent.document.documentElement.getAttribute('data-theme'); if (pt && !root.getAttribute('data-theme')) root.setAttribute('data-theme', pt); } catch (e) {}
+  if (!root.getAttribute('data-theme')) root.setAttribute('data-theme', window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && window.parent === window ? 'dark' : 'light');
+  new MutationObserver(() => setScene(state.scene, true)).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+
+  /* ------------------------------------------------------------ boot */
+  $('#tabs').innerHTML = Object.keys(SCENES).map((k) => '<button type="button" role="tab" data-scene="' + k + '" aria-selected="false">' + esc(SCENES[k].name) + '</button>').join('');
+  resize();
+  if (!fromHash()) setScene('overview');
+  if (G.ok) requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

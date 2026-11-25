@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Frame Size Budget</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: budget meter on top, then the expandable section list (largest first), then ranked trim options, then the world/storyline split and method notes. */
+:root {
+  --bg: #F3F0EA; --surface: #FFFDF9; --ink: #1F1E1D; --muted: #625D55; --line: #DDD6CA; --track: #ECE6DC;
+  --accent: #B04F2B; --core: #3B78C4; --mod: #7A45D1; --free: #2F6B3F; --warn: #A8322B;
+  --lo: #2F6B3F; --lo-bg: #E2F0E4; --md: #8A5600; --md-bg: #F7EBD3; --hi: #A8322B; --hi-bg: #F6E1DE; --no: #2C5E86; --no-bg: #E1ECF6;
+  --f-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1C1B1A; --surface: #252422; --ink: #F3F1EC; --muted: #B3AEA5; --line: #3A3835; --track: #33312D; --accent: #E08A66;
+  --core: #7FA8DC; --mod: #A889D9; --free: #8FD0A0; --warn: #F0978D;
+  --lo: #8FD0A0; --lo-bg: #1F3326; --md: #E8BE72; --md-bg: #3A2F1A; --hi: #F0978D; --hi-bg: #3E2321; --no: #9CC6EA; --no-bg: #1E2C3A; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #1C1B1A; --surface: #252422; --ink: #F3F1EC; --muted: #B3AEA5; --line: #3A3835; --track: #33312D; --accent: #E08A66;
+  --core: #7FA8DC; --mod: #A889D9; --free: #8FD0A0; --warn: #F0978D;
+  --lo: #8FD0A0; --lo-bg: #1F3326; --md: #E8BE72; --md-bg: #3A2F1A; --hi: #F0978D; --hi-bg: #3E2321; --no: #9CC6EA; --no-bg: #1E2C3A; color-scheme: dark }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.5 var(--f-body); margin: 0; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 28px 16px 56px; display: flex; flex-direction: column; gap: 22px; }
+h1, h2, h3 { font-family: var(--f-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(24px, 3vw, 32px); } h2 { font-size: 19px; } h3 { font-size: 15px; }
+.lede { color: var(--muted); margin: 6px 0 0; max-width: 75ch; }
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--f-mono); font-size: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.kpi b { display: block; font-family: var(--f-display); font-size: 24px; font-weight: 600; }
+.kpi span { color: var(--muted); font-size: 12.5px; }
+.meter { display: flex; height: 22px; border-radius: 6px; overflow: hidden; background: var(--track); }
+.meter i { display: block; height: 100%; }
+.meter .c { background: var(--core); } .meter .m { background: var(--mod); } .meter .p { background: repeating-linear-gradient(45deg, var(--md) 0 4px, transparent 4px 8px); opacity: .7; } .meter .f { background: var(--free); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+button { font: 600 12.5px var(--f-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+details.sec { border-top: 1px solid var(--line); }
+details.sec:first-of-type { border-top: 0; }
+details.sec > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 18px minmax(0, 1fr) 90px 64px; gap: 10px; align-items: center; padding: 10px 2px; }
+details.sec > summary::-webkit-details-marker { display: none; }
+.chev { width: 10px; height: 10px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform .15s; }
+details[open] > summary .chev { transform: rotate(45deg); }
+.nm { font-weight: 600; overflow-wrap: anywhere; }
+.nm small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+.bar { height: 6px; background: var(--track); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 3px; }
+.r { text-align: right; }
+.pct { font-weight: 600; }
+.body { padding: 0 2px 14px 28px; display: flex; flex-direction: column; gap: 10px; }
+.sub { display: grid; grid-template-columns: minmax(0, 1fr) 80px 56px; gap: 10px; font-size: 13px; align-items: center; }
+.sub .bar { margin-top: 4px; height: 4px; }
+.meta { font-size: 12.5px; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; border-radius: 99px; padding: 2px 9px; font-weight: 600; font-size: 11.5px; white-space: nowrap; }
+.lo { color: var(--lo); background: var(--lo-bg); } .md { color: var(--md); background: var(--md-bg); } .hi { color: var(--hi); background: var(--hi-bg); } .no { color: var(--no); background: var(--no-bg); }
+.trim { border-left: 3px solid var(--accent); padding: 6px 10px; background: var(--bg); border-radius: 0 8px 8px 0; font-size: 13px; }
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 720px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
+td.r, th.r { text-align: right; }
+td small { color: var(--muted); display: block; }
+tr.total td { font-weight: 600; border-bottom: 0; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+ul.tight { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.foot { color: var(--muted); font-size: 12px; }
+@media (max-width: 560px) {
+  details.sec > summary { grid-template-columns: 14px minmax(0, 1fr) 54px; }
+  details.sec > summary .kb { display: none; }
+  .body { padding-left: 10px; }
+  .sub { grid-template-columns: minmax(0, 1fr) 52px; } .sub .kb { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Frame Size Budget</h1>
+    <p class="lede">Where the live Frame Studio frame in Pigment spends its 1 MiB code limit, and what could be trimmed with the least impact. Measured from the deployed v5.4 body on 25 Nov 2026, with shared notes included. Already done: comments stripped (29 KB) and the unused sample catalog and dead functions removed (4.5 KB). Admin view: nothing here changes the frame.</p>
+  </header>
+
+  <section class="card" aria-labelledby="h-budget">
+    <h2 id="h-budget">Budget</h2>
+    <div class="kpis" id="kpis"></div>
+    <div class="meter" id="meter" role="img"></div>
+    <div class="legend"><span><i style="background:var(--core)"></i>Core frame</span><span><i style="background:var(--mod)"></i>Modules</span><span><i style="background:var(--free)"></i>Free</span></div>
+    <p class="meta">Pigment rejects any frame body over 1,048,576 bytes; the v4.10 deploy hit this at 1,053,748 and was fitted by stripping indentation (saved 42.5 KB, no behaviour change). Percentages below are of that 1 MiB limit.</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-sections">
+    <div class="toolbar">
+      <h2 id="h-sections">What takes the space</h2>
+      <div><button type="button" id="openAll">Expand all</button> <button type="button" id="closeAll">Collapse all</button></div>
+    </div>
+    <div id="sections"></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-trim">
+    <h2 id="h-trim">Ways to reduce, least impact first</h2>
+    <p class="meta">Savings are estimates from the measured sizes. Impact is what a viewer of the Pigment frame would lose.</p>
+    <div class="tbl-wrap"><table id="trimTbl"><thead><tr><th>Option</th><th class="r">Saves</th><th>Impact</th><th>What you lose</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="grid2">
+    <div class="card">
+      <h2>The world and storyline</h2>
+      <p class="meta">Walk the Frame takes <b class="num" id="wPct"></b> of the limit. Only the light version lives in the frame.</p>
+      <ul class="tight">
+        <li><b>In the frame:</b> the WebGL renderer, the frame and Blockflow levels, the warehouse and sources with SQL text (about 7 KB of SQL), Graphite, the hiring pads, ghost blocks and the field insight pad.</li>
+        <li><b>Artifact only (zero frame bytes):</b> the office, the hiring floor characters, the call transcript animation, the street and shop, the CFO pitch and data center acts. Frame World in the artifact is about 236 KB on its own.</li>
+        <li><b>Rule of thumb:</b> new story scenes go to the artifact; the frame gets a pad or plaque that points to them.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Keep as is</h2>
+      <ul class="tight">
+        <li><b>Dashboard views, Main Palette, Pulse and Edit layout:</b> the reasons people open the frame.</li>
+        <li><b>Module host, approvals and writes:</b> every write to Pigment goes through them. Versions and shared notes (about 11 KB) live here too.</li>
+        <li><b>Styles:</b> already compact; full CSS minification would save only about 2 KB.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>How this was measured</h2>
+    <ul class="tight meta">
+      <li>Sections are cut at the frame's own section markers; module boundaries are exact.</li>
+      <li>Where a section has no markers, its parts are listed by the largest functions, and a function's size runs to the next one, so those parts are approximate.</li>
+      <li>Full-line comments are stripped from the live body (done 25 Nov); a commented copy is kept in the archive as <span class="mono">frame/lumina-pigment-frame.commented.js</span>, which this map is measured from, so section sizes are approximate to within a few hundred bytes. Styles counts the CSS strings.</li>
+      <li>Re-run after each deploy: the archive repo holds the body as <span class="mono">frame/lumina-pigment-frame.js</span>.</li>
+    </ul>
+  </section>
+  <p class="foot">Frame Studio admin. Figures are bytes of the deployed body; KB = 1,024 bytes.</p>
+</div>
+
+<script>
+const D = {"total":1015898,"cap":1048576,"comments":0,"css":158737,"sections":[{"name":"Shell setup and core styles","kind":"core","start":0,"bytes":62942,"comments":0,"css":61970,"subs":[["h()",61316],["esc()",174],["on()",115],["$$()",93],["later()",80],["$()",61],["Everything else (data, smaller functions)",1103]]},{"name":"Model catalog for lineage","kind":"core","start":63167,"bytes":15611,"comments":0,"css":0,"subs":[["B()",15611]]},{"name":"Build plans library","kind":"core","start":78960,"bytes":14054,"comments":0,"css":0,"subs":[["Everything else (data, smaller functions)",14054]]},{"name":"Pigment skills list","kind":"core","start":93135,"bytes":4885,"comments":0,"css":0,"subs":[["Everything else (data, smaller functions)",4885]]},{"name":"Build log, scene index, helpers","kind":"core","start":98038,"bytes":15339,"comments":0,"css":0,"subs":[["sceneIndex()",4586],["zOf()",2111],["icon()",1618],["hideTip()",1441],["layersReset()",418],["paintSide()",284],["showTip()",197],["sceneById()",126],["sideW()",68],["Everything else (data, smaller functions)",4489]]},{"name":"Layers rail, panes and camera","kind":"core","start":113594,"bytes":12130,"comments":0,"css":0,"subs":[["renderRail()",2315],["goto()",1621],["guideHtml()",1084],["applyGrid()",921],["camFor()",897],["loop()",683],["fit()",675],["layersFor()",572],["setTab()",566],["lmPaneIn()",560],["Everything else (data, smaller functions)",2236]]},{"name":"Dashboard views, dock and Ask why","kind":"core","start":125921,"bytes":115642,"comments":0,"css":0,"subs":[["awRun()",12137],["renderDock()",6612],["awPvm()",5837],["awVal()",5770],["renderDashboard()",5448],["channelsView()",4546],["bridgeView()",3654],["trendSvg()",3228],["launchesView()",2968],["awRenderLive()",2561],["Everything else (data, smaller functions)",62882]]},{"name":"Blockflow engine","kind":"core","start":245235,"bytes":39624,"comments":0,"css":0,"subs":[["Setup",3378],["model",1162],["layout: systems > stages > folders > blocks",4791],["edges",4921],["markup",3645],["cross-system processes",566],["the animated renderer",19994],["orbit: right-drag or Shift-drag turns the camera",1167]]},{"name":"Blockflow and Framecraft 3D","kind":"core","start":286788,"bytes":82839,"comments":0,"css":15112,"subs":[["injectCSS()",7178],["exitPlan()",6885],["bfModel()",3745],["hiFormula()",2898],["bfMount()",2077],["buildSources()",2077],["placeImpBeams()",1997],["setProc()",1905],["openLens()",1787],["openPlan()",1770],["Everything else (data, smaller functions)",50521]]},{"name":"Formula cube, Tune, Goals, Requests, Edit, Frame code","kind":"core","start":373252,"bytes":69340,"comments":0,"css":0,"subs":[["cubeStory()",9506],["sendReq()",4647],["renderToolkit()",3575],["renderEdit()",3141],["renderTune()",3131],["gapBuild()",2936],["renderRequests()",2833],["renderGoals()",2517],["lab()",2256],["tuneDescribe()",2225],["Everything else (data, smaller functions)",32574]]},{"name":"Edit layout","kind":"core","start":445409,"bytes":65464,"comments":0,"css":0,"subs":[["Setup",3367],["history, draft, shared default",3636],["after every dashboard render: apply overrides and edit chrome",4113],["pointer: drag to move, handles to resize; the other widgets make room (stFlow)",3788],["reflow: widgets never overlap",7864],["widget actions",1936],["layout morph",3400],["the layout bar, the widget toolbar and the Edit frame section",9258],["clicks and keys",20962],["the pivot panel",7139]]},{"name":"Framecraft layers styles and gestures","kind":"core","start":513511,"bytes":66824,"comments":0,"css":44511,"subs":[["onDbl()",26508],["onClick()",10219],["lyGesture()",3071],["onMove()",2331],["lyBuild()",2104],["onInput()",1382],["onDown()",1027],["onWheel()",1016],["onKey()",849],["lyTouchDown()",473],["Everything else (data, smaller functions)",17845]]},{"name":"Module host and approvals","kind":"core","start":581990,"bytes":65519,"comments":0,"css":2168,"subs":[["Setup",2265],["motion: one spring, shared by the dock, Pulse and modules",10138],["layout: which panels fit, and where the canvas sits",5749],["the Views list: grouped, with a fluid or static marker",23406],["hosted views",12261],["data snapshots for modules",1185],["approval: nothing is written until the viewer clicks Approve on this sheet",4212],["writes: every path below runs only from an approved sheet",6303]]},{"name":"Main Palette and Pulse","kind":"core","start":649342,"bytes":61564,"comments":0,"css":0,"subs":[["Setup",5620],["priorities: rules over the data the frame already reads",30572],["shared pieces of the dock and Pulse",6593],["the Main Palette panel",9883],["Pulse: the fluid view. It recomposes itself around the direction and the time horizon",8896]]},{"name":"Boot","kind":"core","start":712377,"bytes":7556,"comments":0,"css":0,"subs":[["lmBoot()",4251],["onResize()",1859],["lmLineage()",697],["lmCleanup()",493],["lmBlocks()",225],["Everything else (data, smaller functions)",32]]},{"name":"Architecture Studio","kind":"mod","start":720248,"bytes":122385,"comments":0,"css":18101,"subs":[["Setup",2831],["sample catalog: used only when the host gives no lineage (labelled as sample in the UI)",115],["small helpers",2012],["the view",1041],["catalog: what exists today, read from ctx.lineage / ctx.blocks / ctx.data",2771],["model",3828],["cube maths",3060],["diagnosis: conflicts and hints per node (also feeds Validate)",5285],["templates: deterministic head starts",14943],["build plan",5436],["persistence (schema-validated both ways)",3852],["chrome",3587],["step 1: intent",3876],["step 2: head start",7483],["step 3: sketch",32143],["step 4: validate",3667],["step 5: execute",5682],["mount",2843],["styles (scoped to .as-root; colours come from ctx.theme tokens)",17931]]},{"name":"Collaboration","kind":"mod","start":844418,"bytes":107108,"comments":0,"css":16875,"subs":[["Setup",1178],["small helpers",2965],["the model's vocabulary",6890],["sample transcripts (illustrative; written against the frame's model)",7516],["transcript parsing (plain text and WebVTT; no regular expressions over the text)",3905],["the module",1896],["persisted state: validated field by field on the way in, capped on the way out",4215],["entity dictionary: every node of the lineage plus regions, channels, products and topics",5395],["analysis of one transcript: statements, their place in the flow, and decision-like stateme",6574],["focus: the executive's direction filters statements and brings the nodes they touch forwar",962],["the flow diagram: lanes from source systems to frame widgets",9782],["header: transcripts, privacy, direction",6103],["side panel",8268],["Architecture Decision log",8070],["people",3226],["threads: notes anchored to a node, widget or region, with @mentions",5745],["digest (what changed since you last looked) and the copy-ready brief",7963],["focus changes: filter, glide the statements, bring nodes forward",1573],["mount / unmount",14880]]},{"name":"Walk the Frame (3D world)","kind":"mod","start":954157,"bytes":87072,"comments":0,"css":0,"subs":[["Setup",1113],["snapshot figures (24 Nov 2026) and the block map",14861],["data from the frame's own sources",2726],["tiny matrix kit (column-major)",1587],["the view",640],["DOM shell",4341],["WebGL",8113],["the world",4515],["level 0: the frame",6779],["level 1: Blockflow",2323],["the warehouse, off the far edge: NetSuite -> Snowflake (RAW -> dbt -> ANALYTICS) -> Pigmen",10196],["level 2: Graphite, the calculation engine (a lighter version of the Frame Studio level)",5556],["player",9155],["frame loop",9979],["input",5189]]}]};
+const V5 = 0;
+const NOTES = {
+  'Shell setup and core styles': ['The core stylesheet for the dashboard, panes and dock.', null],
+  'Model catalog for lineage': ['The block, board and view map behind lineage and Framecraft.', null],
+  'Build plans library': ['Ready-made build plans offered in Build plans.', 'Move the full text to the Frame Studio plugin and keep titles here.'],
+  'Pigment skills list': ['The skill list shown with build plans.', 'Move to the plugin with the plans.'],
+  'Dashboard views, dock and Ask why': ['Every dashboard view plus the rule-based Ask why (the aw* functions).', 'Ask why could shrink to its top three explanations.'],
+  'Blockflow and Framecraft 3D': ['Framecraft 3D: styles, orbit, sources, plans and the guided tour.', 'The guided tour could become a link to the artifact.'],
+  'Formula cube, Tune, Goals, Requests, Edit, Frame code': ['The formula cube story, Tune, Goals, Requests, Edit frame and Frame code.', 'The cube story duplicates Formula Studio in the artifact.'],
+  'Architecture Studio': ['The 2D/3D modelling studio (rules-based here; with Claude in the artifact).', 'Most templates can go; or keep the studio artifact-only.'],
+  'Collaboration': ['Transcripts to flow, decision log, threads and digest.', 'Sample transcripts can drop to one; the whole module is the biggest single lever if the team does not use it.'],
+  'Walk the Frame (3D world)': ['The light 3D world: renderer, levels, warehouse with SQL, Graphite, hiring and the field loop.', 'Long SQL and the Graphite level are the cheapest cuts.']
+};
+const TRIM = [
+  ['Walk the Frame: fallback figures', 700, 'lo', 'Backup numbers used if live data fails to load; without them the world would show no data.'],
+  ['Collaboration: keep one sample transcript', 5100, 'lo', 'Two of the three demo transcripts.'],
+  ['Walk the Frame: shorter SQL cards', 3500, 'lo', 'SQL drops to about six lines per table; the full cards stay in the artifact.'],
+  ['Walk the Frame: Graphite level', 5800, 'lo', 'The engine level under Blockflow; Graphite stays in the artifact.'],
+  ['Architecture Studio: keep three templates', 9000, 'md', 'Fewer head-start templates.'],
+  ['Formula cube story to a link', 8500, 'md', 'The in-frame cube walkthrough; Formula Studio in the artifact covers it.'],
+  ['Build plans and skills to the plugin', 15000, 'md', 'Plan text in the frame; titles and a link remain.'],
+  ['Ask why: top three explanations only', 15000, 'md', 'Some of the rule-based explanations.'],
+  ['Collaboration module artifact-only', 'mod:Collaboration', 'hi', 'Transcripts, decision log and threads inside Pigment.'],
+  ['Architecture Studio artifact-only', 'mod:Architecture Studio', 'hi', 'The studio inside Pigment; it stays in the artifact with Claude.']
+];
+const cap = D.cap, total = D.total;
+const kb = (b) => (b / 1024).toFixed(1) + ' KB';
+const pc = (b) => (b / cap * 100).toFixed(1) + '%';
+const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+const secBytes = (n) => (D.sections.find((s) => s.name === n) || { bytes: 0 }).bytes;
+
+const coreB = D.sections.filter((s) => s.kind === 'core').reduce((a, s) => a + s.bytes, 0);
+const modB = total - coreB, free = cap - total;
+const kp = document.getElementById('kpis');
+[[pc(total), 'used (' + total.toLocaleString() + ' bytes)'], [kb(free), 'left before the limit'], [kb(29024), 'freed by stripping comments'], [kb(42558), 'freed earlier by stripping indentation']].forEach(([b, s]) => { const d = el('div', 'kpi'); d.append(el('b', 'num', b), el('span', '', s)); kp.append(d); });
+const meter = document.getElementById('meter');
+meter.setAttribute('aria-label', 'Core ' + pc(coreB) + ', modules ' + pc(modB) + ', v5 planned ' + pc(V5) + ', free after v5 ' + pc(free - V5));
+[['c', coreB], ['m', modB], ['p', Math.min(V5, free)], ['f', Math.max(0, free - V5)]].forEach(([c, b]) => { const i = el('i', c); i.style.width = (b / cap * 100) + '%'; i.title = kb(b); meter.append(i); });
+
+const host = document.getElementById('sections');
+const maxB = Math.max(...D.sections.map((s) => s.bytes));
+D.sections.slice().sort((a, b) => b.bytes - a.bytes).forEach((s) => {
+  const d = el('details', 'sec'); const sm = el('summary');
+  const nm = el('div', 'nm', s.name); nm.append(el('small', '', (s.kind === 'mod' ? 'Module' : 'Core') + (NOTES[s.name] ? ' · ' + NOTES[s.name][0] : '')));
+  const bar = el('div', 'bar'); const bi = el('i'); bi.style.width = (s.bytes / maxB * 100) + '%'; bi.style.background = s.kind === 'mod' ? 'var(--mod)' : 'var(--core)'; bar.append(bi); nm.append(bar);
+  sm.append(el('span', 'chev'), nm, el('span', 'r num kb', kb(s.bytes)), el('span', 'r num pct', pc(s.bytes)));
+  d.append(sm);
+  const body = el('div', 'body');
+  body.append(el('div', 'meta', (s.css ? 'Styles ' + kb(s.css) + ' · ' : '') + '' + (s.bytes / total * 100).toFixed(1) + '% of the frame'));
+  const subMax = Math.max(...s.subs.map((x) => x[1]), 1);
+  s.subs.slice().sort((a, b) => b[1] - a[1]).forEach(([n, b]) => {
+    const r = el('div', 'sub'); const l = el('div', '', n === 'Setup' ? 'Setup and constants' : n);
+    const sb = el('div', 'bar'); const si = el('i'); si.style.width = (b / subMax * 100) + '%'; si.style.background = s.kind === 'mod' ? 'var(--mod)' : 'var(--core)'; si.style.opacity = '.6'; sb.append(si); l.append(sb);
+    r.append(l, el('span', 'r num kb', kb(b)), el('span', 'r num', pc(b))); body.append(r);
+  });
+  if (NOTES[s.name] && NOTES[s.name][1]) body.append(el('div', 'trim', 'Trim idea: ' + NOTES[s.name][1]));
+  d.append(body); host.append(d);
+});
+document.getElementById('openAll').onclick = () => host.querySelectorAll('details').forEach((d) => d.open = true);
+document.getElementById('closeAll').onclick = () => host.querySelectorAll('details').forEach((d) => d.open = false);
+
+const LBL = { no: 'None', lo: 'Low', md: 'Medium', hi: 'High' };
+const tb = document.querySelector('#trimTbl tbody'); let sumLow = 0;
+TRIM.forEach(([n, v, imp, lose]) => {
+  const b = v === 'comments' ? D.comments : (typeof v === 'string' ? secBytes(v.slice(4)) : v);
+  if (imp === 'no' || imp === 'lo') sumLow += b;
+  const tr = el('tr'); const t1 = el('td', '', n);
+  tr.append(t1, el('td', 'r num', '~' + kb(b)), (() => { const td = el('td'); td.append(el('span', 'pill ' + imp, LBL[imp])); return td; })(), el('td', '', lose));
+  tb.append(tr);
+});
+const tr = el('tr', 'total'); tr.append(el('td', '', 'None and Low options together'), el('td', 'r num', '~' + kb(sumLow)), el('td', '', ''), el('td', '', 'About ' + (sumLow / cap * 100).toFixed(1) + '% of the limit back, with nothing a viewer would miss inside Pigment.'));
+tb.append(tr);
+document.getElementById('wPct').textContent = pc(secBytes('Walk the Frame (3D world)'));
+</script>
+</body>
+</html>
