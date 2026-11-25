@@ -261,7 +261,6 @@
     '.lum-pos{color:var(--ok);font-weight:600}.lum-neg{color:var(--bad);font-weight:600}.lum-dtabs{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:999px;background:var(--sunk)}.lum-dtab{border:0;background:none;border-radius:999px;padding:3px 11px;font:600 12px var(--f-body);color:var(--muted);cursor:pointer}.lum-dtab:hover{color:var(--ink)}.lum-dtab.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}.lum-dsep{width:1px;align-self:stretch;margin:2px 4px;background:var(--line)}.lum:not(.plain) .lum-dtabs,.lum:not(.plain) .lum-dsep{display:none}.lum-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}.lum-title{max-width:calc(100% - 760px)}',
     '.lum-layersbtn span{display:none}.lum-layersbtn:hover span{display:inline}.lum:not(.plain) .lum-layersbtn{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}.lum:not(.plain) .lum-dock{bottom:60px;max-height:calc(100% - 154px)}',
     '.bf-zoomctl{display:none;position:absolute;right:16px;top:64px;z-index:8;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(14,20,38,.88);color:#DDE3F5;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.3)}.lum[data-scene="flow"] .bf-zoomctl{display:flex}.bf-zoomctl input{width:130px;accent-color:#8FA8FF}.bf-zoomctl button{width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:inherit;cursor:pointer;font-size:15px;line-height:1}.bf-zoomctl .fit{width:auto;padding:0 10px;border-radius:999px;font-size:12px}' +
-'.lum-bcard{position:fixed;z-index:60;width:300px;max-width:calc(100vw - 24px);background:var(--raise);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.28);padding:14px 16px;font-size:13px;line-height:1.45}.lum-bcard h4{margin:0 26px 2px 0;font-size:15px}.lum-bcard .k{color:var(--ink3);font-size:12px}.lum-bcard code{display:block;margin:8px 0;padding:8px;border-radius:8px;background:var(--acc-soft);font:12px/1.45 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-word}.lum-bcard .r{margin-top:6px}.lum-bcard .x{position:absolute;right:8px;top:6px;border:0;background:none;font-size:18px;cursor:pointer;color:var(--ink3)}' +
 '.lum-walk3d{display:none;position:absolute;right:18px;bottom:18px;z-index:6;box-shadow:0 6px 18px rgba(0,0,0,.25)}.lum[data-scene="strata"] .lum-walk3d{display:inline-flex}.lum-navrow{position:relative}.lum-3dtog{position:absolute;right:6px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 8px 2px 3px;font-size:10.5px;font-weight:700;color:var(--muted)}',
     '.lum-3dtog i{width:22px;height:12px;border-radius:6px;background:var(--line);position:relative;transition:background .2s}.lum-3dtog i:after{content:"";position:absolute;left:2px;top:2px;width:8px;height:8px;border-radius:50%;background:var(--surface);transition:left .2s}',
     '.lum-3dtog.on{color:var(--accent);border-color:var(--accent)}.lum-3dtog.on i{background:var(--accent)}.lum-3dtog.on i:after{left:12px}.lum.no-rail .lum-3dtog{display:none}',
@@ -737,18 +736,6 @@ arch: '<circle cx="9" cy="4" r="1.5"/><path d="M8.3 5.3 4.5 15.5M9.7 5.3l3.8 10.
 /* Blockflow view controls: the slider runs from a summary of stages to every block; -, + and Fit zoom the map */
 root.addEventListener('input', function (e) { var s = e.target.closest && e.target.closest('[data-bflv]'); if (!s) return; var l = FLOW_LEVELS[(+s.value || 4) - 1]; if (l) { S.plan = null; S.proc = null; setFlowLevel(l[0]); } });
 root.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-bfz]'); if (!b || !VB0) return; var z = b.getAttribute('data-bfz'); if (z === 'fit') setVB(VB0.slice()); else zoom(z === 'in' ? 0.8 : 1.25); });
-/* in 3D, a block click opens a small card about it instead of leaving the view */
-function blockCard(id, ev) {
-var b = BY[id]; if (!b) return false;
-var c = $('#lumBCard'); if (!c) { c = document.createElement('div'); c.className = 'lum-bcard'; c.id = 'lumBCard'; c.setAttribute('role', 'dialog'); c.setAttribute('aria-label', 'Block details'); root.appendChild(c); }
-var nm = function (l) { return (l || []).map(function (x) { return BY[x] ? esc(BY[x].name) : esc(x); }).join(', '); }, k = KINDS[b.kind] || KINDS.metric;
-c.innerHTML = "<button class='x' data-bcx aria-label='Close'>x</button><h4>" + esc(b.name) + "</h4><div class='k'><span style='color:" + k.c + "'>" + esc(k.label) + '</span>' + (b.folder ? ' in ' + esc(b.folder) : '') + '</div>' +
-(b.dims && b.dims.length ? "<div class='r'><b>Dimensions</b> " + esc(b.dims.join(' x ')) + '</div>' : '') + (b.formula ? '<code>' + esc(b.formula) + '</code>' : '') +
-(b.deps && b.deps.length ? "<div class='r'><b>Reads</b> " + nm(b.deps) + '</div>' : '') + (b.down && b.down.length ? "<div class='r'><b>Feeds</b> " + nm(b.down) + '</div>' : '') +
-"<div class='r'><button class='lum-chip' data-ref='" + esc(b.id) + "'>Open its formula</button></div>";
-c.style.display = 'block'; c.style.left = Math.max(12, Math.min(ev.clientX + 14, window.innerWidth - 320)) + 'px'; c.style.top = Math.max(12, Math.min(ev.clientY + 14, window.innerHeight - c.offsetHeight - 12)) + 'px';
-return true;
-}
   var L = {}; $$('.lum-layer').forEach(function (el) { L[el.getAttribute('data-layer')] = el; });
   var world = $('#lumWorld'), scaler = $('#lumScaler'), stage = $('#lumStage');
   // the layer list, the controls and the spacing slider live in one side column beside the frame, not over it
@@ -4822,8 +4809,7 @@ ntPins(dash);
     if (stClick(ev)) return;
     if (BF3.eat) { BF3.eat = false; return; }
     var t = ev.target; if (!t || !t.closest) return;
-var bcd = $('#lumBCard'); if (bcd && bcd.style.display !== 'none' && (t.closest('[data-bcx]') || !t.closest('.lum-bcard'))) { bcd.style.display = 'none'; if (t.closest('[data-bcx]')) return; }
-if (S.scene === 'strata' && !t.closest('.lum-bcard')) { var tb = t.closest('[data-block]'); if (tb && blockCard(tb.getAttribute('data-block'), ev)) return; }
+if (S.scene === 'strata') { var tb = t.closest('[data-block]'), tid = tb && tb.getAttribute('data-block'); if (tid && BY[tid]) { S.sel = tid; $$('.lum-tile').forEach(function (x) { x.classList.toggle('sel', x.getAttribute('data-block') === tid); }); openLens(tid); return; } }   /* in 3D, a block opens its details in the side panel and the view stays put */
 var a = t.closest('[data-act],[data-awf],[data-sysblock],[data-go],[data-region],[data-block],[data-ref],[data-skill],[data-plan],[data-pstep],[data-accent],[data-tab],[data-theme],[data-opt],[data-cam],[data-zoom],[data-layer-toggle],[data-preset],[data-motion],[data-cstep],[data-view2],[data-cmode],[data-dtab],[data-flevel],[data-proc],[data-group],[data-aw],[data-sgadd],[data-role],[data-src]');
     if (!a && S.scene === 'strata' && S.view2 === 'stack' && t.closest('.lum-stage') && !t.closest('.lum-t2d')) { var ly = t.closest('.lum-layer'); if (ly && !S.focus) { focusLayer(ly.getAttribute('data-layer')); return; } if (!ly && S.focus) { unfocus(); return; } }
     if (!a || !root.contains(a)) return;
