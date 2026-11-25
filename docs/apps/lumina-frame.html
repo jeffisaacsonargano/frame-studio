@@ -698,6 +698,7 @@
     edit: '<path d="M11.8 3.2 14.8 6.2 6.5 14.5l-3.5.8.8-3.5z"/>',
     code: '<path d="M6.5 5 2.5 9l4 4M11.5 5l4 4-4 4"/>',
 vers: '<path d="M3 9a6 6 0 1 0 1.8-4.3"/><path d="M3 3v3h3M9 5.5V9l2.5 1.5"/>',
+whiteboard: '<path d="M3.5 14.5l2.6-.7 8-8a1.6 1.6 0 0 0-2.3-2.3l-8 8z"/><path d="M11 4.5l2.4 2.4"/>',
 vision: '<circle cx="9" cy="9" r="2.6"/><circle cx="9" cy="9" r="6.6"/><path d="M9 1.5v2M9 14.5v2M1.5 9h2M14.5 9h2"/>',
 notes: '<path d="M4 3h10v8l-4 4H4z"/><path d="M10 15v-4h4M6.5 6.5h5M6.5 9h3"/>',
 arch: '<circle cx="9" cy="4" r="1.5"/><path d="M8.3 5.3 4.5 15.5M9.7 5.3l3.8 10.2M5.6 12.5h6.8"/>'
@@ -744,6 +745,69 @@ openSide("<span class='lum-badge'>The vision</span><h3 class='lum-h3'>Planning a
 "<div class='lum-sec'>Choose your own way in</div>" + D.map(function (d) { return "<div style='margin:0 0 10px'><button class='lum-chip' " + d[2] + '>' + d[0] + "</button><div class='lum-hint' style='margin:4px 0 0'>" + d[1] + '</div></div>'; }).join('') +
 "<div class='lum-sec'>The rule</div><p>Determinism is the floor, not the ceiling. People and agents propose; only approved changes reach the model; and the real world has the last word.</p><p class='lum-hint'>The full essay, with every chapter, is the Vision tab in Frame Studio.</p>");
 }
+/* Whiteboard: draw on paper you can see through, over any part of the frame. It stays in this browser where it can; Save for everyone writes it to Frame Config, after asking. */
+var WB = { s: null, c: 0, w: 1, er: 0, o: 100, b: '', mv: 0, el: null, sh: null, uc: null, cur: null }, WB_COL = ['#1F2A44', '#C2407E', '#2F7DE1', '#2E9E6B', '#E5A33B'], WB_W = [2, 5, 12], WB_CAP = 16000, WB_DOT = String.fromCharCode(183);
+var WB_BK = [['', 'Whatever is open now'], ['go:frame', 'The dashboard'], ['dtab:regions', 'Regions'], ['dtab:channels', 'Channels'], ['dtab:launches', 'Launches'], ['dtab:bridge', 'Bridge'], ['go:strata', 'Framecraft 3D'], ['go:flow', 'Blockflow'], ['go:sources', 'Data sources'], ['go:blocks', 'Source blocks'], ['go:lens', 'Formula lens'], ['dtab:world', 'Walk the Frame']];
+function wbOkS(s) { return s && typeof s.c === 'number' && typeof s.w === 'number' && Array.isArray(s.p); }
+function wbDoc(o) { if (Array.isArray(o)) o = { s: o }; return o && Array.isArray(o.s) ? { s: o.s.filter(wbOkS), b: typeof o.b === 'string' ? o.b : '', o: typeof o.o === 'number' ? o.o : 100 } : null; }
+function wbShared() { if (WB.sh) return WB.sh; var r = null, rows = (LM.raw && LM.raw.dsConfig) || []; for (var i = 0; i < rows.length; i++) if (rows[i].labels[0] === 'whiteboard') r = rows[i].values[0]; if (typeof r !== 'string' || !r) return null; try { return wbDoc(JSON.parse(r)); } catch (e) { return null; } }
+function wbUse(d) { WB.s = d.s.slice(); WB.o = d.o; if (d.b && d.b !== WB.b) wbCall(d.b); }
+function wbCall(v) { WB.b = v; if (!v) return; var p = v.split(':'), seq = p[0] === 'dtab' && p[1] !== 'world' ? [['data-go', 'frame'], ['data-dtab', p[1]]] : [[p[0] === 'go' ? 'data-go' : 'data-dtab', p[1]]];
+seq.forEach(function (q) { var b = lmEl('button'); b.setAttribute(q[0], q[1]); b.hidden = true; ($('.lum') || root).appendChild(b); b.click(); b.parentNode.removeChild(b); }); }
+function wbOpen() {
+if (!WB.s) { var d = wbDoc(stLsGet('lumina:wb')) || wbShared(); WB.s = []; if (d) wbUse(d); }
+if (!WB.el) {
+var st = lmEl('style'); st.textContent = '.wb{--wbo:1;position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:color-mix(in srgb,var(--bg) calc(var(--wbo)*85%),transparent)}.wb.mv{pointer-events:none;background:transparent}.wb.mv .wb-bar{pointer-events:auto}.wb.mv canvas{opacity:.55}.wb-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.12);font:500 12px var(--f-body);color:var(--ink)}.wb-bar b{font-size:13px;margin-right:6px}.wb-bar select{font:500 12px var(--f-body);color:var(--ink);background:var(--raise);border:1px solid var(--line);border-radius:7px;padding:4px 6px}.wb-op{display:flex;gap:6px;align-items:center;color:var(--muted)}.wb-op input{width:96px;accent-color:var(--accent)}.wb-sw{width:22px;height:22px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}.wb-sw.on,.wb-sz.on{outline:2px solid var(--accent);outline-offset:2px}.wb-sz{width:28px;height:26px;border:1px solid var(--line);border-radius:7px;background:var(--raise);cursor:pointer;display:grid;place-items:center;padding:0}.wb-sz i{display:block;border-radius:50%;background:var(--ink)}.wb-sep{width:1px;height:22px;background:var(--line);margin:0 4px}.wb-st{margin-left:auto;font-size:11px;color:var(--muted)}.wb-area{flex:1;min-height:0;display:grid;place-items:center;padding:12px}.wb canvas{touch-action:none;cursor:crosshair;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.18),0 0 0 1px color-mix(in srgb,var(--accent) 45%,transparent);background:radial-gradient(circle,rgba(0,0,0,calc(var(--wbo)*.1)) 1px,transparent 1.5px) 0 0/24px 24px rgba(255,253,248,var(--wbo))}';
+WB.el = lmEl('div', 'wb'); WB.el.setAttribute('role', 'dialog'); WB.el.setAttribute('aria-label', 'Whiteboard'); WB.el.appendChild(st);
+var bar = lmEl('div', 'wb-bar'), ar = lmEl('div', 'wb-area'), cv = lmEl('canvas'); cv.setAttribute('aria-label', 'Drawing area'); ar.appendChild(cv); WB.el.appendChild(bar); WB.el.appendChild(ar); WB.bar = bar; WB.cx = cv.getContext('2d');
+($('.lum') || root).appendChild(WB.el);
+WB.el.addEventListener('click', wbClick);
+WB.el.addEventListener('input', function (e) { if (e.target.hasAttribute('data-wbo')) { WB.o = +e.target.value; WB.el.style.setProperty('--wbo', WB.o / 100); } });
+WB.el.addEventListener('change', function (e) { if (e.target.hasAttribute('data-wbb')) { if (WB.o > 60) WB.o = 30; wbCall(e.target.value); wbKeep(); } else if (e.target.hasAttribute('data-wbo')) wbKeep(); });
+cv.addEventListener('pointerdown', function (e) { e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (x) {} WB.uc = null; WB.cur = { c: WB.er ? -1 : WB.c, w: WB_W[WB.w] * (WB.er ? 3 : 1), p: [] }; WB.s.push(WB.cur); wbPt(e); wbDraw(); });
+cv.addEventListener('pointermove', function (e) { if (WB.cur && wbPt(e)) wbDraw(); });
+var up = function () { if (!WB.cur) return; WB.cur = null; wbKeep(); }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+window.addEventListener('resize', function () { if (WB.el && !WB.el.hidden) wbFit(); });
+document.addEventListener('keydown', function (e) { if (!WB.el || WB.el.hidden || LM.sheet) return; if (e.key === 'Escape') { e.stopPropagation(); wbClose(); } else if ((e.metaKey || e.ctrlKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); wbUndo(); } }, true);
+}
+WB.el.hidden = false; wbBar(); wbFit(); if (window.requestAnimationFrame) requestAnimationFrame(wbFit);
+}
+function wbClose() { if (WB.el) WB.el.hidden = true; }
+function wbPt(e) { var r = WB.cx.canvas.getBoundingClientRect(), x = Math.round(Math.max(0, Math.min(1000, (e.clientX - r.left) / Math.max(1, r.width) * 1000))), y = Math.round(Math.max(0, Math.min(625, (e.clientY - r.top) / Math.max(1, r.height) * 625))), p = WB.cur.p, n = p.length;
+if (n && Math.abs(p[n - 2] - x) + Math.abs(p[n - 1] - y) < 4) return false; p.push(x, y); return true; }
+function wbFit() { var a = WB.el.querySelector('.wb-area'), cv = WB.cx.canvas, k = Math.max(0.1, Math.min((a.clientWidth - 24) / 1000, (a.clientHeight - 24) / 625)), d = window.devicePixelRatio || 1;
+cv.style.width = Math.round(1000 * k) + 'px'; cv.style.height = Math.round(625 * k) + 'px'; cv.width = Math.round(1000 * k * d); cv.height = Math.round(625 * k * d); WB.k = k * d; wbDraw(); }
+function wbDraw() { var x = WB.cx, cv = x.canvas; x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, cv.width, cv.height); x.setTransform(WB.k, 0, 0, WB.k, 0, 0); x.lineCap = 'round'; x.lineJoin = 'round';
+WB.s.forEach(function (s) { var p = s.p; if (p.length < 2) return; x.globalCompositeOperation = s.c < 0 ? 'destination-out' : 'source-over'; x.strokeStyle = WB_COL[s.c] || '#000'; x.lineWidth = s.w; x.beginPath(); x.moveTo(p[0], p[1]); if (p.length < 4) x.lineTo(p[0] + 0.1, p[1]); for (var i = 2; i < p.length; i += 2) x.lineTo(p[i], p[i + 1]); x.stroke(); });
+x.globalCompositeOperation = 'source-over'; }
+function wbJson() { return JSON.stringify({ v: 1, s: WB.s, b: WB.b, o: WB.o }); }
+function wbKeep() { WB.ok = stLsSet('lumina:wb', { s: WB.s, b: WB.b, o: WB.o }); wbBar(); }
+function wbUndo() { if (!WB.s.length && WB.uc) { WB.s = WB.uc; WB.uc = null; } else WB.s.pop(); wbKeep(); wbDraw(); }
+function wbBar() {
+var B = function (a, t, tip) { return "<button class='lum-chip' data-wba='" + a + "' title='" + tip + "'>" + t + '</button>'; }, sh = wbShared(), n = wbJson().length;
+WB.el.classList.toggle('mv', !!WB.mv); WB.el.style.setProperty('--wbo', WB.o / 100);
+WB.bar.innerHTML = '<b>Whiteboard</b>' + WB_COL.map(function (c, i) { return "<button class='wb-sw" + (!WB.er && WB.c === i ? ' on' : '') + "' data-wbc='" + i + "' style='background:" + c + "' aria-label='Colour " + (i + 1) + "'></button>"; }).join('') + "<span class='wb-sep'></span>" +
+WB_W.map(function (w, i) { return "<button class='wb-sz" + (WB.w === i ? ' on' : '') + "' data-wbz='" + i + "' aria-label='Size " + (i + 1) + "'><i style='width:" + (w + 2) + 'px;height:' + (w + 2) + "px'></i></button>"; }).join('') +
+"<button class='lum-chip" + (WB.er ? ' on' : '') + "' data-wba='er' title='Erase by drawing over strokes'>" + (WB.er ? 'Erasing' : 'Eraser') + '</button>' + B('undo', 'Undo', 'Undo the last stroke (Ctrl or Cmd Z)') + B('clear', 'Clear', 'Clear the board; Undo brings it back') + "<span class='wb-sep'></span>" +
+"<select data-wbb title='Call part of the frame in behind the paper' aria-label='Behind the paper'>" + WB_BK.map(function (q) { return "<option value='" + q[0] + "'" + (WB.b === q[0] ? ' selected' : '') + '>Behind: ' + q[1] + '</option>'; }).join('') + '</select>' +
+"<label class='wb-op' title='How solid the paper is: 0 shows what is behind, 100 hides it'>Paper <input type='range' min='0' max='100' step='5' data-wbo value='" + WB.o + "'></label>" +
+B('mv', WB.mv ? 'Back to drawing' : 'Move it', WB.mv ? 'Draw again' : 'Let clicks through to pan, zoom or orbit what is behind, then come back') + "<span class='wb-sep'></span>" +
+(sh ? B('shared', 'Open the shared one', 'Replace this drawing with the one saved for everyone') : '') + B('share', 'Save for everyone', 'Write this drawing to Frame Config so everyone sees it (asks first)') + B('close', 'Close', 'Close the whiteboard (Esc)') +
+"<span class='wb-st'>" + WB.s.length + ' strokes ' + WB_DOT + ' ' + Math.round(n / WB_CAP * 100) + '% of the shared space ' + WB_DOT + ' ' + (WB.ok === false ? 'lasts until the page reloads' : 'kept in this browser') + '</span>';
+}
+function wbClick(e) {
+var t = e.target.closest && e.target.closest('[data-wbc],[data-wbz],[data-wba]'); if (!t) return;
+if (t.hasAttribute('data-wbc')) { WB.c = +t.getAttribute('data-wbc'); WB.er = 0; }
+else if (t.hasAttribute('data-wbz')) WB.w = +t.getAttribute('data-wbz');
+else { var a = t.getAttribute('data-wba');
+if (a === 'er') WB.er = WB.er ? 0 : 1; else if (a === 'undo') { wbUndo(); return; } else if (a === 'clear') { if (WB.s.length) { WB.uc = WB.s; WB.s = []; wbKeep(); wbDraw(); } return; }
+else if (a === 'mv') WB.mv = WB.mv ? 0 : 1; else if (a === 'close') { wbClose(); return; } else if (a === 'shared') { var d = wbShared(); if (d) { WB.uc = WB.s; wbUse(d); wbKeep(); wbDraw(); } return; }
+else if (a === 'share') { var json = wbJson(); if (json.length > WB_CAP) { lmToast('Too large to share (' + json.length + ' of ' + WB_CAP + ' characters). Erase or undo a few strokes first.'); return; }
+lmSheet({ title: 'Save the whiteboard for everyone', what: 'Replaces the shared whiteboard with this drawing: ' + WB.s.length + ' strokes, ' + json.length + ' characters, with what is behind it and how solid the paper is.', where: lmWhere('whiteboard'), reversible: 'Yes. Save a different drawing later (asks again).' }, function () {
+return lmWrite('whiteboard', json).then(function () { WB.sh = { s: WB.s.slice(), b: WB.b, o: WB.o }; var m = SDK.__mock ? 'Kept in this preview only; nothing was sent to Pigment.' : 'Saved for everyone.'; lmLog({ title: 'Save the whiteboard', where: 'Frame Config / whiteboard', msg: m, w: 1 }); return { ok: true, msg: m }; });
+}).then(function (r) { if (r && r.msg) lmToast(r.msg); wbBar(); }); return; } }
+wbBar();
+}
 /* Blockflow view controls: the slider runs from a summary of stages to every block; -, + and Fit zoom the map */
 root.addEventListener('input', function (e) { var s = e.target.closest && e.target.closest('[data-bflv]'); if (!s) return; var l = FLOW_LEVELS[(+s.value || 4) - 1]; if (l) { S.plan = null; S.proc = null; setFlowLevel(l[0]); } });
 root.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-bfz]'); if (!b || !VB0) return; var z = b.getAttribute('data-bfz'); if (z === 'fit') setVB(VB0.slice()); else zoom(z === 'in' ? 0.8 : 1.25); });
@@ -768,7 +832,7 @@ root.addEventListener('click', function (e) { var b = e.target.closest && e.targ
 
   /* ---------- rail, panes, gutters ---------- */
   function renderRail() {
-    var nav = "<button class='lum-navbtn lum-back' data-act='layers' title='Close the panes and return to the frame (Esc)'>" + icon('frame') + "<span>Back to the frame</span></button><button class='lum-navbtn' data-act='vision' title='The vision: planning at the frontier'>" + icon('vision') + "<span>The vision</span></button><div class='lum-ngroup'>Explore</div>" + SCENES.filter(function (s) { return s.id !== 'strata' && s.id !== 'blocks' && s.id !== 'sources'; }).map(function (s) {
+    var nav = "<button class='lum-navbtn lum-back' data-act='layers' title='Close the panes and return to the frame (Esc)'>" + icon('frame') + "<span>Back to the frame</span></button><button class='lum-navbtn' data-act='vision' title='The vision: planning at the frontier'>" + icon('vision') + "<span>The vision</span></button><button class='lum-navbtn' data-act='whiteboard' title='Whiteboard: draw on a board or over the frame, and save it'>" + icon('whiteboard') + "<span>Whiteboard</span></button><div class='lum-ngroup'>Explore</div>" + SCENES.filter(function (s) { return s.id !== 'strata' && s.id !== 'blocks' && s.id !== 'sources'; }).map(function (s) {
       var craft = s.id === 'frame', on = craft ? S.scene === 'frame' || S.scene === 'strata' : s.id === S.scene || (s.id === 'flow' && S.scene === 'sources'), seen = craft ? S.visited.frame || S.visited.strata : S.visited[s.id];
       var b = "<button class='lum-navbtn" + (on ? ' on' : '') + (seen && !on ? ' done' : '') + "' data-go='" + (craft && S.scene === 'strata' ? 'strata' : s.id) + "' title='" + esc(s.label) + "'>" + icon(craft ? 'strata' : s.id) + '<span>' + esc(s.label) + '</span></button>';
       return craft ? "<div class='lum-navrow'>" + b + "<button class='lum-3dtog" + (S.scene === 'strata' ? ' on' : '') + "' data-act='toggle3d' title='Show it in 3D'><i></i>3D</button></div>"  : b;
@@ -4901,7 +4965,7 @@ var a = t.closest('[data-act],[data-awf],[data-sysblock],[data-go],[data-region]
       return;
     }
     if (act === 'next') step(1); else if (act === 'back') step(-1);
-    else if (act === 'vision') openVision();
+    else if (act === 'vision') openVision(); else if (act === 'whiteboard') wbOpen();
 else if (act === 'plans') { if (S.scene !== 'flow') goto('flow'); S.plan = null; renderFlow(); plansList(); }
     else if (act === 'fab') { root.classList.toggle('fab-open'); var fb = $('.lum-layersbtn'); if (fb) fb.setAttribute('aria-expanded', String(root.classList.contains('fab-open'))); }
     else if (act === 'tune-describe') tuneDescribe();

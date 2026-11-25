@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whiteboard</title>
+<style>
+:root{--bg:#F6F3EE;--surface:#FFFFFF;--raise:#FBF9F6;--ink:#1F2A44;--muted:#6B7180;--line:#E3DED6;--accent:#C2407E;--paper:255,253,248;--dot:0,0,0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1F1E1D;--surface:#262624;--raise:#2E2D2B;--ink:#ECEAE4;--muted:#A3A09A;--line:#3B3A37;--accent:#E07BAA;--paper:38,38,36;--dot:255,255,255}}
+:root[data-theme="dark"]{--bg:#1F1E1D;--surface:#262624;--raise:#2E2D2B;--ink:#ECEAE4;--muted:#A3A09A;--line:#3B3A37;--accent:#E07BAA;--paper:38,38,36;--dot:255,255,255}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:500 13px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+body{display:flex;flex-direction:column}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--line);position:relative;z-index:3}
+.grp{display:flex;gap:5px;align-items:center}
+.sep{width:1px;height:22px;background:var(--line);margin:0 3px}
+button,select{font:inherit;font-size:12px;color:var(--ink);background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:5px 9px;cursor:pointer}
+button:hover,select:hover{border-color:var(--accent)}
+button.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.sw{width:24px;height:24px;border-radius:50%;padding:0;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line)}
+.sw.on{box-shadow:0 0 0 2px var(--accent)}
+.sz{width:30px;height:28px;padding:0;display:grid;place-items:center}
+.sz i{display:block;border-radius:50%;background:var(--ink)}
+label.op{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:12px}
+label.op input{width:110px;accent-color:var(--accent)}
+.st{margin-left:auto;font-size:11px;color:var(--muted)}
+.stage{position:relative;flex:1;min-height:0;overflow:hidden}
+.stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg)}
+.paper{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle,rgba(var(--dot),calc(var(--o)*.1)) 1px,transparent 1.5px) 0 0/24px 24px rgba(var(--paper),var(--o))}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.mv canvas{pointer-events:none;opacity:.55}
+.hint{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);color:var(--muted);text-align:center;pointer-events:none;max-width:420px;padding:0 16px}
+.hint b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+@media (max-width:640px){.st{margin-left:0;width:100%}}
+</style>
+</head>
+<body>
+<div class="bar" id="bar">
+  <b style="margin-right:4px">Whiteboard</b>
+  <div class="grp" id="cols"></div>
+  <span class="sep"></span>
+  <div class="grp" id="sizes"></div>
+  <button id="pen" class="on" title="Pen">Pen</button>
+  <button id="hl" title="Highlighter: wide and see-through">Highlighter</button>
+  <button id="er" title="Eraser">Eraser</button>
+  <span class="sep"></span>
+  <button id="undo" title="Undo (Ctrl or Cmd Z)">Undo</button>
+  <button id="redo" title="Redo (Ctrl or Cmd Shift Z)">Redo</button>
+  <button id="clear" title="Clear; Undo brings it back">Clear</button>
+  <span class="sep"></span>
+  <select id="bk" aria-label="Behind the paper" title="Call a part of Frame Studio in behind the paper"></select>
+  <label class="op" title="How solid the paper is: 0 shows what is behind, 100 hides it">Paper <input id="op" type="range" min="0" max="100" step="5"></label>
+  <button id="mv" title="Let clicks through to pan, zoom or orbit what is behind">Move it</button>
+  <span class="sep"></span>
+  <button id="png" title="Download the drawing as a PNG">Download PNG</button>
+  <span class="st" id="st"></span>
+</div>
+<div class="stage" id="stage">
+  <div class="paper" id="paper"></div>
+  <canvas id="cv" aria-label="Drawing area"></canvas>
+  <div class="hint" id="hint"><b>Draw anything</b>Pick what sits behind the paper, slide the paper from solid to clear, and sketch on top. Your board is kept in this browser.</div>
+</div>
+<script>
+(function () {
+  var COL = ['#1F2A44', '#C2407E', '#2F7DE1', '#2E9E6B', '#E5A33B', '#E5484D', '#FFFFFF'];
+  var SIZES = [2, 5, 12];
+  var BK = [['', 'Nothing behind'], ['lumina-frame.html', 'The Lumina frame'], ['blockflow.html', 'Blockflow'], ['frame-strata/index.html', 'Framecraft'], ['formula-lens.html', 'Formula Studio'], ['graphite.html', 'Graphite'], ['frame-world.html', 'Frame World'], ['vision.html', 'The vision']];
+  var KEY = 'frame-studio:whiteboard';
+  var S = { s: [], b: '', o: 100 }, redo = [], tool = 'pen', c = 0, w = 1, cur = null, mv = false, ok = true;
+  var $ = function (id) { return document.getElementById(id); };
+  var cv = $('cv'), cx = cv.getContext('2d'), stage = $('stage'), fr = null;
+
+  try { var raw = localStorage.getItem(KEY); if (raw) { var o = JSON.parse(raw); if (o && Array.isArray(o.s)) S = { s: o.s, b: o.b || '', o: typeof o.o === 'number' ? o.o : 100 }; } } catch (e) { ok = false; }
+  function keep() { try { localStorage.setItem(KEY, JSON.stringify(S)); ok = true; } catch (e) { ok = false; } status(); }
+  function status() { $('st').textContent = S.s.length + ' strokes · ' + (ok ? 'kept in this browser' : 'lasts until the page reloads'); $('hint').style.display = S.s.length || S.b ? 'none' : ''; }
+
+  COL.forEach(function (col, i) { var b = document.createElement('button'); b.className = 'sw'; b.style.background = col; b.setAttribute('aria-label', 'Colour ' + (i + 1)); b.onclick = function () { c = i; if (tool === 'er') setTool('pen'); paint(); }; $('cols').appendChild(b); });
+  SIZES.forEach(function (sz, i) { var b = document.createElement('button'); b.className = 'sz'; b.setAttribute('aria-label', 'Size ' + (i + 1)); b.innerHTML = '<i style="width:' + (sz + 2) + 'px;height:' + (sz + 2) + 'px"></i>'; b.onclick = function () { w = i; paint(); }; $('sizes').appendChild(b); });
+  BK.forEach(function (q) { var o = document.createElement('option'); o.value = q[0]; o.textContent = 'Behind: ' + q[1]; $('bk').appendChild(o); });
+  function paint() {
+    Array.prototype.forEach.call($('cols').children, function (b, i) { b.classList.toggle('on', i === c && tool !== 'er'); });
+    Array.prototype.forEach.call($('sizes').children, function (b, i) { b.classList.toggle('on', i === w); });
+    ['pen', 'hl', 'er'].forEach(function (t) { $(t).classList.toggle('on', tool === t); });
+    $('mv').classList.toggle('on', mv); $('mv').textContent = mv ? 'Back to drawing' : 'Move it'; stage.classList.toggle('mv', mv);
+  }
+  function setTool(t) { tool = t; paint(); }
+  $('pen').onclick = function () { setTool('pen'); }; $('hl').onclick = function () { setTool('hl'); }; $('er').onclick = function () { setTool('er'); };
+  $('mv').onclick = function () { mv = !mv; paint(); };
+
+  function setBack(src) {
+    S.b = src; $('bk').value = src;
+    if (fr) { fr.remove(); fr = null; }
+    if (src) { fr = document.createElement('iframe'); fr.src = src; fr.title = 'Behind the paper'; stage.insertBefore(fr, stage.firstChild); }
+  }
+  function setOp(v) { S.o = v; $('op').value = v; $('paper').style.setProperty('--o', v / 100); }
+  $('bk').onchange = function () { setBack(this.value); if (this.value && S.o > 60) setOp(30); keep(); };
+  $('op').oninput = function () { setOp(+this.value); };
+  $('op').onchange = keep;
+
+  function fit() { var r = stage.getBoundingClientRect(), d = window.devicePixelRatio || 1; cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d); draw(); }
+  function draw() {
+    var W = cv.width, H = cv.height; cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, W, H); cx.lineCap = 'round'; cx.lineJoin = 'round';
+    var d = window.devicePixelRatio || 1;
+    S.s.forEach(function (s) {
+      var p = s.p; if (!p || p.length < 2) return;
+      cx.globalCompositeOperation = s.t === 'er' ? 'destination-out' : 'source-over';
+      cx.globalAlpha = s.t === 'hl' ? 0.32 : 1; cx.strokeStyle = COL[s.c] || '#000'; cx.lineWidth = s.w * d;
+      cx.beginPath(); cx.moveTo(p[0] * W, p[1] * H); if (p.length < 4) cx.lineTo(p[0] * W + 0.1, p[1] * H);
+      for (var i = 2; i < p.length; i += 2) cx.lineTo(p[i] * W, p[i + 1] * H);
+      cx.stroke();
+    });
+    cx.globalAlpha = 1; cx.globalCompositeOperation = 'source-over';
+  }
+  function pt(e) {
+    var r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height, p = cur.p, n = p.length;
+    x = Math.round(Math.max(0, Math.min(1, x)) * 10000) / 10000; y = Math.round(Math.max(0, Math.min(1, y)) * 10000) / 10000;
+    if (n && Math.abs(p[n - 2] - x) * r.width + Math.abs(p[n - 1] - y) * r.height < 2.5) return false; p.push(x, y); return true;
+  }
+  cv.addEventListener('pointerdown', function (e) {
+    e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (x) {}
+    var base = SIZES[w]; cur = { t: tool, c: c, w: tool === 'hl' ? base * 3 + 6 : tool === 'er' ? base * 3 : base, p: [] };
+    S.s.push(cur); redo = []; pt(e); draw(); status();
+  });
+  cv.addEventListener('pointermove', function (e) { if (cur && pt(e)) draw(); });
+  function up() { if (!cur) return; cur = null; keep(); }
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+
+  var cleared = null;
+  function undo() { if (!S.s.length && cleared) { S.s = cleared; cleared = null; } else if (S.s.length) redo.push(S.s.pop()); draw(); keep(); }
+  function redoIt() { if (redo.length) { S.s.push(redo.pop()); draw(); keep(); } }
+  $('undo').onclick = undo; $('redo').onclick = redoIt;
+  $('clear').onclick = function () { if (!S.s.length) return; cleared = S.s; S.s = []; redo = []; draw(); keep(); };
+  document.addEventListener('keydown', function (e) {
+    if (!(e.metaKey || e.ctrlKey) || (e.key !== 'z' && e.key !== 'Z')) return;
+    e.preventDefault(); if (e.shiftKey) redoIt(); else undo();
+  });
+
+  $('png').onclick = function () {
+    var out = document.createElement('canvas'); out.width = cv.width; out.height = cv.height; var o = out.getContext('2d');
+    var cs = getComputedStyle(document.documentElement), rgb = cs.getPropertyValue('--paper').trim();
+    if (S.o > 0) { o.fillStyle = 'rgba(' + rgb + ',' + (S.o / 100) + ')'; o.fillRect(0, 0, out.width, out.height); }
+    o.drawImage(cv, 0, 0);
+    var a = document.createElement('a'); a.download = 'whiteboard.png'; a.href = out.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove();
+  };
+
+  window.addEventListener('resize', fit);
+  setOp(S.o); setBack(S.b); paint(); fit(); status();
+})();
+</script>
+</body>
+</html>
