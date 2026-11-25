@@ -989,10 +989,10 @@ window.FrameWorld = (function () {
       const M = (c) => { const m = new T.MeshLambertMaterial({ color: c, transparent: true, side: T.DoubleSide }); m.userData.lit = new T.Color(c); return m; };
       /* the sphere: discs cut from a ball, nudged and tilted so the bands ripple */
       const og = new T.Group(); og.position.y = 3.7; g.add(og);
-      const N = 9, R = 1.55, ORB = ['#1F2A55', '#2B3A67', '#56407A', '#C2407E', '#F0508C', '#F57BB0', '#9AA7E8', '#3FC7E0', '#2B3A67'];
+      const R = 1.55, ORB = ['#1F2A55', '#2B3A67', '#C2407E', '#F0508C', '#F57BB0', '#9AA7E8', '#3FC7E0'], N = ORB.length;
       for (let i = 0; i < N; i++) {
-        const y = -R + (i + 0.5) * (2 * R / N), r = Math.sqrt(Math.max(0.03, R * R - y * y)), d = new T.Mesh(new T.CylinderGeometry(r, r * 0.97, (2 * R / N) * 0.78, 40), M(ORB[i]));
-        d.position.set(Math.sin(i * 1.3) * 0.12, y, Math.cos(i * 0.9) * 0.08); d.rotation.z = Math.sin(i * 0.7) * 0.13; d.userData.layer = 2; og.add(d); parts[2].push(d);
+        const t0 = (i / N) * Math.PI, d = new T.Mesh(new T.SphereGeometry(R * (1 - i * 0.012), 48, 10, 0, Math.PI * 2, t0 + 0.035, Math.PI / N - 0.07), M(ORB[i]));
+        d.rotation.set(0.55 + Math.sin(i * 1.1) * 0.08, i * 0.35, -0.35); d.position.x = Math.sin(i * 1.7) * 0.05; d.userData.layer = 2; og.add(d); parts[2].push(d);
       }
       /* the network: nodes on a shell, each joined to its nearest neighbours; a few carry colour */
       const ng = new T.Group(); ng.position.y = 1.05; g.add(ng);
@@ -1012,17 +1012,20 @@ window.FrameWorld = (function () {
         const pn = new T.Mesh(new T.CylinderGeometry(q[1], q[1] * 0.86, q[2], 16, 1, true, t0, tl), M(BC[bi++ % BC.length]));
         pn.position.y = q[0] + ((k * 3) % 4) * 0.06; pn.rotation.x = (((k * 11) % 5) - 2) * 0.025; pn.userData.layer = 1; bg.add(pn); parts[1].push(pn);
       } });
-      /* the halo: people (spheres) and AI agents (diamonds) working on top */
-      const hg = new T.Group(); hg.position.y = 6.1; g.add(hg);
-      for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2, agent = i % 3 === 2, s = new T.Mesh(agent ? new T.OctahedronGeometry(0.17) : new T.SphereGeometry(0.15, 12, 10), M(agent ? '#3FC7E0' : '#F0508C')); s.position.set(Math.cos(a) * 2.1, Math.sin(i * 1.7) * 0.15, Math.sin(a) * 2.1); s.userData.layer = 0; hg.add(s); parts[0].push(s); }
-      const hr = new T.Mesh(new T.TorusGeometry(2.1, 0.022, 6, 80), M('#8F97AE')); hr.rotation.x = Math.PI / 2; hr.userData.layer = 0; hg.add(hr); parts[0].push(hr);
-      return { g, og, ng, bg, hg, parts, y: [6.1, -2.0, 3.7, 1.05] };
+      /* the top: people and AI agents, drawn as faint lines rising from the sphere */
+      const hg = new T.Group(); hg.position.y = 5.0; g.add(hg);
+      const up = [];
+      for (let i = 0; i < 30; i++) { const a = i * 2.399963, r0 = 0.2 + (i % 5) * 0.12, len = 1.1 + ((i * 7) % 9) * 0.24, lean = 0.22 + (i % 4) * 0.1; up.push(Math.cos(a) * r0, 0, Math.sin(a) * r0, Math.cos(a) * (r0 + lean * len), len, Math.sin(a) * (r0 + lean * len)); }
+      const ug = new T.BufferGeometry(); ug.setAttribute('position', new T.Float32BufferAttribute(up, 3));
+      const um = new T.LineBasicMaterial({ color: '#9AA7E8', transparent: true, opacity: 0.4 }); um.userData.lit = new T.Color('#C9D2FF'); const ul = new T.LineSegments(ug, um); ul.userData.layer = 0; hg.add(ul); parts[0].push(ul);
+      return { g, og, ng, bg, hg, parts, um, t: 0, y: [5.9, -2.0, 3.7, 1.05] };
     }
     /* each frame: colour flows into the layer in focus (on < 0 lights all four) and out of the others */
     function paintSculpture(S, on, pale, dt, spin) {
       const k = Math.min(1, dt * 5);
       S.parts.forEach((list, layer) => { const lit = on < 0 || on === layer; list.forEach((o) => { const m = o.material; m.color.lerp(lit ? m.userData.lit : pale, k); }); });
-      if (spin) { S.og.rotation.y += dt * 0.25; S.ng.rotation.y -= dt * 0.07; S.hg.rotation.y += dt * 0.18; }
+      S.t += dt; S.um.opacity = (on < 0 || on === 0 ? 0.42 : 0.16) + (spin ? 0.12 * Math.sin(S.t * 2.1) : 0);
+    if (spin) { S.og.rotation.y += dt * 0.25; S.ng.rotation.y -= dt * 0.07; S.hg.rotation.y += dt * 0.12; S.hg.scale.y = 1 + 0.07 * Math.sin(S.t * 1.6); }
     }
 
     (function buildGraphite() {
@@ -1095,11 +1098,11 @@ window.FrameWorld = (function () {
       cyl(GR, 2.7, 0.25, dk, SX, GY + 0.125, SZ); GP.padRing = mesh(GR, new T.TorusGeometry(2.45, 0.07, 6, 48), mat('white', { b: 1, o: 0.6, u: 'gpad' }), SX, GY + 0.27, SZ, 1, 1, 1, false); GP.padRing.rotation.x = Math.PI / 2;
       GP.sc = makeSculpture(T); GP.sc.g.scale.setScalar(1.5); GP.sc.g.position.set(SX, GY + 5.4, SZ); GR.add(GP.sc.g); GP.pale = new T.Color('#59627A');
       GP.stack.forEach((L, k) => {
-        sign(GR, [{ t: (4 - k) + '  ' + L.t, s: 62, w: 800 }, { t: L.s, s: 38, c: 'muted' }], SX + 6.4, GY + 5.4 + GP.sc.y[k] * 1.5 + (k === 1 ? 1.4 : 0), SZ, 5.4, 0.85, { px: 512 });
+        sign(GR, [{ t: L.t, s: 54, w: 500, c: 'muted' }], SX + 6.2, GY + 5.4 + GP.sc.y[k] * 1.5 + (k === 1 ? 1.4 : 0), SZ, 4.4, 0.5, { px: 512, bg: null, border: null });
         const a = [SX, SZ], b = L.to, len = Math.hypot(b[0] - a[0], b[1] - a[1]);
         L.p = mat(L.c, { b: 1, o: 0.22, u: 'gstkp' + k }); box(GR, 0.32, 0.03, len, L.p, (a[0] + b[0]) / 2, GY + 0.035 + k * 0.004, (a[1] + b[1]) / 2, false).rotation.y = Math.atan2(b[0] - a[0], b[1] - a[1]);
       });
-      sign(GR, [{ t: 'Graphite', s: 74, w: 800 }, { t: 'stand on the ring and press Space to jump in', s: 44, c: 'muted' }], SX, GY + 16.4, SZ, 5.6, 1.1, { px: 512 });
+      sign(GR, [{ t: 'Graphite', s: 64, w: 600 }, { t: 'stand on the ring, press Space to jump in', s: 40, c: 'muted' }], SX, GY + 15.6, SZ, 5, 0.95, { px: 512, bg: null, border: null });
       const dc = col(SX - 2.6, SX + 2.6, SZ - 2.6, SZ + 2.6, GY + 0.25, GY, () => '<b>Graphite</b> · Pigment describes three pillars, with people and AI agents on top. Press <kbd>Space</kbd> to jump into the engine.'); dc.dive = true;
       /* you, seen from outside: an androgynous figure with short neutral hair, a plain tunic and trousers */
       GP.me = person(GR, { name: 'You', color: '#57E3FF', skin: '#C99272', top: '#2F7F86', bottom: '#2E3147', hair: '#2A211C' });
