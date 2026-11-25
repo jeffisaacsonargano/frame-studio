@@ -167,7 +167,10 @@
       more.append(b);
     });
     const sec = (title, sub, body) => h('div', { class: 'section' }, h('header', {}, h('h2', { text: title }), h('p', { class: 'sub', text: sub })), body);
-    page.replaceChildren(head, prog,
+    const hero = h('div', { class: 'home-hero', style: 'position:relative;margin:0 0 14px;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:#070B16;aspect-ratio:16/8;min-height:300px;max-height:520px' },
+      h('iframe', { src: 'apps/flythrough.html?embed=1', title: 'Frame Studio flythrough', style: 'position:absolute;inset:0;width:100%;height:100%;border:0', allow: 'fullscreen' }));
+    const heroBtns = h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;margin:0 0 26px', html: '<button type="button" class="btn primary" data-demo>Watch the demo</button><button type="button" class="btn" data-demo-setup>Demo settings</button>' });
+    page.replaceChildren(hero, heroBtns, head, prog,
       sec('The path', 'Five stops, each building on the one before. Every app bar has the same previous and next control, so you can walk it without coming back here.', path),
       sec('Context travels with you', 'The apps hand a block or a formula to each other. While a block is in focus it shows in the app bar, with jumps to the other apps.', h('div', { class: 'card pad' }, hand)),
       sec('Beyond the path', 'Two more: a first-person walk through a frame, and what a real frame costs against Pigment’s code limit.', more));

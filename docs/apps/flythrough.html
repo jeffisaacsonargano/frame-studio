@@ -38,6 +38,9 @@ canvas{display:block}
 .hint.on{opacity:1}
 .fail{position:fixed;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:var(--ink2)}
 @media (max-width:560px){.bar .opt{display:none}}
+body.demo .bar,body.demo .end,body.demo .hint{display:none}
+body.embed .cap{bottom:clamp(58px,9vh,80px)}
+body.embed .cap h1{font-size:clamp(20px,3.4vw,34px)}
 </style>
 </head>
 <body>
@@ -74,6 +77,10 @@ canvas{display:block}
 if (!window.THREE) { document.body.innerHTML = '<div class="fail">The 3D library did not load. Check your connection and reload.</div>'; return; }
 var T = THREE, FONT = 'Inter, system-ui, sans-serif', HEAD = "'Bricolage Grotesque', Inter, sans-serif";
 var reduce = false; try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+var MODE = /[?&]demo=1/.test(location.search) ? 'demo' : /[?&]embed=1/.test(location.search) ? 'embed' : '';
+if (MODE) document.body.classList.add(MODE);
+if (MODE === 'demo') reduce = false;
+function tell(type) { try { if (window.parent !== window) window.parent.postMessage({ source: 'flythrough', type: type }, '*'); } catch (e) {} }
 var C = { bg: 0x070B16, clay: '#D9774F', cyan: '#57E3FF', blue: '#5B8DEF', violet: '#9B7BFF', yellow: '#F4C152', pink: '#F27BA7', teal: '#3DD6B5', ink: '#F4F1EA', claude: '#D97757' };
 
 /* ---------------- renderer, scene, bloom ---------------- */
@@ -361,7 +368,7 @@ function frame(now) {
   requestAnimationFrame(frame);
   var dt = Math.min(0.1, (now - S.last) / 1000); S.last = now;
   if (!visible || document.hidden) return;
-  if (S.playing && !S.free) { S.t += dt; if (S.t >= DUR) { S.t = DUR; S.playing = false; playB.textContent = 'Play'; if (!S.ended) { S.ended = true; endEl.classList.add('on'); } } }
+  if (S.playing && !S.free) { S.t += dt; if (S.t >= DUR) { S.t = DUR; S.playing = false; playB.textContent = 'Play'; if (!S.ended) { S.ended = true; if (MODE === 'demo') tell('end'); else endEl.classList.add('on'); } } }
   setCaption(chapterAt(S.t)); paintProg();
   apply(S.t, reduce ? 0 : now / 1000);
   if (composer) composer.render(); else renderer.render(scene, cam);
