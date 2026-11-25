@@ -66,7 +66,13 @@
   function btn(txt, cls, fn) { var b = el('button', 'dm-btn' + (cls ? ' ' + cls : ''), txt); b.type = 'button'; b.addEventListener('click', fn); return b; }
 
   /* ---------------- the player ---------------- */
-  var bar = null, fly = null, steps = [], i = -1, timer = null, left = 0, t0 = 0, paused = false, raf = 0, runCfg = null;
+  /* Only one app runs at a time during the demo: each 3D app holds a graphics context and memory, and several at once can crash a tab. */
+  function unload(view) {
+    if (!view) return;
+    if (view === 'home') { var hf = document.querySelector('.home-hero iframe'); if (hf) hf.remove(); return; }
+    var f = document.querySelector('#view-' + view + ' iframe'); if (f) f.remove();
+  }
+  var bar = null, fly = null, steps = [], i = -1, curView = null, timer = null, left = 0, t0 = 0, paused = false, raf = 0, runCfg = null;
   function build() {
     bar = el('div', 'dm-bar'); bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Demo'); bar.setAttribute('aria-live', 'polite');
     bar.append(el('h3'), el('p'));
@@ -96,9 +102,10 @@
     i = n; var s = steps[i]; paused = false; bar.querySelector('[data-a="pause"]').textContent = 'Pause';
     if (fly && !s.fly) { fly.remove(); fly = null; }
     if (s.fly) {
+      unload(curView); curView = null; unload('home');
       fly = el('iframe', 'dm-fly'); fly.src = 'apps/flythrough.html?demo=1'; fly.title = 'Flythrough'; document.body.append(fly);
       schedule(s.dur + 6);   /* the flythrough also says when it ends; this is the backstop */
-    } else { A.show(s.view); schedule(runCfg.dur[s.id]); }
+    } else { var was = curView; A.show(s.view); curView = s.view; if (was && was !== s.view) unload(was); schedule(runCfg.dur[s.id]); }
     paint();
   }
   function setPaused(p) {
@@ -109,7 +116,7 @@
     if (bar) stop();
     runCfg = c || cfg; steps = plan(runCfg);
     if (!steps.length) { setup(); return; }
-    closeSetup(); build(); document.body.classList.add('dm-on'); go(0); tick();
+    closeSetup(); build(); document.body.classList.add('dm-on'); curView = null; go(0); tick();
   }
   function stop() { clearTimeout(timer); cancelAnimationFrame(raf); if (fly) { fly.remove(); fly = null; } if (bar) { bar.remove(); bar = null; } document.body.classList.remove('dm-on'); i = -1; }
   window.addEventListener('message', function (e) { var d = e.data; if (d && d.source === 'flythrough' && d.type === 'end' && steps[i] && steps[i].fly) go(i + 1); });
