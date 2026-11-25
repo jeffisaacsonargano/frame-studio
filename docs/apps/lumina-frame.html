@@ -698,6 +698,7 @@
     edit: '<path d="M11.8 3.2 14.8 6.2 6.5 14.5l-3.5.8.8-3.5z"/>',
     code: '<path d="M6.5 5 2.5 9l4 4M11.5 5l4 4-4 4"/>',
 vers: '<path d="M3 9a6 6 0 1 0 1.8-4.3"/><path d="M3 3v3h3M9 5.5V9l2.5 1.5"/>',
+vision: '<circle cx="9" cy="9" r="2.6"/><circle cx="9" cy="9" r="6.6"/><path d="M9 1.5v2M9 14.5v2M1.5 9h2M14.5 9h2"/>',
 notes: '<path d="M4 3h10v8l-4 4H4z"/><path d="M10 15v-4h4M6.5 6.5h5M6.5 9h3"/>',
 arch: '<circle cx="9" cy="4" r="1.5"/><path d="M8.3 5.3 4.5 15.5M9.7 5.3l3.8 10.2M5.6 12.5h6.8"/>'
 };
@@ -733,6 +734,16 @@ arch: '<circle cx="9" cy="4" r="1.5"/><path d="M8.3 5.3 4.5 15.5M9.7 5.3l3.8 10.
   var tip = h('div', 'lum-tip'); document.body.appendChild(tip);
   function showTip(html, ev) { tip.innerHTML = html; tip.style.display = 'block'; tip.style.left = Math.min(ev.clientX + 14, window.innerWidth - 300) + 'px'; tip.style.top = (ev.clientY + 14) + 'px'; }
   function hideTip() { tip.style.display = 'none'; }
+/* The vision, short form: what this frame is for, and a door into each part that shows it. The full essay is in Frame Studio. */
+function openVision() {
+var D = [['Framecraft in 3D', 'Take the page apart: the dashboard, its logic, the blocks it reads. Trust comes from seeing the parts.', "data-act='toggle3d'"], ['Blockflow', 'The whole model at once, from source systems to the numbers on the page. Slide from a summary to every block.', "data-go='flow'"], ['Formula lens', 'Watch a formula reshape its cells, step by step, instead of squinting at a line of text.', "data-go='lens'"], ['Walk the Frame', 'Step inside the plan: drop into the model, cross into the warehouse, sink to the engine.', "data-dtab='world'"], ['Architecture Studio', 'From meeting notes to a build plan. Machines propose; nothing is written without approval.', "data-dtab='architect'"], ['Notes', 'Pin a question or a decision to the number it is about, and share it with everyone.', "data-tab='notes'"]];
+var dots = D.map(function (d, i) { var a = -1.5708 + i * 1.0472; return "<circle cx='" + (60 + Math.cos(a) * 44).toFixed(1) + "' cy='" + (60 + Math.sin(a) * 44).toFixed(1) + "' r='6' fill='var(--accent)' opacity='.85'/>"; }).join('');
+openSide("<span class='lum-badge'>The vision</span><h3 class='lum-h3'>Planning at the frontier</h3><p class='lum-sub'>Keep the math defensible. Make everything around it extraordinary.</p>",
+"<svg viewBox='0 0 120 120' width='120' height='120' aria-hidden='true' style='display:block;margin:4px auto 10px'><circle cx='60' cy='60' r='44' fill='none' stroke='var(--line)' stroke-width='1.5'/><circle cx='60' cy='60' r='19' fill='#C2407E'/><circle cx='60' cy='60' r='19' fill='none' stroke='#2B3A67' stroke-width='5' opacity='.6'/>" + dots + '</svg>' +
+"<p>At the centre sits Pigment's calculation engine: the same inputs give the same numbers, every number traces to its blocks, access rights decide who sees what. It is built to be defensible: predictable, explainable, the same for everyone.</p><p>Around it, everything is free to be imaginative, because nothing up here can bend the math. Every surface is a door into the same governed truth, not a copy of it.</p>" +
+"<div class='lum-sec'>Choose your own way in</div>" + D.map(function (d) { return "<div style='margin:0 0 10px'><button class='lum-chip' " + d[2] + '>' + d[0] + "</button><div class='lum-hint' style='margin:4px 0 0'>" + d[1] + '</div></div>'; }).join('') +
+"<div class='lum-sec'>The rule</div><p>Determinism is the floor, not the ceiling. People and agents propose; only approved changes reach the model; and the real world has the last word.</p><p class='lum-hint'>The full essay, with every chapter, is the Vision tab in Frame Studio.</p>");
+}
 /* Blockflow view controls: the slider runs from a summary of stages to every block; -, + and Fit zoom the map */
 root.addEventListener('input', function (e) { var s = e.target.closest && e.target.closest('[data-bflv]'); if (!s) return; var l = FLOW_LEVELS[(+s.value || 4) - 1]; if (l) { S.plan = null; S.proc = null; setFlowLevel(l[0]); } });
 root.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-bfz]'); if (!b || !VB0) return; var z = b.getAttribute('data-bfz'); if (z === 'fit') setVB(VB0.slice()); else zoom(z === 'in' ? 0.8 : 1.25); });
@@ -757,7 +768,7 @@ root.addEventListener('click', function (e) { var b = e.target.closest && e.targ
 
   /* ---------- rail, panes, gutters ---------- */
   function renderRail() {
-    var nav = "<button class='lum-navbtn lum-back' data-act='layers' title='Close the panes and return to the frame (Esc)'>" + icon('frame') + "<span>Back to the frame</span></button><div class='lum-ngroup'>Explore</div>" + SCENES.filter(function (s) { return s.id !== 'strata' && s.id !== 'blocks' && s.id !== 'sources'; }).map(function (s) {
+    var nav = "<button class='lum-navbtn lum-back' data-act='layers' title='Close the panes and return to the frame (Esc)'>" + icon('frame') + "<span>Back to the frame</span></button><button class='lum-navbtn' data-act='vision' title='The vision: planning at the frontier'>" + icon('vision') + "<span>The vision</span></button><div class='lum-ngroup'>Explore</div>" + SCENES.filter(function (s) { return s.id !== 'strata' && s.id !== 'blocks' && s.id !== 'sources'; }).map(function (s) {
       var craft = s.id === 'frame', on = craft ? S.scene === 'frame' || S.scene === 'strata' : s.id === S.scene || (s.id === 'flow' && S.scene === 'sources'), seen = craft ? S.visited.frame || S.visited.strata : S.visited[s.id];
       var b = "<button class='lum-navbtn" + (on ? ' on' : '') + (seen && !on ? ' done' : '') + "' data-go='" + (craft && S.scene === 'strata' ? 'strata' : s.id) + "' title='" + esc(s.label) + "'>" + icon(craft ? 'strata' : s.id) + '<span>' + esc(s.label) + '</span></button>';
       return craft ? "<div class='lum-navrow'>" + b + "<button class='lum-3dtog" + (S.scene === 'strata' ? ' on' : '') + "' data-act='toggle3d' title='Show it in 3D'><i></i>3D</button></div>"  : b;
@@ -4890,7 +4901,8 @@ var a = t.closest('[data-act],[data-awf],[data-sysblock],[data-go],[data-region]
       return;
     }
     if (act === 'next') step(1); else if (act === 'back') step(-1);
-    else if (act === 'plans') { if (S.scene !== 'flow') goto('flow'); S.plan = null; renderFlow(); plansList(); }
+    else if (act === 'vision') openVision();
+else if (act === 'plans') { if (S.scene !== 'flow') goto('flow'); S.plan = null; renderFlow(); plansList(); }
     else if (act === 'fab') { root.classList.toggle('fab-open'); var fb = $('.lum-layersbtn'); if (fb) fb.setAttribute('aria-expanded', String(root.classList.contains('fab-open'))); }
     else if (act === 'tune-describe') tuneDescribe();
     else if (act === 'tune-undo') tuneUndo();
