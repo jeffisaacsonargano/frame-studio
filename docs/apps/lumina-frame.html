@@ -5589,7 +5589,7 @@ all.forEach(function (it) {
 if (it.v !== v || it.st) return; var c = null; Array.prototype.forEach.call(dash.querySelectorAll('[data-w]'), function (x) { if (!c && x.getAttribute('data-w') === it.w) c = x; }); if (!c) return;
 if (window.getComputedStyle(c).position === 'static') c.style.position = 'relative';
 var n = ntNum(it, all), p = lmEl('button', 'nt-pin' + (NT.sel === it.id ? ' on' : ''), String(n)); p.setAttribute('data-nt', it.id); p.setAttribute('aria-label', 'Note ' + n + ': ' + lmText(it.t, 120)); p.title = lmText(it.t, 160);
-p.style.left = (it.x * 100).toFixed(1) + '%'; p.style.top = (it.y * 100).toFixed(1) + '%'; c.appendChild(p);
+var k = c.querySelectorAll('.nt-pin').length; p.style.right = (8 + k * 27) + 'px'; p.style.top = '8px'; p.style.transform = 'none'; c.appendChild(p);   /* pins sit in the widget's upper right, side by side */
 });
 }
 function ntCancel() { NT.pin = false; NT.draft = null; root.classList.remove('nt-picking'); }
