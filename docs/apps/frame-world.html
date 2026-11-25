@@ -1015,10 +1015,10 @@ window.FrameWorld = (function () {
       return { g, og, ng, bg, parts, t: 0, y: [0, -2.0, 3.7, 1.05] };
     }
     /* each frame: colour flows into the layer in focus (on < 0 lights all four) and out of the others */
-    function paintSculpture(S, on, pale, dt, spin) {
+    function paintSculpture(S, on, pale, dt, spin, off) {
       const k = Math.min(1, dt * 5);
-      S.parts.forEach((list, layer) => { const lit = on < 0 || on === layer; list.forEach((o) => { const m = o.material; m.color.lerp(lit ? m.userData.lit : pale, k); }); });
-          if (spin) { S.og.rotation.y += dt * 0.25; S.ng.rotation.y -= dt * 0.07; }
+      S.parts.forEach((list, layer) => { const lit = (on < 0 || on === layer) && layer !== off; list.forEach((o) => { const m = o.material; m.color.lerp(lit ? m.userData.lit : pale, k); }); });
+          if (spin) { S.og.rotation.y += dt * 0.25; S.ng.rotation.y -= dt * 0.07; S.bg.rotation.y += dt * 0.03; const nd = S.parts[3]; if (off !== undefined && Math.random() < 0.3) nd[(Math.random() * (nd.length - 1)) | 0].material.color.set('#FFFFFF'); }
     }
 
     (function buildGraphite() {
@@ -1028,8 +1028,7 @@ window.FrameWorld = (function () {
       /* the sparse cube core: only defined cells glow */
       GP.coreG = grp(GR, 0, GY + 5.4, -2); GP.def = []; const N = 6; GP.core = new T.InstancedMesh(GEO.box, new T.MeshBasicMaterial(), N * N * N); GP.core.frustumCulled = false; GP.coreG.add(GP.core);
       for (let a = 0; a < N; a++) for (let b = 0; b < N; b++) for (let c = 0; c < N; c++) { const i = a * N * N + b * N + c, def = (a * 7 + b * 13 + c * 5 + a * b * c) % 10 < 4; dummy.position.set((a - 2.5) * 0.8, (b - 2.5) * 0.8, (c - 2.5) * 0.8); dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(def ? 0.42 : 0.07); dummy.updateMatrix(); GP.core.setMatrixAt(i, dummy.matrix); GP.core.setColorAt(i, tmpC.set(def ? PAL.dark.metric : '#2A3350')); if (def) GP.def.push(i); }
-      cyl(GR, 2.2, 0.5, dk, 0, GY + 0.25, -2); cyl(GR, 2.3, 0.06, mat('metric', { b: 1 }), 0, GY + 0.5, -2, false);
-      GP.read = sign(GR, '', 0, GY + 9.6, -2, 8.4, 1.3, { px: 512 });
+      GP.read = sign(GR, '', 0, GY + 27, -2, 8.4, 1.3, { px: 512 });
       /* dependency rings: inputs innermost, results outermost */
       const RN = { tNs: [0, 0], tSf: [0, 1], dProd: [0, 2], dMonth: [0, 3], act: [1, 0], lc: [1, 1], fxr: [1, 2], cmp: [1, 3], kYtd: [2, 0], kVar: [2, 1], kFx: [2, 2], age: [2, 3] }, RR = [7, 10.5, 14];
       GP.rings = RR.map((r, k) => { const g = grp(GR, 0, GY + 0.6 + k * 0.3, -2), m = mat(['blue', 'pink', 'yellow'][k], { b: 1 }); const t = mesh(g, new T.TorusGeometry(r, 0.06, 6, 72), m, 0, 0, 0, 1, 1, 1, false); t.rotation.x = Math.PI / 2;
@@ -1038,10 +1037,8 @@ window.FrameWorld = (function () {
         GP.rn[id] = { mesh: box(GP.rings[q[0]], 1.1, 0.6, 0.7, m, Math.cos(a) * r, 0.35, Math.sin(a) * r), mat: m, glow: 0 }; GP.rn[id].mesh.rotation.y = -a;
         GP.beams[id] = { mesh: mesh(G1, GEO.base, mat(key, { b: 1, o: 0, u: 'beam' + id }), NODES[id].x, GY + 0.6, NODES[id].z, 0.2, 0.01, 0.2, false), h: 0, to: 0, a: 0 }; });
       GP.lg = new T.BufferGeometry(); GP.lg.setAttribute('position', new T.Float32BufferAttribute(new Float32Array(EDGES.length * 6), 3)); GR.add(new T.LineSegments(GP.lg, new T.LineBasicMaterial({ color: 0x8fa6ff, transparent: true, opacity: 0.6 })));
-      plq([{ t: 'Sparse engine', s: 70, w: 800 }, { t: 'only cells that hold data are stored and calculated', s: 50 }, { t: 'documented · lattice and counts illustrative', s: 44, c: 'muted' }], 5, GY + 2.2, 3.5, 6.2);
-      plq([{ t: 'Dependency graph', s: 70, w: 800 }, { t: 'a change recalculates only what depends on it', s: 50 }, { t: 'documented · rings illustrative', s: 44, c: 'muted' }], -10, GY + 2.2, 7, 6);
       /* access rights: role pads and the shield that filters what flows up */
-      GP.shieldM = mat('cyan', { b: 1, o: 0.1, u: 'shield', side: 1 }); mesh(G1, GEO.cyl6, GP.shieldM, 0, GY + 19, -2, 24, 0.05, 24, false);
+      GP.shieldM = mat('cyan', { b: 1, o: 0.1, u: 'shield', side: 1 }); mesh(G1, GEO.cyl6, GP.shieldM, 0, GY + 30, -2, 24, 0.05, 24, false);
       ['Viewer', 'Planner', 'Admin'].forEach((r, i) => { const x = -23, z = -9 + i * 6; cyl(GR, 1.3, 0.25, mat(['blue', 'yellow', 'pink'][i]), x, GY + 0.125, z); sign(GR, [{ t: r, s: 170, w: 800 }], x, GY + 2.4, z, 2.2, 0.62);
         col(x - 1.15, x + 1.15, z - 1.15, z + 1.15, GY + 0.25, GY, () => '<b>' + r + ' role</b> · ' + (GP.role === i ? 'active' : 'press <kbd>Space</kbd> to switch') + ' · access rights decide which results rise through the shield for this role (rule shown is illustrative)').role = i; });
       GP.roleRing = mesh(GR, new T.TorusGeometry(1.5, 0.07, 6, 32), mat('white', { b: 1 }), -23, GY + 0.3, 3, 1, 1, 1, false); GP.roleRing.rotation.x = Math.PI / 2;
@@ -1081,7 +1078,7 @@ window.FrameWorld = (function () {
       /* ---- the Graphite stack, after Pigment's own description: three pillars, with people and AI agents working on top.
          A floor path runs from each layer to the station that shows it; the layer for the station you stand at lights up.
          The pad at its foot lifts you into the engine, where the camera pulls back to show you suspended inside. ---- */
-      const SX = -10, SZ = 13;
+      const SX = 0, SZ = -2;
       GP.stack = [
         { t: 'People and AI agents', s: 'in Pigment and through MCP: same definitions, same governance', c: '#B79BFF', to: [-19, -22], zone: () => false },
         { t: 'Dynamic modeling', s: 'flexible structures and native scenarios', c: '#E5B567', to: [15, -16], zone: (x, z) => x > 8 && x < 19.5 && z < -8 },
@@ -1089,14 +1086,15 @@ window.FrameWorld = (function () {
         { t: 'Unified, governed data', s: 'stored once, access rights, one source of truth', c: '#7FD1A3', to: [-23, -3], zone: (x, z) => x < -14 && z > -15 }
       ];
       cyl(GR, 2.7, 0.25, dk, SX, GY + 0.125, SZ); GP.padRing = mesh(GR, new T.TorusGeometry(2.45, 0.07, 6, 48), mat('white', { b: 1, o: 0.6, u: 'gpad' }), SX, GY + 0.27, SZ, 1, 1, 1, false); GP.padRing.rotation.x = Math.PI / 2;
-      GP.sc = makeSculpture(T); GP.sc.g.scale.setScalar(1.5); GP.sc.g.position.set(SX, GY + 5.4, SZ); GR.add(GP.sc.g); GP.pale = new T.Color('#59627A');
+      GP.sc = makeSculpture(T); GP.sc.g.scale.setScalar(2.6); GP.sc.g.position.set(SX, GY + 9.2, SZ); GR.add(GP.sc.g); GP.pale = new T.Color('#59627A');
       GP.stack.forEach((L, k) => {
         if (!k) return;
-        sign(GR, [{ t: L.t, s: 54, w: 500, c: 'muted' }], SX + 6.2, GY + 5.4 + GP.sc.y[k] * 1.5 + (k === 1 ? 1.4 : 0), SZ, 4.4, 0.5, { px: 512, bg: null, border: null });
+        sign(GR, [{ t: L.t, s: 54, w: 500, c: 'muted' }], SX + 10.8, GY + 9.2 + GP.sc.y[k] * 2.6 + (k === 1 ? 2.2 : 0), SZ, 4.4, 0.5, { px: 512, bg: null, border: null });
         const a = [SX, SZ], b = L.to, len = Math.hypot(b[0] - a[0], b[1] - a[1]);
         L.p = mat(L.c, { b: 1, o: 0.22, u: 'gstkp' + k }); box(GR, 0.32, 0.03, len, L.p, (a[0] + b[0]) / 2, GY + 0.035 + k * 0.004, (a[1] + b[1]) / 2, false).rotation.y = Math.atan2(b[0] - a[0], b[1] - a[1]);
       });
-      sign(GR, [{ t: 'Graphite', s: 64, w: 600 }, { t: 'stand on the ring, press Space to jump in', s: 40, c: 'muted' }], SX, GY + 15.6, SZ, 5, 0.95, { px: 512, bg: null, border: null });
+      sign(GR, [{ t: 'Graphite', s: 64, w: 600 }, { t: 'stand on the ring, press Space to jump in', s: 40, c: 'muted' }], SX, GY + 24.5, SZ, 5, 0.95, { px: 512, bg: null, border: null });
+      GP.coreG.visible = false; GP.rings.forEach((g) => { g.visible = false; }); Object.keys(GP.beams).forEach((id) => { GP.beams[id].mesh.visible = false; }); GR.children.forEach((o) => { if (o.isLineSegments && o.geometry === GP.lg) o.visible = false; });
       const dc = col(SX - 2.6, SX + 2.6, SZ - 2.6, SZ + 2.6, GY + 0.25, GY, () => '<b>Graphite</b> · Pigment describes three pillars. Press <kbd>Space</kbd> to jump into the engine.'); dc.dive = true;
       /* you, seen from outside: an androgynous figure with short neutral hair, a plain tunic and trousers */
       GP.me = person(GR, { name: 'You', color: '#57E3FF', skin: '#C99272', top: '#2F7F86', bottom: '#2E3147', hair: '#2A211C' });
@@ -1221,11 +1219,11 @@ window.FrameWorld = (function () {
       if (GP.dive) { GP.dkT += dt; if (GP.dkT > 4.5) { GP.dkT = 0; GP.dk = (GP.dk % 3) + 1; lastWhere = ''; } }
       const here = GP.dive ? GP.dk : P.y < -60 ? GP.stack.findIndex((L) => L.zone(P.x, P.z)) : -1, kk = Math.min(1, dt * 4);
       GP.stack.forEach((L, k) => { if (L.p) L.p.opacity += ((k === here ? 0.85 : 0.22) - L.p.opacity) * kk; });
-      paintSculpture(GP.sc, here, GP.pale, dt, !reduce);
+      paintSculpture(GP.sc, GP.dive ? -1 : here, GP.pale, dt, !reduce, GP.rip || (t % 7) >= 1.3 ? -1 : 1 + Math.floor(t / 7) % 3);
       GP.padRing.material.opacity = 0.35 + 0.3 * Math.sin(t * 2.2);
       const me = GP.me; me.g.visible = GP.dv > 0.02;
       if (me.g.visible) {
-        me.g.position.set(-10, GY + 5.4 + 1.05 * 1.5 - 1.1 + (reduce ? 0 : Math.sin(t * 1.3) * 0.18), 13); me.g.rotation.y = GP.dva + Math.PI + (reduce ? 0 : Math.sin(t * 0.4) * 0.3);
+        me.g.position.set(0, GY + 9.2 + 1.05 * 2.6 - 1.1 + (reduce ? 0 : Math.sin(t * 1.3) * 0.18), 13); me.g.rotation.y = GP.dva + Math.PI + (reduce ? 0 : Math.sin(t * 0.4) * 0.3);
         me.armL.rotation.z = -0.9; me.armR.rotation.z = 0.9; me.legL.rotation.x = 0.25; me.legR.rotation.x = -0.15; me.expr = 'excited'; animPerson(me, t, dt);
       }
       const act = GP.load > 0.4 ? 8 : 3, tw2 = reduce ? 0 : t;
@@ -1318,9 +1316,9 @@ window.FrameWorld = (function () {
       if (GP.ov > 0.01) { const q0 = camera.quaternion.clone(); camera.lookAt(0, GY + 4.5, -2); const q1 = camera.quaternion.clone(); camera.quaternion.copy(q0.slerp(q1, GP.ov)); }   /* on the overview deck the camera lifts back to take in the whole engine */
       GP.dv += ((GP.dive ? 1 : 0) - GP.dv) * Math.min(1, dt * (reduce ? 20 : 1.6));
       if (GP.dv > 0.001) {   /* inside Graphite: the view rises and pulls back until you see yourself suspended in the engine */
-        const k = GP.dv * GP.dv * (3 - 2 * GP.dv), R = 15, cx = -10 + Math.sin(GP.dva) * R, cy = GY + 8.2 + GP.dvh, cz = 13 + Math.cos(GP.dva) * R;
+        const k = GP.dv * GP.dv * (3 - 2 * GP.dv), R = 24, cx = Math.sin(GP.dva) * R, cy = GY + 13 + GP.dvh, cz = -2 + Math.cos(GP.dva) * R;
         camera.position.set(camera.position.x + (cx - camera.position.x) * k, camera.position.y + (cy - camera.position.y) * k, camera.position.z + (cz - camera.position.z) * k);
-        const q0 = camera.quaternion.clone(); camera.lookAt(-10, GY + 7, 13); const q1 = camera.quaternion.clone(); camera.quaternion.copy(q0.slerp(q1, k));
+        const q0 = camera.quaternion.clone(); camera.lookAt(0, GY + 11, -2); const q1 = camera.quaternion.clone(); camera.quaternion.copy(q0.slerp(q1, k));
       }
       if (zone === 'hire') { if (P.z < -6.2 && Math.abs(P.x) < 0.9) go(6); return; }   /* the back door of the hiring floor leads out to the street */
       if (A1.t > A1.portalT) for (let i = 0; i < A1.portals.length; i++) { const q = A1.portals[i]; if (Math.abs(P.y - q.y) < 1.2 && Math.hypot(P.x - q.x, P.z - q.z) < 0.95) { share(); return; } }
