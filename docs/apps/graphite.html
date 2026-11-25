@@ -190,12 +190,12 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
   /* ------------------------------------------------------------ three.js stage */
   const T = window.THREE;
   const cv = $('#cv'), stage = $('#stage');
-  const G = { ok: !!T, picks: [], tweens: [], timers: [], orbit: { th: 0.7, ph: 1.05, r: 16, tx: 0, ty: 0, tz: 0 }, home: null, group: null, token: 0 };
+  const G = { ok: !!T, picks: [], tweens: [], timers: [], wake: 0, camKey: '', orbit: { th: 0.7, ph: 1.05, r: 16, tx: 0, ty: 0, tz: 0 }, home: null, group: null, token: 0 };
   let renderer, scene3, camera, ray, amb, sun;
   if (G.ok) {
     try {
       renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
-      renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+      renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
       scene3 = new T.Scene();
       camera = new T.PerspectiveCamera(42, 1, 0.1, 400);
       ray = new T.Raycaster();
@@ -210,7 +210,7 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
     if (!G.ok) return;
     const w = stage.clientWidth || 1, h = stage.clientHeight || 1;
     renderer.setSize(w, h, false);
-    camera.aspect = w / h; camera.updateProjectionMatrix();
+    camera.aspect = w / h; camera.updateProjectionMatrix(); poke();
   }
   function placeCam() {
     const o = G.orbit;
@@ -220,7 +220,9 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
   }
   const ease = (k) => k * k * (3 - 2 * k);
   function tw(ms, fn, done) { const t = { t0: performance.now(), ms: reduce ? 1 : ms, fn, done, tok: G.token }; G.tweens.push(t); return t; }
-  function later(fn, ms) { const tok = G.token; const id = setTimeout(() => { if (tok === G.token) fn(); }, reduce ? Math.min(ms, 30) : ms); G.timers.push(id); }
+  function later(fn, ms) { const tok = G.token; const id = setTimeout(() => { if (tok === G.token) { fn(); poke(); } }, reduce ? Math.min(ms, 30) : ms); G.timers.push(id); }
+  /* render on demand: anything that can change the picture calls poke(), which keeps frames coming for a moment */
+  function poke(ms) { G.wake = Math.max(G.wake, performance.now() + (ms || 400)); }
   function camTo(to, ms) {
     const o = G.orbit, from = Object.assign({}, o);
     tw(ms || 700, (k) => { Object.keys(to).forEach((p) => { o[p] = from[p] + (to[p] - from[p]) * k; }); });
@@ -237,6 +239,11 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
       if (k >= 1) { G.tweens.splice(i, 1); if (t.done) t.done(); }
     }
     if (G.spin && !reduce && !G.dragging) G.orbit.th += 0.0012;
+    if (!cv.clientWidth) return;   /* the view is hidden: nothing to draw */
+    const o = G.orbit, key = o.th.toFixed(4) + o.ph.toFixed(4) + o.r.toFixed(3) + o.tx.toFixed(3) + o.ty.toFixed(3) + o.tz.toFixed(3);
+    if (key !== G.camKey) { G.camKey = key; poke(150); }
+    if (G.tweens.length) poke(120);
+    if (now > G.wake) return;
     placeCam();
     renderer.render(scene3, camera);
   }
@@ -244,13 +251,16 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
     G.token++; G.tweens.length = 0; G.timers.forEach(clearTimeout); G.timers.length = 0; G.picks = [];
     if (G.group) {
       scene3.remove(G.group);
-      G.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } });
+      G.group.traverse((o) => { if (o.userData.keep) return; if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } });
     }
-    G.group = new T.Group(); scene3.add(G.group);
+    G.group = new T.Group(); scene3.add(G.group); poke(600);
   }
   /* text sprite */
+  const LBL = new Map();
   function label(text, o) {
     o = o || {};
+    const lk = JSON.stringify([text, o.size, o.weight, o.bg, o.color, o.scale]), hitL = LBL.get(lk);
+    if (hitL) { const s = new T.Sprite(hitL.mat); s.scale.copy(hitL.scale); s.renderOrder = 10; s.userData.keep = true; return s; }
     const fs = o.size || 26, pad = o.bg ? 12 : 4;
     const c = document.createElement('canvas'), x = c.getContext('2d');
     const font = (o.weight || 500) + ' ' + fs + 'px Inter, "Segoe UI", system-ui, sans-serif';
@@ -262,6 +272,7 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
     const tex = new T.CanvasTexture(c); tex.minFilter = T.LinearFilter;
     const s = new T.Sprite(new T.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
     const k = o.scale || 0.0125; s.scale.set(w * k, h * k, 1); s.renderOrder = 10;
+    s.userData.keep = true; if (LBL.size < 400) LBL.set(lk, { mat: s.material, scale: s.scale.clone() });
     return s;
   }
   function box(w, h, d, color, o) {
@@ -293,8 +304,9 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
         }
         moved += Math.abs(dx) + Math.abs(dy);
         G.orbit.th -= dx * 0.008; G.orbit.ph -= dy * 0.008;
-      } else {
-        cv.style.cursor = hit(e) ? 'pointer' : 'grab';
+      } else if (!G.hoverQ) {
+        G.hoverQ = true; const ev = { clientX: e.clientX, clientY: e.clientY };
+        requestAnimationFrame(() => { G.hoverQ = false; cv.style.cursor = hit(ev) ? 'pointer' : 'grab'; });
       }
     });
     const up = (e) => { pts.delete(e.pointerId); pinch = null; G.dragging = pts.size > 0; if (down && moved < 6 && e.type === 'pointerup') { const m = hit(e); if (m) showInfo(m.userData.info, m); } down = null; };
@@ -317,6 +329,8 @@ summary { font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--ink
     return hits.length ? hits[0].object : null;
   }
   function resetCam() { if (G.home) camTo(G.home, 500); }
+  ['pointerdown', 'click', 'keydown', 'change', 'input'].forEach((t) => document.addEventListener(t, () => poke(900), true));
+  if (window.MutationObserver) new MutationObserver(() => poke(900)).observe(document.documentElement, { attributes: true });
 
   /* ------------------------------------------------------------ app state + panel */
   const state = { scene: 'overview', info: null, cube: { op: 'NONE', stage: 'result', ext: null }, recalc: { edit: 'e1', scoped: true, ran: null }, access: { role: 'member', r1: true, r2: true }, scn: null, pipe: { step: 0 } };
