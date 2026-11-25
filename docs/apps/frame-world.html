@@ -982,8 +982,8 @@ window.FrameWorld = (function () {
     const AFF = [['act', 0], ['kYtd', 0.7], ['kVar', 0.85], ['kFx', 1.0], ['age', 1.15]], G_CELLS = { act: 2880, kYtd: 480, kVar: 320, kFx: 320, age: 360 }, G_TOTAL = 13560, G_PASS = { kYtd: 0, kVar: 0, age: 1, act: 1, kFx: 2 };
     /* The Graphite sculpture: an original drawing in the spirit of Pigment's own Graphite illustrations.
        Top, a sphere of stacked layers (Elastic Engine); middle, a cage of connected nodes (unified, governed data);
-       bottom, a broken bowl of curved panels (dynamic modeling); above it all, a halo of people and AI agents.
-       The part for the layer in focus is drawn in colour; the rest fade to a pale grey. Layer order: 0 halo, 1 bowl, 2 sphere, 3 network. */
+       bottom, a broken bowl of curved panels (dynamic modeling).
+       The part for the layer in focus is drawn in colour; the rest fade to a pale grey. Layer order: 1 bowl, 2 sphere, 3 network (0 is unused). */
     function makeSculpture(T) {
       const g = new T.Group(), parts = [[], [], [], []];
       const M = (c) => { const m = new T.MeshLambertMaterial({ color: c, transparent: true, side: T.DoubleSide }); m.userData.lit = new T.Color(c); return m; };
@@ -1012,20 +1012,13 @@ window.FrameWorld = (function () {
         const pn = new T.Mesh(new T.CylinderGeometry(q[1], q[1] * 0.86, q[2], 16, 1, true, t0, tl), M(BC[bi++ % BC.length]));
         pn.position.y = q[0] + ((k * 3) % 4) * 0.06; pn.rotation.x = (((k * 11) % 5) - 2) * 0.025; pn.userData.layer = 1; bg.add(pn); parts[1].push(pn);
       } });
-      /* the top: people and AI agents, drawn as faint lines rising from the sphere */
-      const hg = new T.Group(); hg.position.y = 5.0; g.add(hg);
-      const up = [];
-      for (let i = 0; i < 30; i++) { const a = i * 2.399963, r0 = 0.2 + (i % 5) * 0.12, len = 1.1 + ((i * 7) % 9) * 0.24, lean = 0.22 + (i % 4) * 0.1; up.push(Math.cos(a) * r0, 0, Math.sin(a) * r0, Math.cos(a) * (r0 + lean * len), len, Math.sin(a) * (r0 + lean * len)); }
-      const ug = new T.BufferGeometry(); ug.setAttribute('position', new T.Float32BufferAttribute(up, 3));
-      const um = new T.LineBasicMaterial({ color: '#9AA7E8', transparent: true, opacity: 0.4 }); um.userData.lit = new T.Color('#C9D2FF'); const ul = new T.LineSegments(ug, um); ul.userData.layer = 0; hg.add(ul); parts[0].push(ul);
-      return { g, og, ng, bg, hg, parts, um, t: 0, y: [5.9, -2.0, 3.7, 1.05] };
+      return { g, og, ng, bg, parts, t: 0, y: [0, -2.0, 3.7, 1.05] };
     }
     /* each frame: colour flows into the layer in focus (on < 0 lights all four) and out of the others */
     function paintSculpture(S, on, pale, dt, spin) {
       const k = Math.min(1, dt * 5);
       S.parts.forEach((list, layer) => { const lit = on < 0 || on === layer; list.forEach((o) => { const m = o.material; m.color.lerp(lit ? m.userData.lit : pale, k); }); });
-      S.t += dt; S.um.opacity = (on < 0 || on === 0 ? 0.42 : 0.16) + (spin ? 0.12 * Math.sin(S.t * 2.1) : 0);
-    if (spin) { S.og.rotation.y += dt * 0.25; S.ng.rotation.y -= dt * 0.07; S.hg.rotation.y += dt * 0.12; S.hg.scale.y = 1 + 0.07 * Math.sin(S.t * 1.6); }
+          if (spin) { S.og.rotation.y += dt * 0.25; S.ng.rotation.y -= dt * 0.07; }
     }
 
     (function buildGraphite() {
@@ -1090,7 +1083,7 @@ window.FrameWorld = (function () {
          The pad at its foot lifts you into the engine, where the camera pulls back to show you suspended inside. ---- */
       const SX = -10, SZ = 13;
       GP.stack = [
-        { t: 'People and AI agents', s: 'in Pigment and through MCP: same definitions, same governance', c: '#B79BFF', to: [-19, -22], zone: (x, z) => x < -12 && z < -15 },
+        { t: 'People and AI agents', s: 'in Pigment and through MCP: same definitions, same governance', c: '#B79BFF', to: [-19, -22], zone: () => false },
         { t: 'Dynamic modeling', s: 'flexible structures and native scenarios', c: '#E5B567', to: [15, -16], zone: (x, z) => x > 8 && x < 19.5 && z < -8 },
         { t: 'Elastic Engine', s: 'storage apart from compute, capacity on demand, prioritised work', c: '#E07B5A', to: [24, 19.2], zone: (x, z) => x > 19.5 || (x > 7 && z > 16) },
         { t: 'Unified, governed data', s: 'stored once, access rights, one source of truth', c: '#7FD1A3', to: [-23, -3], zone: (x, z) => x < -14 && z > -15 }
@@ -1098,12 +1091,13 @@ window.FrameWorld = (function () {
       cyl(GR, 2.7, 0.25, dk, SX, GY + 0.125, SZ); GP.padRing = mesh(GR, new T.TorusGeometry(2.45, 0.07, 6, 48), mat('white', { b: 1, o: 0.6, u: 'gpad' }), SX, GY + 0.27, SZ, 1, 1, 1, false); GP.padRing.rotation.x = Math.PI / 2;
       GP.sc = makeSculpture(T); GP.sc.g.scale.setScalar(1.5); GP.sc.g.position.set(SX, GY + 5.4, SZ); GR.add(GP.sc.g); GP.pale = new T.Color('#59627A');
       GP.stack.forEach((L, k) => {
+        if (!k) return;
         sign(GR, [{ t: L.t, s: 54, w: 500, c: 'muted' }], SX + 6.2, GY + 5.4 + GP.sc.y[k] * 1.5 + (k === 1 ? 1.4 : 0), SZ, 4.4, 0.5, { px: 512, bg: null, border: null });
         const a = [SX, SZ], b = L.to, len = Math.hypot(b[0] - a[0], b[1] - a[1]);
         L.p = mat(L.c, { b: 1, o: 0.22, u: 'gstkp' + k }); box(GR, 0.32, 0.03, len, L.p, (a[0] + b[0]) / 2, GY + 0.035 + k * 0.004, (a[1] + b[1]) / 2, false).rotation.y = Math.atan2(b[0] - a[0], b[1] - a[1]);
       });
       sign(GR, [{ t: 'Graphite', s: 64, w: 600 }, { t: 'stand on the ring, press Space to jump in', s: 40, c: 'muted' }], SX, GY + 15.6, SZ, 5, 0.95, { px: 512, bg: null, border: null });
-      const dc = col(SX - 2.6, SX + 2.6, SZ - 2.6, SZ + 2.6, GY + 0.25, GY, () => '<b>Graphite</b> · Pigment describes three pillars, with people and AI agents on top. Press <kbd>Space</kbd> to jump into the engine.'); dc.dive = true;
+      const dc = col(SX - 2.6, SX + 2.6, SZ - 2.6, SZ + 2.6, GY + 0.25, GY, () => '<b>Graphite</b> · Pigment describes three pillars. Press <kbd>Space</kbd> to jump into the engine.'); dc.dive = true;
       /* you, seen from outside: an androgynous figure with short neutral hair, a plain tunic and trousers */
       GP.me = person(GR, { name: 'You', color: '#57E3FF', skin: '#C99272', top: '#2F7F86', bottom: '#2E3147', hair: '#2A211C' });
       GP.me.g.visible = false; GP.me.g.scale.setScalar(1.25);
@@ -1191,7 +1185,7 @@ window.FrameWorld = (function () {
       if (H.bub.visible && H.bubC) { const g = H.bubC.c.g.position; H.bub.position.set(g.x, g.y + 2.85, g.z);
         if (H.bubT < 1) { H.bubT = Math.min(1, H.bubT + dt / (reduce ? 0.01 : 0.8)); H.bub.userData.draw(); } else { H.bubHold += dt; H.bub.material.opacity = clamp(4.2 - H.bubHold, 0, 1); if (H.bubHold > 4.2) { H.bub.visible = false; H.bub.material.opacity = 1; } } }
     }
-    function diveSet(on) { GP.dive = !!on; GP.dk = 0; GP.dkT = 0; if (on) { GP.dva = P.yaw; GP.dvh = 0; host.blip('whoosh'); found('graphite'); } else host.blip('land'); Object.keys(keys).forEach((k) => { keys[k] = false; }); lastWhere = ''; }
+    function diveSet(on) { GP.dive = !!on; GP.dk = 1; GP.dkT = 0; if (on) { GP.dva = P.yaw; GP.dvh = 0; host.blip('whoosh'); found('graphite'); } else host.blip('land'); Object.keys(keys).forEach((k) => { keys[k] = false; }); lastWhere = ''; }
     function ovSet(on) { GP.on = !!on; if (on) { GP.ova = 0; GP.ovh = 9; } Object.keys(keys).forEach((k) => { keys[k] = false; }); P.lvy = 0; P.lvp = 0; lastWhere = ''; host.blip('pad'); }
     function ripple() { if (GP.rip) return; GP.rip = { t: 0, hit: {}, fired: {} }; host.blip('whoosh'); }
     function gateStamp() {
@@ -1224,9 +1218,9 @@ window.FrameWorld = (function () {
       EDGES.forEach((e, i) => { GP.rn[e[0]].mesh.getWorldPosition(v1); GP.rn[e[1]].mesh.getWorldPosition(v2); pa.setXYZ(i * 2, v1.x, v1.y, v1.z); pa.setXYZ(i * 2 + 1, v2.x, v2.y, v2.z); }); pa.needsUpdate = true;
       Object.keys(GP.rn).forEach((id) => { const n = GP.rn[id]; n.glow *= Math.max(0, 1 - dt * 1.2); n.mat.emissiveIntensity = n.glow * 1.4; if (!reduce) n.mesh.scale.setScalar(1 + n.glow * 0.5); });
       GP.roleRing.position.z = -9 + GP.role * 6;
-      if (GP.dive) { GP.dkT += dt; if (GP.dkT > 4.5) { GP.dkT = 0; GP.dk = (GP.dk + 1) % 4; lastWhere = ''; } }
+      if (GP.dive) { GP.dkT += dt; if (GP.dkT > 4.5) { GP.dkT = 0; GP.dk = (GP.dk % 3) + 1; lastWhere = ''; } }
       const here = GP.dive ? GP.dk : P.y < -60 ? GP.stack.findIndex((L) => L.zone(P.x, P.z)) : -1, kk = Math.min(1, dt * 4);
-      GP.stack.forEach((L, k) => { L.p.opacity += ((k === here ? 0.85 : 0.22) - L.p.opacity) * kk; });
+      GP.stack.forEach((L, k) => { if (L.p) L.p.opacity += ((k === here ? 0.85 : 0.22) - L.p.opacity) * kk; });
       paintSculpture(GP.sc, here, GP.pale, dt, !reduce);
       GP.padRing.material.opacity = 0.35 + 0.3 * Math.sin(t * 2.2);
       const me = GP.me; me.g.visible = GP.dv > 0.02;
@@ -1371,7 +1365,7 @@ window.FrameWorld = (function () {
     function setWhere(h) { if (h !== lastWhere) { lastWhere = h; host.where(h); } }
     function updateWhere() {
       if (mode !== 'walk') return;
-      if (GP.dive) { const L = GP.stack[GP.dk]; setWhere('<b>Inside Graphite</b> · ' + (4 - GP.dk) + ' · ' + L.t + ': ' + L.s + '.<small>Drag, or <kbd>J</kbd> <kbd>L</kbd>, to circle; <kbd>I</kbd> <kbd>K</kbd> to rise and sink. <kbd>Space</kbd> or <kbd>Esc</kbd> to come back down.</small>'); return; }
+      if (GP.dive) { const L = GP.stack[GP.dk]; setWhere('<b>Inside Graphite</b> · ' + L.t + ': ' + L.s + '.<small>Drag, or <kbd>J</kbd> <kbd>L</kbd>, to circle; <kbd>I</kbd> <kbd>K</kbd> to rise and sink. <kbd>Space</kbd> or <kbd>Esc</kbd> to come back down.</small>'); return; }
       if (GP.on) { setWhere('<b>Overview</b> · drag, or <kbd>J</kbd> <kbd>L</kbd>, to orbit the engine; <kbd>I</kbd> <kbd>K</kbd> raise and lower the camera. <kbd>Space</kbd> or <kbd>Esc</kbd> returns you to the deck.' + (GP.rip ? '<small>' + GP.txt + '</small>' : '')); return; }
       let h = '';
       if (P.y < -0.8 && P.y > -39.5 && !P.ground && inRect(HATCH, P.x, P.z, -0.5)) { let n = 'the frame'; LAYERS.forEach((L) => { if (P.y < L[0] + 4) n = L[1]; }); h = 'Falling past: <b>' + n + '</b>'; }

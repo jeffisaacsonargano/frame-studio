@@ -476,7 +476,7 @@ col(-24.15, -21.85, z - 1.15, z + 1.15, GY + 0.25, GY, function () { return { b:
 label([{ t: 'Unified, governed data', s: 66, w: 800 }, { t: 'stored once and shared; access rights filter what each role sees', s: 44 }, { t: 'documented | shield illustrative', s: 44, c: 'muted' }], 5.6, 1.3, -23, GY + 3.8, -3, { px: 512, lvl: 2 });
 label([{ t: 'Elastic Engine', s: 66, w: 800 }, { t: 'storage apart from compute; capacity added during peaks', s: 44 }, { t: 'interactive work is prioritised over background analysis', s: 44 }, { t: 'documented | not drawn in this lighter level', s: 40, c: 'muted' }], 6.4, 1.7, 22, GY + 2.6, 6, { px: 512, lvl: 2 });
 label([{ t: "Based on Pigment's published description of Graphite", s: 50, w: 800 }, { t: 'Pigment blog: Graphite, the architecture powering what is possible in Pigment', s: 34 }, { t: 'Pigment KB: scoped calculations, access rights, scenarios', s: 34 }, { t: 'Pigment Community: architectural foundations, sparse engine', s: 34 }, { t: 'Every drawing here is original and illustrative.', s: 30, c: 'muted' }], 8.6, 2, -15, GY + 2.7, 19.5, { px: 1024, lvl: 2 });
-/* Graphite, drawn in the spirit of Pigment's own illustrations (an original drawing): a sphere of layers for the Elastic Engine, a cage of connected nodes for unified, governed data, a broken bowl of curved panels for dynamic modeling, and faint lines rising above for the people and AI agents working on top. The part for the layer in focus is in colour; the rest fade to grey. */
+/* Graphite, drawn in the spirit of Pigment's own illustrations (an original drawing): a sphere of layers for the Elastic Engine, a cage of connected nodes for unified, governed data, and a broken bowl of curved panels for dynamic modeling. The part for the layer in focus is in colour; the rest fade to grey. */
 var SC = { on: -1, F: 2.2, y0: GY + 5.6, parts: [], L: [['People and AI agents', 'in Pigment and through MCP: same definitions, same governance'], ['Dynamic modeling', 'flexible structures and native scenarios'], ['Elastic Engine', 'storage apart from compute, capacity on demand, prioritised work'], ['Unified, governed data', 'stored once, access rights, one source of truth']] };
 function scQuad(B, a, b, c, d) { [a, b, c, a, c, d].forEach(function (p) { B.v.push(p[0], p[1], p[2], p[3], p[4], p[5], 1, 1, 1, 1); }); }
 function scZone(B, R, t0, t1, tx, ry, ox) {
@@ -501,10 +501,8 @@ SC.parts.push({ k: 3, c: rgb('#6E7BA8'), b: LB.done(), y: 1.05, line: 1 });
 var BC = ['#2B3A67', '#3A4A7A', '#F0508C', '#2B3A67', '#3FC7E0', '#46557F', '#2B3A67', '#F57BB0'], bi = 0, BB = {};
 [[0, 3.1, 1.25, 7], [-1.15, 2.7, 1, 6], [-2.05, 2, 0.7, 5]].forEach(function (q, ri) { for (var k = 0; k < q[3]; k++) { var a0 = k / q[3] * 6.28319 + ri * 0.4 + (k * 7 % 3) * 0.04, col = BC[bi++ % BC.length], yo = q[0] + (k * 3 % 4) * 0.06; scArc(BB[col] = BB[col] || new Batch(), q[1] * 0.86, q[1], yo - q[2] / 2, yo + q[2] / 2, a0, a0 + 6.28319 / q[3] - 0.12 - (k * 5 % 3) * 0.05); } });
 Object.keys(BB).forEach(function (col) { SC.parts.push({ k: 1, c: rgb(col), b: BB[col].done(), y: -1 }); });
-var UB = new Batch(); for (i = 0; i < 30; i++) { var a = i * 2.399963, r0 = 0.2 + (i % 5) * 0.12, len = 1.1 + (i * 7 % 9) * 0.24, lean = 0.22 + (i % 4) * 0.1; UB.beam([Math.cos(a) * r0, 0, Math.sin(a) * r0], [Math.cos(a) * (r0 + lean * len), len, Math.sin(a) * (r0 + lean * len)], 0.02, 'white', 0); }
-SC.parts.push({ k: 0, c: rgb('#C9D2FF'), b: UB.done(), y: 5, up: 1 });
 SC.parts.forEach(function (p) { p.cur = p.c.slice(); });
-[[2, 3.7], [3, 1.05], [1, -2.3], [0, 5.9]].forEach(function (q) { label([{ t: SC.L[q[0]][0], s: 54, w: 500, c: 'muted' }], 4.4, 0.5, 8.4, SC.y0 + q[1] * SC.F, -2, { px: 512, lvl: 2 }); });
+[[2, 3.7], [3, 1.05], [1, -2.3]].forEach(function (q) { label([{ t: SC.L[q[0]][0], s: 54, w: 500, c: 'muted' }], 4.4, 0.5, 8.4, SC.y0 + q[1] * SC.F, -2, { px: 512, lvl: 2 }); });
 })();
 L0.done(); L1.done(); L2.done();
 })();
@@ -613,7 +611,7 @@ function updateWhere() {
 var w, nb;
 if (G.on) { setWhere({ b: 'Overview', t: 'drag, or J and L, to orbit the engine; I and K raise and lower the camera. Space or Esc returns you to the deck.', s: G.rip ? [G.txt] : [] }); return; }
 if (P.y < -0.8 && P.y > -39.5 && !P.ground && inRect(HATCH, P.x, P.z, -0.5)) w = { b: 'Falling', t: 'through the frame, its data sources, its views and its metrics, down to Blockflow.' };
-else if (P.y < -60) w = G.rip ? { b: 'Graphite', t: G.txt } : P.cur && P.cur.info && P.ground ? P.cur.info() : Math.sqrt(P.x * P.x + (P.z + 2) * (P.z + 2)) < 8 ? { b: 'Graphite | ' + SC.L[SC.on < 0 ? 2 : SC.on][0], t: SC.L[SC.on < 0 ? 2 : SC.on][1] + '. Press Space to run a recalculation.', s: ['Pigment describes three pillars, with people and AI agents working on top (Pigment blog, June 2026). An original drawing.'] } : { b: 'Graphite, the calculation engine', t: 'role pads to the west, the overview deck to the north. The cyan lift goes back up.', s: ['A lighter version of the Frame Studio level. What the engine does is documented; how it looks here is illustrative.'] };
+else if (P.y < -60) w = G.rip ? { b: 'Graphite', t: G.txt } : P.cur && P.cur.info && P.ground ? P.cur.info() : Math.sqrt(P.x * P.x + (P.z + 2) * (P.z + 2)) < 8 ? { b: 'Graphite | ' + SC.L[SC.on < 0 ? 2 : SC.on][0], t: SC.L[SC.on < 0 ? 2 : SC.on][1] + '. Press Space to run a recalculation.', s: ['Pigment describes three pillars (Pigment blog, June 2026). An original drawing.'] } : { b: 'Graphite, the calculation engine', t: 'role pads to the west, the overview deck to the north. The cyan lift goes back up.', s: ['A lighter version of the Frame Studio level. What the engine does is documented; how it looks here is illustrative.'] };
 else if (P.y < -30 && (sqlOpen || nearTable())) { var tq = nearTable(); if (sqlOpen && Math.sqrt(Math.pow(P.x - sqlOpen.x, 2) + Math.pow(P.z - sqlOpen.z, 2)) > 5) sqlOpen = null; var sd = sqlOpen ? WSQL[sqlOpen.nm] : null;
 w = sqlOpen ? { b: sqlOpen.nm, t: sd.kind + ' | ' + sd.rows + ' rows (illustrative)', q: sd.q, s: (sd.note ? [sd.note] : []).concat(['Illustrative SQL: column names are examples, not from a real warehouse. Space or Esc closes.']) } : tq ? { b: tq.nm, t: WSQL[tq.nm].kind + ' | press Space to open its SQL' } : { b: 'Blockflow level', t: 'walk up to a block or a warehouse table.' }; }
 else if (P.y < -30) { nb = nearNode(4.6); w = P.cur && P.cur.info && P.ground ? P.cur.info() : nb ? { b: nb.n.n, t: KIND[nb.n.k], f: nb.n.f, s: ['Jump on top to see what it depends on.'] } : { b: 'Blockflow level', t: 'jump on a block to see what it depends on. Bridges at the far edge lead to Snowflake and NetSuite; the violet hatch drops to the Graphite engine.' }; }
@@ -688,7 +686,7 @@ if (stp !== G.air) { G.air = stp; if (!G.airL) G.airL = label('', 5.4, 2.6, 19, 
 G.airL.set([{ t: 'Airflow | schedule: daily 02:00', s: 40, w: 800 }].concat(tasks.map(function (tk, q) { return { t: (q === stp ? '> ' : q < stp ? 'done: ' : '') + tk, s: 36, w: q === stp ? 800 : 500, c: q === stp ? 'clay' : q < stp ? 'ink' : 'muted' }; }), [{ t: 'schedules and orchestrates each step (illustrative)', s: 28, c: 'muted' }])); }
 }
 if (ey < -40.7) {
-SC.on = P.y > -60 ? -1 : P.x < -18 ? 3 : P.x > 17 ? 2 : Math.sqrt(P.x * P.x + (P.z + 2) * (P.z + 2)) < 8 ? Math.floor(time / 3.5) % 4 : -1;
+SC.on = P.y > -60 ? -1 : P.x < -18 ? 3 : P.x > 17 ? 2 : Math.sqrt(P.x * P.x + (P.z + 2) * (P.z + 2)) < 8 ? 1 + Math.floor(time / 3.5) % 3 : -1;
 var scPale = [0.36, 0.39, 0.48], scF = G.rip ? 1.3 : 1, scK = Math.min(1, dt * 5);
 SC.parts.forEach(function (p) { var t = SC.on < 0 || SC.on === p.k ? p.c : scPale; for (var q = 0; q < 3; q++) p.cur[q] += (t[q] * scF - p.cur[q]) * scK; if (!p.up) draw(p.b, mTRS(0, SC.y0 + p.y * SC.F, -2, p.k === 2 ? G.rot * 2 : p.k === 3 ? -G.rot * 0.6 : 0, SC.F, SC.F, SC.F), p.cur, p.line ? 0 : 1); });
 dbox(-23, GY + 0.32, -9 + G.role * 6, 3.1, 0.06, 0.12, WHITE, 1); dbox(-23, GY + 0.32, -9 + G.role * 6, 0.12, 0.06, 3.1, WHITE, 1);
@@ -697,7 +695,6 @@ dbox(-23, GY + 0.32, -9 + G.role * 6, 3.1, 0.06, 0.12, WHITE, 1); dbox(-23, GY +
 gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
 if (ey > -41) dbox(-14, -0.55, 9.5, 3, 0.02, 3, rgb(ACC.pink), 1, 0.3 + Math.sin(time * 3) * (reduce ? 0 : 0.12));
 if (ey < -40.7) dbox(0, GY + 19, -2, 40, 0.05, 40, rgb(ACC.cyan), 1, G.shield);
-if (ey < -40.7) SC.parts.forEach(function (p) { if (p.up) draw(p.b, mTRS(0, SC.y0 + p.y * SC.F, -2, G.rot, SC.F, SC.F * (1 + (reduce ? 0 : 0.07 * Math.sin(time * 1.6))), SC.F), p.cur, 0, (SC.on < 0 || SC.on === 0 ? 0.45 : 0.16) + (reduce ? 0 : 0.1 * Math.sin(time * 2.1))); });
 if (ey < -3 && ey > -70) dbox(0, -31, 44, 18, 78, 8, [0.1, 0.2, 0.34], 1, 0.3); dbox(-21, -36, 44, 11, 8, 10, [0.45, 0.22, 0.1], 1, 0.14);   /* the glass warehouse and the lakehouse */
 GH.forEach(function (o) { dbox(o.n.x, o.y, o.n.z, 2.8, 1, 1.2, rgb(hx(o.key)), 0, 0.3); dbox(o.n.x, o.y + 0.53, o.n.z, 2.9, 0.05, 1.3, WHITE, 1, 0.8); }); GH.length = 0;   /* proposed blocks, as ghosts */
 if (HR.flash > 0) { HR.flash -= dt; HR.stamp.vis = HR.flash > 0; }
