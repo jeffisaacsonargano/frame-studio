@@ -70,8 +70,8 @@
   applyTheme(store.get('theme-choice', 'light'));
 
   /* ----------------------------------------------------------------- router */
-  const VIEWS = ['home', 'vision', 'lumina', 'formula-lens', 'frame-strata', 'blockflow', 'graphite', 'frame-world', 'whiteboard', 'frame-size'];
-  const ALIAS = { start: 'home', overview: 'home', 'formula-studio': 'formula-lens', framecraft: 'frame-strata', world: 'frame-world', size: 'frame-size', admin: 'frame-size' };
+  const VIEWS = ['home', 'vision', 'lumina', 'formula-lens', 'frame-strata', 'blockflow', 'graphite', 'frame-world', 'whiteboard', 'frame-size', 'decision', 'stakeholders'];
+  const ALIAS = { start: 'home', overview: 'home', 'formula-studio': 'formula-lens', framecraft: 'frame-strata', world: 'frame-world', size: 'frame-size', admin: 'frame-size', decide: 'decision', esg: 'stakeholders', stakeholder: 'stakeholders' };
   const HASH = { 'formula-lens': 'formula-studio', 'frame-strata': 'framecraft' };
   const rendered = {};
   let current = null;
@@ -109,6 +109,8 @@
     vision: { role: 'Vision', name: 'The vision', desc: 'Planning at the frontier: a calculation engine you can defend, and an experience you want to explore.' },
     whiteboard: { role: 'Sketch', name: 'Whiteboard', desc: 'Draw on paper you can see through, over any app in Frame Studio. Kept in this browser; download it as a PNG.' },
     'frame-world': { role: 'Play', name: 'Frame World', desc: 'Walk a revenue frame in first person, then follow the finding to the office and out into the world. Sample data.' },
+    decision: { role: 'Decide', name: 'Decision Frame', desc: 'A frame shaped around one decision: its context from messages, calls, projects and the model, reshaped to how you think, what you ask and how you feel. Sample data.' },
+    stakeholders: { role: 'Care', name: 'Stakeholders', desc: 'Wellness for every group a decision touches, not just shareholders: weigh them your way and see who gains and who bears the cost. Sample data.' },
     'frame-size': { role: 'Admin', name: 'Frame size', desc: 'How much of the 1 MiB Pigment limit each part of the frame uses, and what to trim first' },
   };
   const MORE = [
@@ -216,8 +218,10 @@
   NAV.vision = { label: 'The vision', tag: '', icon: '<circle cx="10" cy="10" r="3"/><circle cx="10" cy="10" r="7.2"/><path d="M10 2.8v2.4M10 14.8v2.4M2.8 10h2.4M14.8 10h2.4"/>' };
   NAV.whiteboard = { label: 'Whiteboard', tag: '', icon: '<path d="M4 16l2.9-.8 8.9-8.9a1.8 1.8 0 0 0-2.6-2.6l-8.9 8.9z"/><path d="M12.2 5l2.6 2.6"/>' };
   NAV['frame-world'] = { label: 'Frame World', tag: '', icon: '<circle cx="10" cy="10" r="7.2"/><path d="M2.8 10h14.4M10 2.8c2.4 2 2.4 12.4 0 14.4M10 2.8c-2.4 2-2.4 12.4 0 14.4"/><path d="m13.2 5.2 1.6-2.2 1 2.4" stroke-linecap="round" stroke-linejoin="round"/>' };
+  NAV.decision = { label: 'Decision Frame', tag: 'New', icon: '<path d="M10 2.5v4M10 13.5v4"/><path d="M4 6.5h9.5l2.5 2.3-2.5 2.2H4z" stroke-linejoin="round"/>' };
+  NAV.stakeholders = { label: 'Stakeholders', tag: 'New', icon: '<circle cx="10" cy="5.5" r="2.2"/><circle cx="4.5" cy="13" r="2.2"/><circle cx="15.5" cy="13" r="2.2"/><path d="M8.4 7.2 5.8 11M11.6 7.2l2.6 3.8M6.8 13h6.4"/>' };
   const NAV_GROUPS = [['learn', 'Start'], ['apps', 'Apps'], ['pigment', 'Pigment']];
-  const NAV_DEFAULT = { order: { learn: ['home', 'vision'], numbers: [], apps: ['formula-lens', 'blockflow', 'frame-strata', 'frame-world', 'lumina', 'whiteboard'], pigment: ['frame-size'], extras: ['graphite'] }, starred: [] };
+  const NAV_DEFAULT = { order: { learn: ['home', 'vision'], numbers: [], apps: ['formula-lens', 'blockflow', 'frame-strata', 'frame-world', 'lumina', 'decision', 'stakeholders', 'whiteboard'], pigment: ['frame-size'], extras: ['graphite'] }, starred: [] };
   /* Groups: the built-in ones plus user-made ones (ids "g-…"). `groups` is their order in the main rail; Extras sits in
      its own block below the nav and stays last. A deleted built-in group is listed in `deleted` so it does not come back. */
   const BUILTIN_GROUPS = NAV_GROUPS.map(([g]) => g);

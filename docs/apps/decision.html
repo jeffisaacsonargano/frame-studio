@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decision Frame</title>
+<style>
+:root{--bg:#F6F3EE;--surface:#FFFFFF;--raise:#FBF9F6;--ink:#1F2A44;--muted:#6B7180;--line:#E3DED6;--accent:#C2407E;--soft:#FBEAF0;--good:#2E8B57;--bad:#C0392B;--warn:#B7791F}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1F1E1D;--surface:#262624;--raise:#2E2D2B;--ink:#ECEAE4;--muted:#A3A09A;--line:#3B3A37;--accent:#E07BAA;--soft:#3A2630;--good:#5CC08A;--bad:#E57368;--warn:#E0A84A}}
+:root[data-theme="dark"]{--bg:#1F1E1D;--surface:#262624;--raise:#2E2D2B;--ink:#ECEAE4;--muted:#A3A09A;--line:#3B3A37;--accent:#E07BAA;--soft:#3A2630;--good:#5CC08A;--bad:#E57368;--warn:#E0A84A}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:400 13px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+button,select,input,textarea{font:inherit;color:var(--ink)}
+button,select{font-size:12px;background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer}
+button:hover,select:hover{border-color:var(--accent)}
+button.on{border-color:var(--accent);background:var(--soft);color:var(--accent);font-weight:600}
+h2{font-size:17px;margin:0 0 4px;font-weight:650}
+h3{font-size:12px;margin:0 0 8px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 14px;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lab{font-size:11px;color:var(--muted);margin-right:2px;min-width:92px}
+.decs button{padding:6px 12px}
+.ask{display:flex;gap:6px;flex:1;min-width:260px}
+.ask input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--raise)}
+.ask input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.chip{font-size:11px;padding:3px 9px;border-radius:999px}
+.shaped{font-size:11px;color:var(--muted)}
+.shaped b{color:var(--accent);font-weight:600}
+.grid{display:grid;grid-template-columns:290px minmax(0,1fr) 320px;gap:12px;padding:12px 14px}
+.grid.calm{grid-template-columns:minmax(0,1fr) 320px}
+.grid.calm .ctx{display:none}
+@media (max-width:1000px){.grid,.grid.calm{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stack{display:flex;flex-direction:column;gap:12px;min-width:0}
+.src{display:flex;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.src:first-of-type{border-top:0}
+.src input{margin-top:3px;accent-color:var(--accent)}
+.src .m{font-size:11px;color:var(--muted)}
+.src .m b{color:var(--ink);font-weight:600}
+.src.off .tx{opacity:.45;text-decoration:line-through}
+.src.hot{background:var(--soft);margin:0 -8px;padding:8px;border-radius:8px}
+.bar{height:4px;border-radius:2px;background:var(--line);margin-top:5px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.cov{font-size:12px;margin:0 0 8px;color:var(--muted)}
+.kpis{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 2px}
+.kpi{background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:6px 10px;min-width:130px}
+.kpi span{display:block;font-size:11px;color:var(--muted)}
+.kpi b{font-size:16px}
+.q{color:var(--muted);margin:2px 0 0}
+.feel{border-left:3px solid var(--accent);border-radius:0;background:var(--soft);padding:8px 12px;margin:0;font-size:12.5px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+th{font-size:11px;color:var(--muted);font-weight:600}
+tr.pick td{background:var(--soft)}
+.pos{color:var(--good);font-weight:600}.neg{color:var(--bad);font-weight:600}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.opt{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--raise);cursor:pointer;text-align:left}
+.opt.pick{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.opt .n{font-weight:650;font-size:13px;margin-bottom:6px}
+.dots{display:flex;gap:3px;margin-top:6px}
+.dots i{width:14px;height:14px;border-radius:4px;display:block}
+.rec{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.story p{margin:0 0 9px;font-size:13.5px;line-height:1.6}
+ol.steps{margin:0;padding-left:20px}
+ol.steps li{margin:0 0 9px}
+ol.steps .m{font-size:11px;color:var(--muted)}
+.sb{display:grid;grid-template-columns:150px 1fr 34px;gap:8px;align-items:center;font-size:12px;margin:5px 0}
+.sb .t{height:10px;background:var(--line);border-radius:5px;position:relative}
+.sb .t i{position:absolute;top:0;bottom:0;border-radius:5px}
+.sb .t:after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--muted)}
+ul.l{margin:0;padding-left:18px}ul.l li{margin:0 0 6px}
+textarea{width:100%;min-height:150px;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--raise);font-size:12px;resize:vertical}
+.note{font-size:11px;color:var(--muted);margin:6px 0 0}
+.act .s{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line)}
+.act .s:first-of-type{border-top:0}
+.act .s div{flex:1}
+.act .s .m{font-size:11px;color:var(--muted)}
+.act .s button{padding:3px 9px;font-size:11px}
+input[type=range]{accent-color:var(--accent);width:100%}
+.bal{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+a{color:var(--accent)}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="row decs" id="decs"><span class="lab">Decision</span></div>
+  <div class="row"><span class="lab">How you think</span><span id="style"></span><span class="lab" style="margin-left:10px;min-width:0">You are</span><span id="role"></span><span class="lab" style="margin-left:10px;min-width:0">Your voice</span><span id="voice"></span></div>
+  <div class="row"><span class="lab">How you feel</span><span id="feel"></span><select id="about" aria-label="What the feeling is about"></select></div>
+  <div class="row"><span class="lab">Tell the frame</span><form class="ask" id="ask"><input id="askIn" placeholder="Show me what could go wrong, and keep it short" aria-label="Tell the frame what you need"><button type="submit">Shape</button></form></div>
+  <div class="row" id="sugg"></div>
+  <div class="shaped" id="shaped" aria-live="polite"></div>
+</div>
+<div class="grid" id="grid">
+  <div class="stack ctx"><div class="card" id="ctx"></div></div>
+  <div class="stack" id="main"></div>
+  <div class="stack" id="side"></div>
+</div>
+<script src="decision-data.js"></script>
+<script>
+(function () {
+  var D = window.DECDATA, G = D.GROUPS;
+  var saved = D.store('decision') || {};
+  var S = { dec: saved.dec || 'emea', style: saved.style || 'picture', role: saved.role || 'decide', voice: saved.voice || 'brief', feel: '', about: 'all', mods: {}, off: {}, pick: {}, bal: typeof saved.bal === 'number' ? saved.bal : 50, draft: null, said: [] };
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function dec() { for (var i = 0; i < D.DECISIONS.length; i++) if (D.DECISIONS[i].id === S.dec) return D.DECISIONS[i]; return D.DECISIONS[0]; }
+  function save() { D.store('decision', { dec: S.dec, style: S.style, role: S.role, voice: S.voice, bal: S.bal, pick: S.pick[S.dec] || null }); }
+  function money(v) { return (v > 0 ? '+' : v < 0 ? '-' : '') + '$' + Math.abs(v).toFixed(1) + 'M'; }
+  function pts(v) { return (v > 0 ? '+' : v < 0 ? '-' : '') + Math.abs(v).toFixed(1) + ' pt'; }
+  function cls(v) { return v > 0 ? 'pos' : v < 0 ? 'neg' : ''; }
+  function wts() { var w = D.weights(), o = {}; G.forEach(function (g) { o[g.id] = g.id === 'sha' ? w[g.id] : w[g.id] * S.bal / 50; }); return o; }
+  function scored() { var w = wts(); return dec().options.map(function (o) { return { o: o, s: D.score(o, w) }; }); }
+  function recommended() { var r = { High: 2, Medium: 1, Low: 0 }; var l = scored().slice().sort(function (a, b) { return b.s - a.s || r[a.o.risk] - r[b.o.risk]; }); return l[0].o; }
+  function chosen() { var id = S.pick[S.dec], d = dec(); for (var i = 0; i < d.options.length; i++) if (d.options[i].id === id) return d.options[i]; return recommended(); }
+  function ctxOn() { return dec().context.filter(function (c, i) { return !S.off[S.dec + i]; }); }
+  function coverage() { var a = 0, b = 0; dec().context.forEach(function (c, i) { b += c.rel; if (!S.off[S.dec + i]) a += c.rel; }); return Math.round(100 * a / b); }
+  function seg(host, list, key, label) { var el = $(host); el.innerHTML = ''; el.setAttribute('role', 'group'); el.setAttribute('aria-label', label); el.style.display = 'inline-flex'; el.style.gap = '4px'; el.style.flexWrap = 'wrap'; list.forEach(function (it) { var b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (S[key] === it[0] ? ' on' : ''); b.textContent = it[1]; b.setAttribute('aria-pressed', S[key] === it[0]); b.onclick = function () { S[key] = S[key] === it[0] && key === 'feel' ? '' : it[0]; save(); render(); }; el.appendChild(b); }); }
+  var FEELS = [['nervous', 'Nervous'], ['stressed', 'Stressed'], ['suspicious', 'Suspicious'], ['excited', 'Excited'], ['sure', 'Sure']];
+  function feelEffects() {
+    var f = S.feel, a = S.about, d = dec(), out = { mods: {}, calm: false, hot: {}, msg: '' };
+    if (!f) return out;
+    var aboutTxt = a === 'all' ? 'this decision' : a === 'numbers' ? 'the numbers' : a === 'people' ? 'the people affected' : '“' + optName(a) + '”';
+    if (f === 'nervous') { out.mods.risk = 1; out.mods.undo = 1; if (a === 'people') out.mods.stake = 1; out.msg = 'You feel nervous about ' + aboutTxt + '. The frame now shows what could go wrong, what can be undone, and the smallest safe first step.'; }
+    if (f === 'stressed') { out.calm = true; out.msg = 'You feel stressed about ' + aboutTxt + '. The frame is down to one view and one next step. Everything else is still here when you want it.'; }
+    if (f === 'suspicious') { out.mods.assume = 1; out.mods.sources = 1; d.context.forEach(function (c, i) { if (a === 'numbers' ? (c.t === 'data' || c.t === 'model') : a === 'people' ? (c.t === 'people' || c.tag === 'People') : true) out.hot[i] = 1; }); if (a !== 'all' && a !== 'numbers' && a !== 'people') out.mods.risk = 1; out.msg = 'You feel suspicious about ' + aboutTxt + '. The frame shows where each claim comes from, and the assumptions the numbers rest on.'; }
+    if (f === 'excited') { out.mods.check = 1; out.msg = 'You feel excited about ' + aboutTxt + '. Good. The frame keeps the upside in view, and adds a short check of the downside before you commit.'; }
+    if (f === 'sure') { out.mods.devil = 1; out.msg = 'You feel sure about ' + aboutTxt + '. The frame adds the strongest case for a different option, so the choice holds up when someone pushes back.'; }
+    return out;
+  }
+  function optName(id) { var o = dec().options.filter(function (x) { return x.id === id; })[0]; return o ? o.name : id; }
+  var KEYS = [
+    [/stakeholder|people|fair|esg|planet|wellness|employee|communit/i, 'stake', 'stakeholder impact'],
+    [/risk|wrong|worst|downside|fail/i, 'risk', 'what could go wrong'],
+    [/board|brief|summary|exec|update for/i, 'brief', 'a brief to share'],
+    [/assum|trust|sure about the number|evidence|source|where .* from/i, 'assume', 'sources and assumptions'],
+    [/undo|revers|back out/i, 'undo', 'what can be undone']
+  ];
+  function shape(text) {
+    var t = text.trim(); if (!t) return; var did = [];
+    var hide = /\b(hide|remove|drop|without|no)\b/i.test(t);
+    KEYS.forEach(function (k) { if (k[0].test(t)) { S.mods[k[1]] = hide ? 0 : 1; did.push((hide ? 'hid ' : 'added ') + k[2]); } });
+    if (/picture|visual|chart|show me|graph/i.test(t)) { S.style = 'picture'; did.push('switched to pictures'); }
+    if (/number|table|figure|spreadsheet/i.test(t)) { S.style = 'numbers'; did.push('switched to numbers'); }
+    if (/story|explain|narrative|in words|walk me/i.test(t)) { S.style = 'story'; did.push('switched to the story'); }
+    if (/step|plan|how do|execute|checklist|to-?do|next/i.test(t)) { S.style = 'steps'; did.push('switched to steps'); }
+    if (/short|brief|simple|quick|one page|tl;?dr/i.test(t)) { S.voice = 'brief'; did.push('kept it short'); }
+    if (/detail|deep|everything|thorough|more/i.test(t) && !hide) { S.voice = 'detailed'; did.push('added detail'); }
+    if (/warm|kind|friendly|gentle/i.test(t)) { S.voice = 'warm'; did.push('warmed up the drafts'); }
+    if (/build|model|formula|block/i.test(t)) { S.role = /decid|both/i.test(t) ? 'both' : 'build'; did.push('showed what the model needs'); }
+    S.said.unshift({ t: t, did: did.length ? did.join(', ') : 'nothing matched yet; try “risks”, “stakeholders”, “steps” or “keep it short”' });
+    S.said = S.said.slice(0, 3); save(); render();
+  }
+  function renderTop() {
+    var dh = $('decs'); dh.querySelectorAll('button').forEach(function (b) { b.remove(); });
+    D.DECISIONS.forEach(function (d) { var b = document.createElement('button'); b.type = 'button'; b.className = d.id === S.dec ? 'on' : ''; b.textContent = d.short; b.title = d.title; b.onclick = function () { S.dec = d.id; S.draft = null; if (S.about !== 'all' && S.about !== 'numbers' && S.about !== 'people') S.about = 'all'; save(); render(); }; dh.appendChild(b); });
+    seg('style', [['picture', 'Pictures'], ['numbers', 'Numbers'], ['story', 'Story'], ['steps', 'Steps']], 'style', 'How you think');
+    seg('role', [['decide', 'Deciding'], ['build', 'Building'], ['both', 'Both']], 'role', 'Your role');
+    seg('voice', [['brief', 'Brief'], ['warm', 'Warm'], ['detailed', 'Detailed']], 'voice', 'Your voice');
+    seg('feel', FEELS, 'feel', 'How you feel about it');
+    var ab = $('about'); ab.innerHTML = ''; [['all', 'about the whole decision'], ['numbers', 'about the numbers'], ['people', 'about the people affected']].concat(dec().options.map(function (o) { return [o.id, 'about “' + o.name + '”']; })).forEach(function (p) { var o = document.createElement('option'); o.value = p[0]; o.textContent = p[1]; if (p[0] === S.about) o.selected = true; ab.appendChild(o); });
+    ab.style.display = S.feel ? '' : 'none';
+    var sg = $('sugg'); sg.innerHTML = '<span class="lab">Try</span>';
+    ['What could go wrong?', 'Show stakeholder impact', 'Give me a brief for the board', 'Walk me through it', 'Where do these numbers come from?', 'Keep it short'].forEach(function (t) { var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = t; b.onclick = function () { shape(t); }; sg.appendChild(b); });
+    var sh = $('shaped'); sh.innerHTML = S.said.length ? S.said.map(function (x) { return '“' + esc(x.t) + '”: <b>' + esc(x.did) + '</b>'; }).join('<br>') : 'The frame starts from the decision and its context, then reshapes itself to how you think, what you ask for and how you feel. Your choices stay in this browser.';
+  }
+  function renderCtx(fx) {
+    var d = dec(), h = '<h3>Context gathered</h3><p class="cov">' + d.context.length + ' sources from messages, calls, projects, data, the model and documents. The frame uses <b>' + coverage() + '%</b> of the weight. Untick anything that should not count.</p>';
+    d.context.forEach(function (c, i) { var off = !!S.off[d.id + i]; h += '<label class="src' + (off ? ' off' : '') + (fx.hot[i] ? ' hot' : '') + '"><input type="checkbox" data-i="' + i + '"' + (off ? '' : ' checked') + '><div><div class="m"><b>' + D.TYPES[c.t] + '</b> · ' + esc(c.src) + ' · ' + esc(c.when) + '</div><div class="tx">' + esc(c.text) + '</div><div class="bar" title="How much this weighs in the decision"><i style="width:' + Math.round(c.rel * 100) + '%"></i></div></div></label>'; });
+    h += '<p class="note">Sample context for a made-up company. In a live setup it would come from your connected tools, only with your permission.</p>';
+    var el = $('ctx'); el.innerHTML = h;
+    el.querySelectorAll('input').forEach(function (x) { x.onchange = function () { S.off[d.id + x.getAttribute('data-i')] = !x.checked; render(); }; });
+  }
+  function dots(o) { return '<div class="dots" aria-label="Stakeholder impact">' + G.map(function (g) { var v = o.imp[g.id]; var c = v > 0 ? 'var(--good)' : v < 0 ? 'var(--bad)' : 'var(--line)'; var op = v === 0 ? 1 : Math.abs(v) === 2 ? 1 : .55; return '<i style="background:' + c + ';opacity:' + op + '" title="' + g.name + ': ' + (v > 0 ? '+' : '') + v + '"></i>'; }).join('') + '</div>'; }
+  function viewPicture() {
+    var d = dec(), rec = recommended(), pick = chosen(), max = Math.max.apply(null, d.options.map(function (o) { return Math.abs(o.rev); })) || 1;
+    var h = '<div class="opts">';
+    d.options.forEach(function (o) { var w = Math.round(Math.abs(o.rev) / max * 100); h += '<button type="button" class="opt' + (o.id === pick.id ? ' pick' : '') + '" data-o="' + o.id + '">' + (o.id === rec.id ? '<div class="rec">Best fit for your balance</div>' : '') + '<div class="n">' + esc(o.name) + '</div><div style="font-size:11px;color:var(--muted)">Revenue</div><div class="bar" style="height:8px"><i style="width:' + w + '%;background:' + (o.rev < 0 ? 'var(--bad)' : 'var(--good)') + '"></i></div><div class="' + cls(o.rev) + '" style="margin-top:3px">' + money(o.rev) + '</div><div style="font-size:11px;color:var(--muted);margin-top:6px">People and planet</div>' + dots(o) + '<div style="font-size:11px;color:var(--muted);margin-top:6px">' + esc(o.time) + ' · ' + o.risk + ' risk</div></button>'; });
+    h += '</div><p class="note">Squares, left to right: ' + G.map(function (g) { return g.name.toLowerCase(); }).join(', ') + '. Green helps, red costs. Click an option to choose it.</p>';
+    return h;
+  }
+  function viewNumbers() {
+    var d = dec(), pick = chosen(), sc = scored(), h = '<table><thead><tr><th>Option</th><th>Revenue</th><th>Margin</th><th>Risk</th><th>Timing</th><th>Stakeholder score</th></tr></thead><tbody>';
+    d.options.forEach(function (o, i) { var s = sc[i].s; h += '<tr class="' + (o.id === pick.id ? 'pick' : '') + '" data-o="' + o.id + '" style="cursor:pointer"><td><b>' + esc(o.name) + '</b></td><td class="' + cls(o.rev) + '">' + money(o.rev) + '</td><td class="' + cls(o.margin) + '">' + pts(o.margin) + '</td><td>' + o.risk + '</td><td>' + esc(o.time) + '</td><td class="' + cls(s) + '">' + (s > 0 ? '+' : '') + s.toFixed(2) + '</td></tr>'; });
+    return h + '</tbody></table><p class="note">Stakeholder score: the weighted average impact, from -2 to +2, using the weights on the Stakeholders tab and the balance on the right.</p>';
+  }
+  function viewStory() {
+    var d = dec(), on = ctxOn().slice().sort(function (a, b) { return b.rel - a.rel; }), pick = chosen(), n = S.voice === 'brief' ? 3 : S.voice === 'detailed' ? on.length : 4;
+    var h = '<div class="story"><p><b>The situation.</b> ' + on.slice(0, n).map(function (c) { return esc(c.text); }).join(' ') + '</p>';
+    h += '<p><b>The choices.</b> ' + d.options.map(function (o) { return 'You could <b>' + esc(o.name.toLowerCase()) + '</b>: ' + esc(o.why.charAt(0).toLowerCase() + o.why.slice(1)) + (S.voice !== 'brief' ? ' The cost: ' + esc(o.cost.charAt(0).toLowerCase() + o.cost.slice(1)) : ''); }).join(' ') + '</p>';
+    h += '<p><b>Where it leans.</b> With your current balance, <b>' + esc(pick.name.toLowerCase()) + '</b> fits best. ' + esc(pick.why) + '</p></div>';
+    return h;
+  }
+  function viewSteps() { var o = chosen(); return '<p class="q" style="margin-bottom:8px">To ' + esc(o.name.toLowerCase()) + ':</p><ol class="steps">' + o.steps.map(function (s) { return '<li>' + esc(s[0]) + '<div class="m">' + esc(s[1]) + ' · by ' + esc(s[2]) + '</div></li>'; }).join('') + '</ol>'; }
+  function moduleStake(o) { var h = '<h3>Who gains, who bears the cost</h3>'; G.forEach(function (g) { var v = o.imp[g.id], w = Math.abs(v) * 25; h += '<div class="sb"><span>' + g.name + '</span><div class="t"><i style="' + (v >= 0 ? 'left:50%' : 'right:50%') + ';width:' + w + '%;background:' + (v >= 0 ? 'var(--good)' : 'var(--bad)') + '"></i></div><span class="' + cls(v) + '">' + (v > 0 ? '+' : '') + v + '</span></div>'; }); return h + '<p class="note">For “' + esc(o.name) + '”. <a href="#" data-go="stakeholders">Open the Stakeholders tab</a> to change how much each group counts.</p>'; }
+  function render() {
+    var d = dec(), fx = feelEffects(), mods = {}, k; for (k in S.mods) mods[k] = S.mods[k]; for (k in fx.mods) if (S.mods[k] !== 0) mods[k] = 1;
+    var pick = chosen(), style = fx.calm ? 'steps' : S.style;
+    renderTop(); renderCtx(fx);
+    $('grid').className = 'grid' + (fx.calm ? ' calm' : '');
+    var m = '<div class="card"><h2>' + esc(d.title) + '</h2><p class="q">' + esc(d.question) + '</p><div class="kpis">' + d.kpi.map(function (x) { return '<div class="kpi"><span>' + esc(x[0]) + '</span><b>' + esc(x[1]) + '</b></div>'; }).join('') + '</div><p class="note">' + esc(d.owner) + ' decides by ' + esc(d.due) + '. Figures from the Live Frame’s sample data.</p></div>';
+    if (fx.msg) m += '<p class="feel">' + esc(fx.msg) + '</p>';
+    m += '<div class="card"><h3>' + (fx.calm ? 'One thing at a time' : { picture: 'The options, at a glance', numbers: 'The options, in numbers', story: 'The story so far', steps: 'How to carry it out' }[style]) + '</h3>' + (fx.calm ? '<p style="margin:0 0 8px">Leaning towards <b>' + esc(pick.name) + '</b>. The first step:</p><p style="font-size:15px;margin:0 0 4px"><b>' + esc(pick.steps[0][0]) + '</b></p><p class="note">' + esc(pick.steps[0][1]) + ', by ' + esc(pick.steps[0][2]) + '. That is all for now.</p>' : { picture: viewPicture, numbers: viewNumbers, story: viewStory, steps: viewSteps }[style]()) + '</div>';
+    if (!fx.calm) {
+      if (mods.check) m += '<div class="card"><h3>Before you commit</h3><ul class="l"><li><b>The upside:</b> ' + esc(pick.why) + '</li><li><b>The price:</b> ' + esc(pick.cost) + '</li><li><b>Ask one person who disagrees</b> what they would do instead, before ' + esc(d.due) + '.</li></ul></div>';
+      if (mods.devil) { var alt = scored().filter(function (x) { return x.o.id !== pick.id; }).sort(function (a, b) { return b.s - a.s; })[0].o; m += '<div class="card"><h3>The strongest case against</h3><p style="margin:0">Someone arguing for <b>' + esc(alt.name.toLowerCase()) + '</b> would say: ' + esc(alt.why) + ' And about your choice: ' + esc(pick.cost) + '</p></div>'; }
+      if (mods.risk) m += '<div class="card"><h3>What could go wrong</h3><ul class="l">' + pick.risks.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul></div>';
+      if (mods.undo) m += '<div class="card"><h3>What can be undone</h3><ul class="l"><li><b>Easy to undo:</b> the Pigment scenario. It is a draft until someone approves it.</li><li><b>Hard to undo:</b> ' + esc(pick.steps[0][0].toLowerCase()) + '. Do this first only when you are sure.</li><li><b>Smallest safe first step:</b> ' + esc(pick.steps[pick.steps.length - 1][0].toLowerCase()) + ', as a draft, to see the numbers before you commit.</li></ul></div>';
+      if (mods.assume) m += '<div class="card"><h3>What the numbers rest on</h3><ul class="l">' + d.context.filter(function (c) { return c.t === 'data' || c.t === 'model'; }).map(function (c) { return '<li><b>' + esc(c.src) + ':</b> ' + esc(c.text) + '</li>'; }).join('') + '<li>Every figure here traces back to a Pigment block. Open <b>Blockflow</b> or <b>Formula Lens</b> to check the logic yourself.</li></ul></div>';
+      if (mods.stake) m += '<div class="card">' + moduleStake(pick) + '</div>';
+      if (mods.brief) { var brief = d.title + '. ' + 'Recommendation: ' + pick.name.toLowerCase() + '. ' + pick.why + ' Cost: ' + pick.cost.charAt(0).toLowerCase() + pick.cost.slice(1) + ' Revenue ' + money(pick.rev) + ', margin ' + pts(pick.margin) + ', ' + pick.risk.toLowerCase() + ' risk. Decision by ' + d.due + '.'; m += '<div class="card"><h3>A brief to share</h3><textarea id="brief" aria-label="Brief">' + esc(brief) + '</textarea><button type="button" data-copy="brief" style="margin-top:6px">Copy</button></div>'; }
+      if (S.role !== 'decide') m += '<div class="card"><h3>What the model needs</h3><ul class="l">' + d.build.map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('') + '</ul><p class="note">Changes are proposals. Nothing reaches the model without approval.</p></div>';
+    }
+    $('main').innerHTML = m;
+    var s = '<div class="card"><h3>Your choice</h3><select id="pick" aria-label="Choose an option" style="width:100%">' + d.options.map(function (o) { return '<option value="' + o.id + '"' + (o.id === pick.id ? ' selected' : '') + '>' + esc(o.name) + (o.id === recommended().id ? ' (best fit)' : '') + '</option>'; }).join('') + '</select><p class="note" style="margin-top:8px">' + esc(pick.why) + '</p>' + (fx.calm ? '' : dots(pick)) + '</div>';
+    if (!fx.calm) s += '<div class="card"><h3>Your balance</h3><input type="range" id="bal" min="0" max="100" step="5" value="' + S.bal + '" aria-label="Balance between shareholders and all stakeholders"><div class="bal"><span>Shareholders first</span><span>All stakeholders</span></div><p class="note">How much employees, customers, partners, communities and the planet count next to shareholders. It changes which option fits best.</p></div>';
+    s += '<div class="card act"><h3>Carry it out</h3>' + pick.steps.map(function (st, i) { return '<div class="s"><div>' + esc(st[0]) + '<div class="m">' + esc(st[1]) + ' · by ' + esc(st[2]) + '</div></div><button type="button" data-draft="' + i + '">Draft</button></div>'; }).join('') + (S.draft != null ? '<textarea id="draft" aria-label="Draft message">' + esc(draftFor(pick.steps[S.draft], pick, d)) + '</textarea><button type="button" data-copy="draft" style="margin-top:6px">Copy</button>' : '') + '<p class="note">Drafts only. Nothing is sent, and nothing is written to Pigment.</p></div>';
+    $('side').innerHTML = s;
+    wire();
+  }
+  function draftFor(st, o, d) {
+    var first = st[1].split(' ')[0];
+    if (S.voice === 'brief') return 'To: ' + st[1] + '\nSubject: ' + d.short + ': ' + o.name + '\n\nWe are going with "' + o.name.toLowerCase() + '". Please ' + st[0].charAt(0).toLowerCase() + st[0].slice(1) + ' by ' + st[2] + '.\n\nThanks';
+    if (S.voice === 'warm') return 'To: ' + st[1] + '\nSubject: ' + d.short + ': ' + o.name + '\n\nHi,\n\nThank you for everything on this so far. We have decided to ' + o.name.toLowerCase() + ', and I would be grateful if you could ' + st[0].charAt(0).toLowerCase() + st[0].slice(1) + ' by ' + st[2] + '.\n\nWhy we chose it: ' + o.why + '\nWhat it asks of us: ' + o.cost + '\n\nIf anything about this lands hard on you or your team, tell me and we will work it out.\n\nThanks';
+    return 'To: ' + st[1] + '\nSubject: ' + d.short + ': ' + o.name + '\n\nHi,\n\nDecision: ' + d.title + '.\nWe chose: ' + o.name + ' (' + money(o.rev) + ' revenue, ' + pts(o.margin) + ' margin, ' + o.risk.toLowerCase() + ' risk, ' + o.time.toLowerCase() + ').\n\nYour part: ' + st[0] + ', by ' + st[2] + '.\n\nWhy: ' + o.why + '\nWhat it costs: ' + o.cost + '\nRisks to watch:\n' + o.risks.map(function (r) { return '- ' + r; }).join('\n') + '\n\nThanks';
+  }
+  function wire() {
+    document.querySelectorAll('[data-o]').forEach(function (b) { b.onclick = function () { S.pick[S.dec] = b.getAttribute('data-o'); S.draft = null; save(); render(); }; });
+    var p = $('pick'); if (p) p.onchange = function () { S.pick[S.dec] = p.value; S.draft = null; save(); render(); };
+    var b = $('bal'); if (b) b.oninput = function () { S.bal = +b.value; delete S.pick[S.dec]; save(); render(); var nb = $('bal'); if (nb) nb.focus(); };
+    document.querySelectorAll('[data-draft]').forEach(function (x) { x.onclick = function () { S.draft = +x.getAttribute('data-draft'); render(); }; });
+    document.querySelectorAll('[data-copy]').forEach(function (x) { x.onclick = function () { var t = $(x.getAttribute('data-copy')); t.select(); try { navigator.clipboard.writeText(t.value); } catch (e) { try { document.execCommand('copy'); } catch (e2) {} } x.textContent = 'Copied'; }; });
+    document.querySelectorAll('[data-go]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); try { window.parent.location.hash = a.getAttribute('data-go'); } catch (x) {} }; });
+  }
+  $('about').onchange = function () { S.about = this.value; render(); };
+  $('ask').onsubmit = function (e) { e.preventDefault(); var i = $('askIn'); shape(i.value); i.value = ''; };
+  window.addEventListener('storage', function (e) { if (e.key === 'frame-studio:stake-weights') render(); });
+  render();
+})();
+</script>
+</body>
+</html>

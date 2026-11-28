@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stakeholders</title>
+<style>
+:root{--bg:#F6F3EE;--surface:#FFFFFF;--raise:#FBF9F6;--ink:#1F2A44;--muted:#6B7180;--line:#E3DED6;--accent:#C2407E;--soft:#FBEAF0;--good:#2E8B57;--bad:#C0392B}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1F1E1D;--surface:#262624;--raise:#2E2D2B;--ink:#ECEAE4;--muted:#A3A09A;--line:#3B3A37;--accent:#E07BAA;--soft:#3A2630;--good:#5CC08A;--bad:#E57368}}
+:root[data-theme="dark"]{--bg:#1F1E1D;--surface:#262624;--raise:#2E2D2B;--ink:#ECEAE4;--muted:#A3A09A;--line:#3B3A37;--accent:#E07BAA;--soft:#3A2630;--good:#5CC08A;--bad:#E57368}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:400 13px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+button,select{font:inherit;font-size:12px;color:var(--ink);background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer}
+button:hover,select:hover{border-color:var(--accent)}
+button.on{border-color:var(--accent);background:var(--soft);color:var(--accent);font-weight:600}
+h2{font-size:17px;margin:0 0 2px;font-weight:650}
+h3{font-size:12px;margin:0 0 8px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.wrap{padding:14px;display:flex;flex-direction:column;gap:12px;max-width:1400px;margin:0 auto}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.sub{color:var(--muted);margin:0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.tile{background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.tile span{display:block;font-size:11px;color:var(--muted)}
+.tile b{font-size:22px}
+.tile small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lab{font-size:11px;color:var(--muted);margin-right:4px}
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.g{border-top:4px solid var(--c)}
+.g .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.g .nm{font-weight:650;font-size:14px}
+.pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--raise);border:1px solid var(--line);color:var(--muted)}
+.sc{display:flex;align-items:center;gap:10px;margin:6px 0}
+.sc b{font-size:24px}
+.sc .d{font-size:12px;font-weight:600}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+.ind{font-size:12px;margin:0;padding:0;list-style:none}
+.ind li{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding:4px 0}
+.ind li span{color:var(--muted)}
+.w{display:grid;grid-template-columns:1fr 46px;gap:8px;align-items:center;margin-top:8px;font-size:11px;color:var(--muted)}
+input[type=range]{accent-color:var(--accent);width:100%}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:6px;border-bottom:1px solid var(--line);text-align:center}
+th{font-size:11px;color:var(--muted);font-weight:600}
+td.l,th.l{text-align:left}
+td.h{font-weight:650;border-radius:0}
+tr.dec td{background:var(--raise);font-weight:650;text-align:left;font-size:12.5px}
+.best{font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;margin-left:6px}
+.scroll{overflow-x:auto}
+ul.q{margin:0;padding-left:18px}ul.q li{margin:0 0 6px}
+.note{font-size:11px;color:var(--muted);margin:8px 0 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h2>Stakeholder wellness</h2>
+    <p class="sub">Every group a decision touches, not just shareholders. Weigh them your way, and see who gains and who bears the cost of each choice.</p>
+    <div class="tiles" style="margin-top:10px" id="tiles"></div>
+  </div>
+  <div class="card">
+    <h3>How much each group counts</h3>
+    <div class="row" id="presets"><span class="lab">Start from</span></div>
+    <p class="note">These weights are shared with the Decision Frame tab, so they change which option fits best there too. They stay in this browser.</p>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:8px"><h3 style="margin:0">The groups</h3><span class="row"><span class="lab">If we choose</span><select id="decSel" aria-label="Decision"></select><select id="optSel" aria-label="Option"></select></span></div>
+    <div class="groups" id="groups"></div>
+    <p class="note">The change beside each score is the expected effect of the chosen option, roughly 3 points for each step of impact.</p>
+  </div>
+  <div class="card">
+    <h3>Every decision, every group</h3>
+    <div class="scroll"><table id="matrix"></table></div>
+    <p class="note">Impact from -2 (bears a real cost) to +2 (gains a lot). The score is the weighted average with your weights.</p>
+  </div>
+  <div class="card">
+    <h3>Questions to ask before deciding</h3>
+    <ul class="q">
+      <li>Who bears the cost of this choice, and did they have a say in it?</li>
+      <li>If it hurts someone, can we undo it, and how fast?</li>
+      <li>Would we be comfortable explaining it to each group face to face?</li>
+      <li>What do we owe the people who carry the risk: time, money, or simply a clear explanation?</li>
+      <li>Does it still look right a year from now, not just this quarter?</li>
+    </ul>
+    <p class="note">Sample measures for a made-up company. In a live setup they would come from HR, customer, supplier and sustainability data, through Pigment.</p>
+  </div>
+</div>
+<script src="decision-data.js"></script>
+<script>
+(function () {
+  var D = window.DECDATA, G = D.GROUPS, W = D.weights();
+  var ds = D.store('decision') || {};
+  var S = { dec: ds.dec || 'emea', opt: ds.pick || null };
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function dec() { return D.DECISIONS.filter(function (d) { return d.id === S.dec; })[0] || D.DECISIONS[0]; }
+  function opt() { var d = dec(); return d.options.filter(function (o) { return o.id === S.opt; })[0] || best(d); }
+  function best(d) { return d.options.slice().sort(function (a, b) { return D.score(b, W) - D.score(a, W); })[0]; }
+  function spark(t, c) { var mn = Math.min.apply(null, t) - 2, mx = Math.max.apply(null, t) + 2, p = t.map(function (v, i) { return (i * 16).toFixed(1) + ',' + (22 - (v - mn) / (mx - mn) * 20).toFixed(1); }).join(' '); return '<svg width="82" height="24" viewBox="0 0 82 24" aria-hidden="true"><polyline points="' + p + '" fill="none" stroke="' + c + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>'; }
+  var PRESETS = [['sha', 'Shareholders first', { emp: .25, cus: .25, sup: .25, com: .25, env: .25, sha: 1 }], ['bal', 'Balanced', { emp: 1, cus: 1, sup: 1, com: 1, env: 1, sha: 1 }], ['ppl', 'People and planet first', { emp: 1.5, cus: 1.25, sup: 1.25, com: 1.5, env: 1.5, sha: .75 }]];
+  function same(a, b) { return G.every(function (g) { return Math.abs(a[g.id] - b[g.id]) < .01; }); }
+  function setW(w) { W = w; D.store('stake-weights', W); render(); }
+  function render() {
+    var pr = $('presets'); pr.querySelectorAll('button').forEach(function (b) { b.remove(); });
+    PRESETS.forEach(function (p) { var b = document.createElement('button'); b.type = 'button'; b.textContent = p[1]; if (same(W, p[2])) b.className = 'on'; b.onclick = function () { setW(JSON.parse(JSON.stringify(p[2]))); }; pr.appendChild(b); });
+    var o = opt(), others = G.filter(function (g) { return g.id !== 'sha'; }), tw = 0, ts = 0;
+    others.forEach(function (g) { tw += W[g.id]; ts += W[g.id] * D.BASE[g.id].score; });
+    var idx = tw ? Math.round(ts / tw) : 0, sAvg = Math.round((D.BASE.emp.score + D.BASE.cus.score + D.BASE.sup.score + D.BASE.com.score) / 4);
+    $('tiles').innerHTML = [['Stakeholder wellness', idx, 'Weighted, across the five groups beyond shareholders'], ['Shareholder view', D.BASE.sha.score, 'Margin, revenue against budget and cash'], ['Environmental', D.BASE.env.score, 'Emissions, energy and packaging'], ['Social', sAvg, 'Employees, customers, partners and communities'], ['Governance', 96, 'Changes approved and traced to a source, through Pigment']].map(function (t) { return '<div class="tile"><span>' + t[0] + '</span><b>' + t[1] + '</b><small>' + t[2] + '</small></div>'; }).join('');
+    var dsel = $('decSel'); dsel.innerHTML = D.DECISIONS.map(function (d) { return '<option value="' + d.id + '"' + (d.id === S.dec ? ' selected' : '') + '>' + esc(d.short) + '</option>'; }).join('');
+    var osel = $('optSel'); osel.innerHTML = dec().options.map(function (x) { return '<option value="' + x.id + '"' + (x.id === o.id ? ' selected' : '') + '>' + esc(x.name) + '</option>'; }).join('');
+    $('groups').innerHTML = G.map(function (g) { var b = D.BASE[g.id], dv = o.imp[g.id] * 3; return '<div class="card g" style="--c:' + g.color + '"><div class="hd"><span class="nm">' + g.name + '</span><span class="pill">' + { E: 'Environmental', S: 'Social', G: 'Governance' }[g.pillar] + '</span></div><div class="sc"><b>' + b.score + '</b>' + spark(b.trend, g.color) + '<span class="d ' + (dv > 0 ? 'pos' : dv < 0 ? 'neg' : '') + '">' + (dv ? (dv > 0 ? '+' : '') + dv + ' if chosen' : 'no change') + '</span></div><ul class="ind">' + b.ind.map(function (i) { return '<li><span>' + esc(i[0]) + '</span><b>' + esc(i[1]) + '</b></li>'; }).join('') + '</ul><div class="w"><input type="range" min="0" max="2" step="0.25" value="' + W[g.id] + '" data-g="' + g.id + '" aria-label="Weight for ' + g.name + '"><span>× ' + W[g.id].toFixed(2) + '</span></div></div>'; }).join('');
+    var h = '<thead><tr><th class="l">Option</th>' + G.map(function (g) { return '<th>' + g.name.split(' ')[0] + '</th>'; }).join('') + '<th>Score</th></tr></thead><tbody>';
+    D.DECISIONS.forEach(function (d) { var bo = best(d); h += '<tr class="dec"><td colspan="' + (G.length + 2) + '">' + esc(d.title) + '</td></tr>'; d.options.forEach(function (x) { var s = D.score(x, W); h += '<tr><td class="l">' + esc(x.name) + (x.id === bo.id ? '<span class="best">Best fit</span>' : '') + '</td>' + G.map(function (g) { var v = x.imp[g.id]; var bg = v > 0 ? 'rgba(46,139,87,' + (.14 * v + .06) + ')' : v < 0 ? 'rgba(192,57,43,' + (.14 * -v + .06) + ')' : 'transparent'; return '<td class="h" style="background:' + bg + '">' + (v > 0 ? '+' : '') + v + '</td>'; }).join('') + '<td class="' + (s > 0 ? 'pos' : s < 0 ? 'neg' : '') + '"><b>' + (s > 0 ? '+' : '') + s.toFixed(2) + '</b></td></tr>'; }); });
+    $('matrix').innerHTML = h + '</tbody>';
+    document.querySelectorAll('[data-g]').forEach(function (r) { r.oninput = function () { W[r.getAttribute('data-g')] = +r.value; D.store('stake-weights', W); var k = r.getAttribute('data-g'); render(); var n = document.querySelector('[data-g="' + k + '"]'); if (n) n.focus(); }; });
+  }
+  $('decSel').onchange = function () { S.dec = this.value; S.opt = null; render(); };
+  $('optSel').onchange = function () { S.opt = this.value; render(); };
+  window.addEventListener('storage', function (e) { if (e.key === 'frame-studio:stake-weights') { W = D.weights(); render(); } if (e.key === 'frame-studio:decision') { var x = D.store('decision') || {}; S.dec = x.dec || S.dec; S.opt = x.pick || null; render(); } });
+  render();
+})();
+</script>
+</body>
+</html>
