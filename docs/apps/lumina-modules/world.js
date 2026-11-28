@@ -684,6 +684,15 @@ FXS.forEach(function (f) { for (var j = 0; j < f[3]; j++) { var k = ((reduce ? 0
 var stp = Math.floor(time / (reduce ? 2.6 : 1.5)) % 5; [0, 1, 2, 3].forEach(function (q) { dbox(13.5 + q, -32.15, 43.8, 0.7, 0.34, 0.34, rgb(q === stp ? ACC.yellow : q < stp ? '#7CFFB0' : '#3A4466'), 1); });
 if (stp !== G.air) { G.air = stp; if (!G.airL) G.airL = label('', 5.4, 2.6, 19, -34.4, 43.4, { px: 512, lvl: 1 }); var tasks = ['extract NetSuite', 'load RAW', 'run dbt', 'refresh Pigment import'];
 G.airL.set([{ t: 'Airflow | schedule: daily 02:00', s: 40, w: 800 }].concat(tasks.map(function (tk, q) { return { t: (q === stp ? '> ' : q < stp ? 'done: ' : '') + tk, s: 36, w: q === stp ? 800 : 500, c: q === stp ? 'clay' : q < stp ? 'ink' : 'muted' }; }), [{ t: 'schedules and orchestrates each step (illustrative)', s: 28, c: 'muted' }])); }
+if (ey > -41) { if (!G.ag) { G.nk = Object.keys(nodes).filter(function (id) { return nodes[id].key; }); G.gh = []; G.gL = label([{ t: 'New block (draft)', s: 110, w: 700, c: 'clay' }], 2.6, 0.45, 0, -37.9, 0, { lvl: 1 });
+G.ag = [['Modeler', '#F2A65A', -6], ['Analyst', '#3BB6D6', 6]].map(function (q) { return { c: rgb(q[1]), x: q[2], z: 0, r: 0, n: 0, L: label([{ t: q[0], s: 150, w: 800 }], 1.7, 0.5, q[2], -38.3, 0, { lvl: 1 }) }; }); }
+G.ag.forEach(function (a, k) { if (!a.to) { var id = G.nk[Math.floor(Math.random() * G.nk.length)]; if (shown(id) && solid(id)) { a.to = nodes[id]; a.w = 0; } }
+if (a.to) { var tx = a.to.n.x, tz = a.to.n.z + 1.25, dx = tx - a.x, dz = tz - a.z, d = Math.sqrt(dx * dx + dz * dz), sp = (reduce ? 99 : 3.6) * dt;
+if (d > 0.05) { var m = Math.min(1, sp / d); a.x += dx * m; a.z += dz * m; a.r += Math.min(sp, d) / 0.45; } else { if (!a.w && !k && ++a.n % 3 === 0) G.gh.push({ x: tx + (tx > 20 ? -3.4 : 3.4), z: a.to.n.z, t: time }); a.w += dt; dbox(tx, -38.47, a.to.n.z, 3, 0.07, 1.4, a.c, 1); if (a.w > 2.4) a.to = null; } }
+[[0.8, 0.8, 0.8], [0.95, 0.55, 0.55], [0.55, 0.95, 0.55], [0.55, 0.55, 0.95]].forEach(function (s) { dbox(a.x, -39.55, a.z, s[0], s[1], s[2], [0.04, 0.07, 0.17], 0, 1, a.r); });
+dbox(a.x, -39.05, a.z, 0.34, 0.3, 0.34, a.c, 1, 1, -a.r); a.L.x = a.x; a.L.z = a.z; });
+G.gh = G.gh.filter(function (g) { if (time - g.t > 6) return false; [[0, 0.6, 2.8, 0.07], [0, -0.6, 2.8, 0.07], [1.4, 0, 0.07, 1.2], [-1.4, 0, 0.07, 1.2]].forEach(function (q) { dbox(g.x + q[0], -38.6, g.z + q[1], q[2], 0.07, q[3], G.ag[0].c, 1); }); return true; });
+G.gL.vis = G.gh.length > 0; if (G.gh.length) { G.gL.x = G.gh[G.gh.length - 1].x; G.gL.z = G.gh[G.gh.length - 1].z; } }
 }
 if (ey < -40.7) {
 SC.on = P.y > -60 ? -1 : P.x < -18 ? 3 : P.x > 17 ? 2 : -1; SC.off = G.rip || time % 7 >= 1.3 ? -1 : 1 + Math.floor(time / 7) % 3;
