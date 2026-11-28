@@ -845,7 +845,7 @@ else if (a === 'mv') WB.mv = WB.mv ? 0 : 1; else if (a === 'close') { wbClose();
 wbBar();
 }
 var FS = { sort: 'lo', sel: {}, css: 0 };
-var FS_T = 1046554, FS_AT = '27 Nov 2026 (v5.29)', FS_P = [["Walk the Frame",90784,3,"The first-person 3D walk through the frame, Blockflow, the warehouse and Graphite.",-1],["Architecture Studio",122158,3,"The 2D and 3D modelling studio for planning a build.",-1],["Collaboration",106748,3,"Meeting transcripts to flow, the decision log, threads and the digest.",-1],["Pulse view",8488,3,"The Pulse view: what moved, recomposed around one priority.",-1],["Command panel",4397,3,"The command center panel and its quick actions.",-1],["Edit frame",23435,3,"Tune, copy and restore the frame setup from inside the frame.",-1],["Data sources scene",13924,3,"The NetSuite, Snowflake and file sources scene upstream of Pigment.",-1],["Ask why",42583,2,"Rule-based answers to why a number moved, with pictures.",-1],["Whiteboard",17202,2,"Drawing over the frame, saved boards and shared boards.",-1],["Toolkit scene",30737,2,"The scene of plugin skills behind the build.",-1],["Build plans library",14071,2,"Ready-made build plans; their titles could stay as links.",-1],["Suggested blocks",11966,2,"Ghost blocks that build plans propose.",-1],["Goals and advisor",12436,2,"Goals and the advisor suggestions that lead to builds.",-1],["Shared notes",10428,2,"Notes pinned to widgets, private or shared.",-1],["Formula lens",7155,2,"The plain-words formula explainer for a block.",-1],["Formula cube story",16076,1,"The animated cube walkthrough; Formula Studio in the artifact covers it.",9],["Guided tour",5020,1,"The step-by-step tour of Framecraft 3D.",-1],["The vision panel",2603,1,"The short vision panel in the layers rail.",-1],["Frame size panel",10318,1,"This list.",-1],["Sample transcripts",7123,1,"The demo meeting transcripts in Collaboration.",2],["Studio templates",1467,1,"Head-start templates in Architecture Studio.",1],["Warehouse SQL text",7211,1,"The SQL shown at warehouse tables in Walk the Frame.",0],["Graphite level",4132,1,"The engine level under Blockflow in Walk the Frame (about).",0],["Styles",61802,0,"The stylesheet for the dashboard, panes and dock.",-1],["Dashboard views",38772,0,"Outlook, Regions, Channels, Launches and Bridge.",-1],["Lineage model",16106,0,"The block and view map behind lineage, Framecraft and Blockflow.",-1],["App state and wiring",35237,0,"State, the rail, panes and their wiring.",-1],["Framecraft 3D",21819,0,"The layered 3D view of the frame.",-1],["Blockflow",97223,0,"The whole-model data-flow map.",-1],["Edit layout and pivots",82485,0,"Hands-on layout editing and pivots.",-1],["Startup and requests",22505,0,"Loading Pigment data and the requests queue.",-1],["Approvals, writes and modules",136152,0,"Every write to Pigment goes through here, plus versions and the module host.",-1]];
+var FS_T = 1027263, FS_AT = '27 Nov 2026 (v5.30)', FS_P = [["Walk the Frame",90784,3,"The first-person 3D walk through the frame, Blockflow, the warehouse and Graphite.",-1],["Architecture Studio",122158,3,"The 2D and 3D modelling studio for planning a build.",-1],["Collaboration",106748,3,"Meeting transcripts to flow, the decision log, threads and the digest.",-1],["Pulse view",8488,3,"The Pulse view: what moved, recomposed around one priority.",-1],["Command panel",4397,3,"The command center panel and its quick actions.",-1],["Edit frame",23435,3,"Tune, copy and restore the frame setup from inside the frame.",-1],["Data sources scene",13924,3,"The NetSuite, Snowflake and file sources scene upstream of Pigment.",-1],["Ask why",42583,2,"Rule-based answers to why a number moved, with pictures.",-1],["Whiteboard",17202,2,"Drawing over the frame, saved boards and shared boards.",-1],["Toolkit scene",10786,2,"The scene of plugin skills behind the build.",-1],["Build plans library",14071,2,"Ready-made build plans; their titles could stay as links.",-1],["Suggested blocks",11966,2,"Ghost blocks that build plans propose.",-1],["Goals and advisor",12436,2,"Goals and the advisor suggestions that lead to builds.",-1],["Shared notes",10428,2,"Notes pinned to widgets, private or shared.",-1],["Formula lens",7155,2,"The plain-words formula explainer for a block.",-1],["Guided tour",5020,1,"The step-by-step tour of Framecraft 3D.",-1],["The vision panel",2603,1,"The short vision panel in the layers rail.",-1],["Frame size panel",10731,1,"This list.",-1],["Sample transcripts",7123,1,"The demo meeting transcripts in Collaboration.",2],["Studio templates",1467,1,"Head-start templates in Architecture Studio.",1],["Warehouse SQL text",7211,1,"The SQL shown at warehouse tables in Walk the Frame.",0],["Graphite level",4132,1,"The engine level under Blockflow in Walk the Frame (about).",0],["Styles",61802,0,"The stylesheet for the dashboard, panes and dock.",-1],["Dashboard views",38772,0,"Outlook, Regions, Channels, Launches and Bridge.",-1],["Lineage model",16106,0,"The block and view map behind lineage, Framecraft and Blockflow.",-1],["App state and wiring",35237,0,"State, the rail, panes and their wiring.",-1],["Framecraft 3D",21819,0,"The layered 3D view of the frame.",-1],["Blockflow",97223,0,"The whole-model data-flow map.",-1],["Edit layout and pivots",82637,0,"Hands-on layout editing and pivots.",-1],["Startup and requests",22581,0,"Loading Pigment data and the requests queue.",-1],["Approvals, writes and modules",136171,0,"Every write to Pigment goes through here, plus versions and the module host.",-1]];
 function fsKb(b) { return (b / 1024).toFixed(1) + ' KB'; }
 function fsPick() { return FS_P.map(function (p, i) { return i; }).filter(function (i) { return FS.sel[i] && !(FS_P[i][4] >= 0 && FS.sel[FS_P[i][4]]); }); }
 function fsFree() { return fsPick().reduce(function (n, i) { return n + FS_P[i][1]; }, 0); }
@@ -871,7 +871,7 @@ return new Promise(function (res) { request(txt, function (m) { res({ ok: m.inde
 }).then(function (r) { if (r && r.msg) lmToast(r.msg); if (r && r.ok) { FS.sel = {}; openFrameSize(); } });
 }
 root.addEventListener('click', function (e) { var t = e.target.closest && e.target.closest('[data-act],[data-tab],[data-dtab],[data-go]'); if (!FS.wide || !t || t.getAttribute('data-act') === 'framesize') return; FS.wide = 0; S.inspW = FS.w0 || 380; applyGrid(); }, true);
-(function () { var i = $('.lum-insp'); if (!i) return; var st = lmEl('style'); st.textContent = '.lum-insp>.fs-grip{display:none}.lm-insp-over .lum-insp>.fs-grip{display:block;position:absolute;left:0;top:0;bottom:0;width:10px;z-index:45}.lm-insp-over.lay-mirror .lum-insp>.fs-grip{left:auto;right:0}.fs-grip:hover::before{background:var(--accent);width:2px}.lum-tabs:not(:has(.on[data-tab=tune],.on[data-tab=edit],.on[data-tab=code])){display:none}.lum.lum .lum-layersbtn{left:62px!important;z-index:46}.lum.lum.plain .lum-lgo,.lum.lum.plain .lum-askbtn,.lum.lum.plain .lum-sgbtn{z-index:46}.lum.lum.plain .lum-lgo{left:110px}.lum.lum.plain .lum-askbtn{left:208px}.lum.lum.plain .lum-sgbtn{left:316px}'; document.head.appendChild(st); var g = lmEl('div', 'lum-gut fs-grip'); g.setAttribute('data-gut', 'insp'); g.title = 'Drag to resize the pane'; i.appendChild(g); })();
+(function () { var i = $('.lum-insp'); if (!i) return; var st = lmEl('style'); st.textContent = '.lum-insp>.fs-grip{display:none}.lm-insp-over .lum-insp>.fs-grip{display:block;position:absolute;left:0;top:0;bottom:0;width:10px;z-index:45}.lm-insp-over.lay-mirror .lum-insp>.fs-grip{left:auto;right:0}.fs-grip:hover::before{background:var(--accent);width:2px}.lum-tabs:not(:has(.on[data-tab=tune],.on[data-tab=edit],.on[data-tab=code])){display:none}.lum.lum .lum-layersbtn{left:62px!important;z-index:46}.lum.lum.plain .lum-lgo,.lum.lum.plain .lum-askbtn,.lum.lum.plain .lum-sgbtn{z-index:46}.lum.lum.plain .lum-lgo{left:110px}.lum.lum.plain .lum-askbtn{left:208px}.lum.lum.plain .lum-sgbtn{left:316px}.lm-cc-hd>.lm-ib:last-child{width:auto;padding:0 10px;border-color:var(--line);background:var(--surface);color:var(--ink-2);font:600 12px var(--f-body)}.lm-cc-hd>.lm-ib:last-child:hover{color:var(--accent);border-color:var(--accent)}.lum-dnav-t{width:28px;height:28px;border:1px solid var(--line)!important;border-radius:8px;background:var(--surface)!important}.lum-dnav-t:hover,.lum-gbtn:hover{color:var(--accent);border-color:var(--accent)}.lum-gbtn{width:26px;height:26px;font-size:13px}.lum-gut.g1 .lum-gbtn{left:9px}'; document.head.appendChild(st); var g = lmEl('div', 'lum-gut fs-grip'); g.setAttribute('data-gut', 'insp'); g.title = 'Drag to resize the pane'; i.appendChild(g); })();
 root.addEventListener('change', function (e) { var x = e.target.closest && e.target.closest('[data-fsx]'); if (!x) return; FS.sel[x.getAttribute('data-fsx')] = x.checked; var s = $('#fsSum'); if (s) s.innerHTML = fsSum(); });
 root.addEventListener('click', function (e) { var t = e.target.closest && e.target.closest('[data-fss],[data-fsdel]'); if (!t) return; if (t.hasAttribute('data-fss')) { FS.sort = t.getAttribute('data-fss'); openFrameSize(); } else fsDel(); });
 root.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('[data-act=layers],[data-act=fab]') && WB.el && !WB.el.hidden) wbClose(); });
@@ -3476,233 +3476,14 @@ placeBeams();
 
   // SECTION: toolkit
   /* ---------- formula in 3D: the selected block's formula runs on a small cube of sample items ---------- */
-  var SMP = {
-    Month: ['Jan 25', 'Feb 25', 'Mar 25', 'Apr 25', 'May 25'], Product: ['Watch Ultra', 'Band Pro', 'Air', 'Hub'], Country: ['Canada', 'Germany', 'Spain', 'Australia'],
-    Region: ['NAM', 'EMEA', 'APAC'], Channel: ['Direct', 'Retail - Specialist', 'Marketplace', 'B2B Direct'], Version: ['Actual', 'Budget'], Currency: ['CAD', 'EUR', 'AUD'],
-    'Months Since Launch': ['M00', 'M01', 'M02', 'M03', 'M04', 'M05'], 'Factory Country': ['China', 'Taiwan'], Category: ['Personal Devices', 'Smart Home']
-  };
-  var GRP = { 'Country.Region': [0, 1, 1, 2], 'Product.Category': [0, 0, 1, 1], 'Product.Factory Country': [1, 0, 0, 0] };
-  var VP = 40, VC = ['#4c9df0', '#2fc3a0', '#e0a43b', '#f0709f'], FACES = "<i class='f'></i><i class='t'></i><i class='r'></i><i class='l'></i>";
-  var CV = { rx: -24, ry: -32, steps: [], i: 0, timer: 0, id: null, big: false, seq: 0, mode: '3d', f: '' };
-  var HL = '';
-  var cubeEl = h('div', 'lum-cube');
-  cubeEl.innerHTML = "<div class='lum-cube-hd'><b>Watch it calculate</b><span id='lumCubeT'></span><div class='lum-seg lum-cmode'><button data-cmode='3d' class='on'>3D</button><button data-cmode='grid'>Grid</button></div><button class='lum-chip' data-act='cube-big'>Full screen</button></div>" +
-    "<div class='lum-cube-body'><div class='lum-cube-side'><div class='lum-code lum-cube-f' id='lumCubeF'></div><ol class='lum-cube-list' id='lumCubeList'></ol></div><div class='lum-cube-mainc'>" +
-    "<div class='lum-cv' id='lumCv'><div class='lum-cw' id='lumCw'></div><div class='lum-pv' id='lumPv'></div></div><div class='lum-cube-cap' id='lumCubeCap'></div>" +
-    "<div class='lum-cube-ctl'><button class='lum-chip' data-act='cube-prev'>‹</button><div class='lum-cube-steps' id='lumCubeSteps'></div><button class='lum-chip' data-act='cube-next'>›</button><button class='lum-chip on' data-act='cube-play'>Play</button></div></div></div>";
-  function axN(a) { return a ? a.it.length : 1; }
-  function vpos(ax, c) { return [(c[0] - (axN(ax[0]) - 1) / 2) * VP, (c[1] - (axN(ax[1]) - 1) / 2) * VP, ((axN(ax[2]) - 1) / 2 - c[2]) * VP]; }
-  function mkAx(d, it) { return d ? { d: d, it: (it || SMP[d] || ['Item 1', 'Item 2', 'Item 3']).slice() } : null; }
-  function snap(st, t, d, extra) {
-    var out = [];
-    Object.keys(st.v).forEach(function (id) { var e = st.v[id]; out.push({ id: id, p: vpos(st.ax, e.c), col: e.col, g: e.g, from: e.from, c: e.c.slice() }); delete e.from; });
-    CV.steps.push({ t: t, d: d, ax: st.ax.map(function (a) { return a && { d: a.d, it: a.it.slice() }; }), vox: out.concat(extra || []), pages: st.pages.slice(), hl: HL });
-  }
-  function fill(st, col, hole) {
-    for (var x = 0; x < axN(st.ax[0]); x++) for (var y = 0; y < axN(st.ax[1]); y++) for (var z = 0; z < axN(st.ax[2]); z++)
-      if (!hole || !hole(x, y, z)) st.v['v' + (++CV.seq)] = { c: [x, y, z], col: col };
-  }
-  function collapse(st, k, mapF, newAx) {
-    var seen = {}, dying = [];
-    st.ax[k] = newAx;
-    Object.keys(st.v).forEach(function (id) {
-      var e = st.v[id], c = e.c.slice(); c[k] = mapF(e.c[k], e.c);
-      if (c[k] < 0) { dying.push({ id: id, p: vpos(st.ax, e.c), col: e.col, die: 1 }); delete st.v[id]; return; }
-      var key = c.join(',');
-      if (seen[key]) { dying.push({ id: id, p: vpos(st.ax, c), col: e.col, die: 1 }); delete st.v[id]; } else { seen[key] = 1; e.c = c; }
-    });
-    return dying;
-  }
-  function axisOf(st, d) { for (var k = 0; k < 3; k++) if (st.ax[k] && st.ax[k].d === d) return k; return -1; }
-  function glossOf(mod) { var g = GLOSS.filter(function (x) { return x[0].test(mod); })[0]; return g ? g[2] : ''; }
-  function names(s) { return (s.match(/'[^']+'/g) || []).map(function (x) { return x.slice(1, -1); }); }
-  function topSplit(s) {
-    var dep = 0, q = false, parts = [], ops = [], last = 0;
-    for (var i = 0; i < s.length; i++) {
-      var ch = s[i];
-      if (ch === "'") { q = !q; continue; } if (q) continue;
-      if (ch === '(' || ch === '[') dep++; else if (ch === ')' || ch === ']') dep--;
-      else if (!dep && '+-*/'.indexOf(ch) >= 0 && s[i - 1] === ' ' && s[i + 1] === ' ') { parts.push(s.slice(last, i).trim()); ops.push(ch); last = i + 1; }
-    }
-    parts.push(s.slice(last).trim()); return { parts: parts, ops: ops };
-  }
-  function cubeStory(b) {
-    CV.steps = []; CV.seq = 0;
-    var kc = KINDS[b.kind].c, st = { ax: [null, null, null], v: {}, pages: [] };
-    HL = '';
-    if (b.kind === 'dim') { st.ax[1] = mkAx(b.name, SMP[b.name] || ['…']); fill(st, kc); snap(st, 'A list', 'One item per row. Metrics use lists like this as their axes.'); return; }
-    var f = (b.formula || '').replace(/\/\/[^\n]*/g, '').trim(), guard = null;
-    if (!f) return;
-    var gm = /^IFDEFINED\('([^']+)',\s*([\s\S]+)\)$/.exec(f);
-    if (gm) { guard = gm[1]; f = gm[2].trim(); }
-    var sp = topSplit(f), t1 = sp.parts[0], ref = names(t1)[0], src = BY[BYNAME[ref]] || null, mods = t1.match(/\[[^\]]+\]/g) || [];
-    var isTL = src && src.kind === 'tl', fn = /^([A-Z]+)\(/.exec(t1);
-    var dims = fn ? b.dims : isTL ? b.dims : (src ? src.dims : b.dims), changed = [];
-    mods.forEach(function (m) {
-      if (/^\[REMOVE/.test(m)) changed = changed.concat(names(m));
-      else if (/^\[(BY|SELECT) \w*:? ?'/.test(m) && !isTL) { var nn = names(m); for (var i = 0; i < nn.length; i += 2) changed.push(nn[i]); }
-      else if (/^\[SELECT: '/.test(m)) changed.push(names(m)[0]);
-    });
-    var x = dims.indexOf('Month') >= 0 ? 'Month' : dims.indexOf('Months Since Launch') >= 0 ? 'Months Since Launch' : dims[0];
-    var rest = dims.filter(function (d) { return d !== x; }), pref = ['Product', 'Channel', 'Country', 'Currency', 'Version'];
-    var removed = []; mods.forEach(function (m) { if (/^\[REMOVE/.test(m)) removed = removed.concat(names(m)); });
-    var z = removed.filter(function (d) { return rest.indexOf(d) >= 0; })[0] || changed.filter(function (d) { return rest.indexOf(d) >= 0; })[0] || null;
-    var score = function (d) { return removed.indexOf(d) >= 0 ? 100 : changed.indexOf(d) >= 0 ? pref.indexOf(d) + 1 : 10 + (pref.indexOf(d) + 9) % 9; };
-    var ys = rest.filter(function (d) { return d !== z; }).sort(function (a, c) { return score(a) - score(c); });
-    var y = ys[0] || null; if (!z) z = ys[1] || null; if (!y && z) { y = z; z = null; }
-    var repl = /'Replaces'/.test(f), remap = /'Month' -> /.test(f);
-    var mx = repl ? ['Jul 25', 'Aug 25', 'Sep 25', 'Oct 25', 'Nov 25'] : remap ? ['Jan 25', 'Feb 25', 'Mar 25', 'Apr 25', 'May 25', 'Jun 25'] : null;
-    var py = repl ? ['Watch SE Gen 1', 'Watch SE Gen 2', 'Band Lite Gen 1', 'Band Lite 2'] : remap ? ['Air Mini', 'Band Lite 2', 'Buds Pro ANC'] : null, off = [0, 3, 3];
-    st.ax = [mkAx(x, x === 'Month' ? mx : null), mkAx(y, y === 'Product' ? py : null), mkAx(z)];
-    if (st.ax[2]) st.ax[2].it = st.ax[2].it.slice(0, 3);
-    st.pages = dims.filter(function (d) { return d !== x && d !== y && d !== z; });
-    var hole = remap ? function (xx, yy) { return xx < off[yy]; } : null;
-    HL = fn ? t1 : "'" + ref + "'";
-    if (isTL) {
-      fill(st, kc); var chips = [], cells = st.v; st.v = {};
-      Object.keys(cells).forEach(function (id, n) { var p = vpos(st.ax, cells[id].c); for (var r = 0; r < 2; r++) chips.push({ id: 'r' + n + '_' + r, chip: 1, cell: id, p: [p[0] + ((n * 37 + r * 53) % 50) - 25, p[1] - 150 - ((n * 29 + r * 71) % 110), p[2]], col: 'var(--k-tl)', from: [p[0], p[1] - 420, p[2]] }); });
-      snap(st, ref, 'Each sale is a row in the ' + ref + ' list. No grid yet: just rows.', chips);
-      st.v = cells;
-      snap(st, (/BY AVG/.test(f) ? 'BY AVG' : 'BY SUM') + ': rows land in cells', 'Each row drops into the cell its ' + b.dims.join(', ') + ' point to. Rows that land together are ' + (/BY AVG/.test(f) ? 'averaged.' : 'added up.'), chips.map(function (c) { return { id: c.id, chip: 1, p: vpos(st.ax, cells[c.cell].c), col: c.col, die: 1 }; }));
-      mods = [];
-    } else {
-      fill(st, src ? KINDS[src.kind].c : kc, hole);
-      if (guard) Object.keys(st.v).forEach(function (id) { var c = st.v[id].c; if ((c[0] * 2 + c[1] * 3 + c[2]) % 5 === 1) st.v[id].g = 1; });
-      snap(st, fn ? fn[1] : ref, fn ? glossOf(fn[1] + '(') || 'A function, worked out cell by cell.' : 'The source block, on ' + dims.join(' × ') + '.' + (guard ? ' Outlined cells have no ' + guard + ', so they will stay blank.' : ''));
-    }
-    mods.forEach(function (m) {
-      var nn = names(m), k, dy; HL = m;
-      if (/^\[REMOVE/.test(m)) {
-        var hid = nn.filter(function (d) { return axisOf(st, d) < 0; });
-        nn.forEach(function (d) { k = axisOf(st, d); if (k < 0) return; dy = collapse(st, k, function () { return 0; }, null); snap(st, 'REMOVE SUM: ' + d, 'Every ' + d + ' slice slides into one and the values add up. ' + d + ' is gone from the result.', dy); });
-        if (hid.length) st.pages = st.pages.filter(function (d) { return hid.indexOf(d) < 0; });
-      } else if (/^\[BY \w+: -> '/.test(m)) {
-        var slot = /Budget/.test(nn[0]) ? 1 : 0; st.ax[2] = mkAx('Version'); var gh = [];
-        Object.keys(st.v).forEach(function (id) { st.v[id].c[2] = slot; gh.push({ id: 'g' + id, p: vpos(st.ax, [st.v[id].c[0], st.v[id].c[1], 1 - slot]), g: 1 }); });
-        snap(st, 'BY → ' + nn[0], 'A new Version axis appears. The setting points at ' + st.ax[2].it[slot] + ', so every value lands on that slice; the other slice waits for the next term.', gh);
-        st.ghosts = gh;
-      } else if (/^\[BY \w+: 'Month' -> /.test(m)) {
-        k = axisOf(st, 'Month'); dy = collapse(st, k, function (v, c) { return v - off[c[1]]; }, mkAx('Months Since Launch'));
-        snap(st, 'BY Month → ' + nn[1], 'Each device slides left by its launch month, so every row starts at M00 and launches line up.', dy);
-      } else if (/^\[BY CONSTANT: '/.test(m)) {
-        k = axisOf(st, 'Currency'); if (k < 0) return; var cm = [0, 1, 1, 2], nv = {}, old = st.ax.slice();
-        Object.keys(st.v).forEach(function (id) { var e = st.v[id], first = true; cm.forEach(function (s2, t) { if (s2 !== e.c[k]) return; var c = e.c.slice(); c[k] = t; if (first) { first = false; nv[id] = { c: c, col: e.col }; } else nv['v' + (++CV.seq)] = { c: c, col: e.col, from: vpos(old, e.c) }; }); });
-        st.v = nv; st.ax[k] = mkAx('Country'); snap(st, 'BY CONSTANT: Country.Currency', 'Each currency’s rate is copied to every country that uses it: EUR goes to Germany and Spain.');
-      } else if (/^\[SELECT: '[^']+'\.'Replaces'/.test(m) || /^\[BY \w+: '[^']+'\.'Replaces'/.test(m)) {
-        k = axisOf(st, 'Product'); var sel = /^\[SELECT/.test(m), rep = [-1, 0, -1, 2], out = {}, dying = [];
-        Object.keys(st.v).forEach(function (id) {
-          var e = st.v[id];
-          if (sel) { rep.forEach(function (s2, t) { if (s2 === e.c[k]) { var c = e.c.slice(); c[k] = t; out['v' + (++CV.seq)] = { c: c, col: VC[2], from: vpos(st.ax, e.c) }; } }); dying.push({ id: id, p: vpos(st.ax, e.c), col: e.col, die: 1 }); }
-          else if (rep[e.c[k]] >= 0) { e.c[k] = rep[e.c[k]]; e.col = VC[2]; out[id] = e; } else dying.push({ id: id, p: vpos(st.ax, e.c), col: e.col, die: 1 });
-        });
-        st.v = out; snap(st, sel ? 'SELECT: Product.Replaces' : 'BY SUM: Product.Replaces', sel ? 'Each new generation reads the row of the model it replaces: Gen 2 now shows what Gen 1 sold.' : 'Each new generation’s revenue moves up onto the model it replaces.', dying);
-      } else if (/^\[BY \w+: '/.test(m)) {
-        var done = {};
-        for (var i = 0; i < nn.length; i += 2) {
-          var dm = nn[i], key = dm + '.' + nn[i + 1], mp = GRP[key]; k = axisOf(st, dm);
-          if (!mp || k < 0 || done[dm]) continue; done[dm] = 1;
-          mp = mp.slice(0, axN(st.ax[k]));
-          Object.keys(st.v).forEach(function (id) { st.v[id].col = VC[mp[st.v[id].c[k]] % 4]; });
-          snap(st, 'Colour by ' + nn[i + 1], 'Each ' + dm + ' takes the colour of its ' + nn[i + 1] + '.');
-          var tgt = mkAx(nn[i + 1]); tgt.it = tgt.it.slice(0, Math.max.apply(null, mp) + 1);
-          dy = collapse(st, k, function (v) { return mp[v]; }, tgt);
-          snap(st, 'BY SUM: ' + key, dm + ' items slide together into their ' + nn[i + 1] + ' and add up.', dy);
-        }
-      } else if (/^\[FILTER/.test(m)) {
-        Object.keys(st.v).forEach(function (id) { if (st.v[id].c[0] < 2) st.v[id].g = 1; });
-        snap(st, 'FILTER: ' + nn[0], 'Only cells where the condition is true keep a value. The rest go blank (outlined), so the grid stays sparse.');
-      }
-    });
-    if (sp.parts.length > 1) {
-      HL = sp.parts[1];
-      var t2 = sp.parts[1], r2 = names(t2)[0], op = sp.ops[0], into = st.ghosts && /->/.test(t2), w = (axN(st.ax[0]) + 1) * VP, arr = [], ids = [];
-      Object.keys(st.v).forEach(function (id) {
-        var c = st.v[id].c.slice(); if (into) c[2] = 1; if (st.v[id].g) return;
-        var p = vpos(st.ax, c), nid = 'w' + id; ids.push([nid, p, id, c]); arr.push({ id: nid, p: [p[0] + w, p[1], p[2]], col: VC[2], from: [p[0] + w, p[1] - 300, p[2]] });
-      });
-      snap(st, r2, into ? 'The second term: ' + r2 + ', placed on the Budget slice.' : glossOf(t2) ? r2 + ': ' + glossOf(t2) : 'The second term: ' + r2 + ', on the same axes.', (st.ghosts || []).map(function (g) { return { id: g.id, p: g.p, g: 1, die: 1 }; }).concat(arr));
-      if (into) { ids.forEach(function (q) { st.v[q[0]] = { c: q[3], col: VC[2] }; }); snap(st, op + ' adds the Budget slice', 'The budget drops into its slice. Actual and Budget now sit side by side on the Version axis.'); }
-      else {
-        Object.keys(st.v).forEach(function (id) { if (!st.v[id].g) st.v[id].col = VC[1]; });
-        snap(st, 'Cell by cell: ' + op, 'Each cell meets its twin and the ' + ({ '+': 'two add', '-': 'second is subtracted', '*': 'two multiply', '/': 'first is divided by the second' })[op] + '. A blank on either side gives blank.', ids.map(function (q) { return { id: q[0], p: q[1], col: VC[2], die: 1 }; }));
-      }
-    }
-    HL = (b.formula || '').replace(/\/\/[^\n]*/g, '').trim();
-    Object.keys(st.v).forEach(function (id) { if (!st.v[id].g) st.v[id].col = kc; });
-    snap(st, 'Lands as ' + b.name, 'The result fits ' + (b.dims.length ? b.dims.join(' × ') : 'the target') + '.' + (st.pages.length ? ' ' + st.pages.join(', ') + ' ride along on pages.' : ''));
-
-    if (!isTL && CV.steps.length && CV.steps[0].vox.some(function (v) { return v.c; })) {
-      var s0 = CV.steps[0];
-      CV.steps.unshift({ t: 'As Pigment shows it', d: 'The source metric in its default view: one dimension down the rows, one across the columns, the rest as page selectors. Next, the same cells become a cube.', ax: s0.ax, pages: s0.pages, hl: s0.hl, flat: 1,
-        vox: s0.vox.filter(function (v) { return v.c; }).map(function (v) { return { id: v.id, p: [v.p[0], v.p[1], 0], col: v.col, g: v.g, c: v.c }; }) });
-    }
-  }
-  function cubeRender(i) {
-    var s = CV.steps[i], w = $('#lumCw', cubeEl); if (!s || !w) return; CV.i = i;
-    if (!root.contains(cubeEl)) { cubeStop(); return; }
-    var els = {}, keep = {};
-    $$('.lum-vx', w).forEach(function (el) { els[el.getAttribute('data-id')] = el; });
-    s.vox.forEach(function (v) {
-      var el = els[v.id], tf = 'translate3d(' + v.p[0] + 'px,' + v.p[1] + 'px,' + v.p[2] + 'px)';
-      if (!el) {
-        el = h('div', 'lum-vx', v.chip ? '' : FACES); el.setAttribute('data-id', v.id); el.style.transition = 'none';
-        el.style.transform = v.from ? 'translate3d(' + v.from[0] + 'px,' + v.from[1] + 'px,' + v.from[2] + 'px)' : tf + ' scale(.01)'; el.style.opacity = v.from ? 0.2 : 0;
-        w.appendChild(el); void el.offsetWidth; el.style.transition = '';
-      }
-      el.className = 'lum-vx' + (v.g ? ' g' : '') + (v.chip ? ' chip' : ''); el.style.setProperty('--c', v.col || 'var(--k-metric)');
-      el.style.transform = tf; el.style.opacity = v.die ? 0 : 1; el.__die = v.die ? i : null; keep[v.id] = 1;
-      if (v.die) later(function () { if (el.__die === i && el.parentNode) el.parentNode.removeChild(el); }, 950);
-    });
-    Object.keys(els).forEach(function (id) { if (!keep[id]) els[id].parentNode.removeChild(els[id]); });
-    var ax = s.ax, n = ax.map(axN), hx = (n[0] - 1) / 2 * VP + 15, hy = (n[1] - 1) / 2 * VP + 15, hz = (n[2] - 1) / 2 * VP + 15, lb = '';
-    function lab(cls, x, y, z, tr, t) { return "<div class='lum-cl " + cls + "' style='transform:translate3d(" + x + 'px,' + y + 'px,' + z + 'px) translate(' + tr + ")'>" + esc(t) + '</div>'; }
-    if (ax[0]) { ax[0].it.forEach(function (t, j) { lb += lab('', (j - (n[0] - 1) / 2) * VP, hy + 8, hz, '-50%,0', t); }); lb += lab('nm', 0, hy + 28, hz, '-50%,0', ax[0].d); }
-    if (ax[1]) { ax[1].it.forEach(function (t, j) { lb += lab('', -hx - 10, (j - (n[1] - 1) / 2) * VP, hz, '-100%,-50%', t); }); lb += lab('nm', -hx - 10, -hy - 14, hz, '-100%,-100%', ax[1].d); }
-    if (ax[2]) { ax[2].it.forEach(function (t, j) { lb += lab('', hx + 26, -hy - 6, ((n[2] - 1) / 2 - j) * VP, '0,-50%', t); }); lb += lab('nm', hx + 26, -hy - 26, -hz, '0,-100%', ax[2].d); }
-    var lw = $('.lum-cls', w); if (!lw) { lw = h('div', 'lum-cls'); w.appendChild(lw); } lw.innerHTML = lb;
-    cubeEl.classList.toggle('grid', CV.mode === 'grid' || !!s.flat); renderPV(s); cubeRot(s.flat);
-    var fe = $('#lumCubeF', cubeEl), raw = pretty(CV.f), rg = s.hl ? looseFind(raw, s.hl) : null;
-    fe.style.display = raw ? '' : 'none';
-    fe.innerHTML = rg ? hiFormula(raw.slice(0, rg[0])) + '<mark>' + hiFormula(raw.slice(rg[0], rg[1])) + '</mark>' + hiFormula(raw.slice(rg[1])) : hiFormula(raw);
-    var mk = $('mark', fe); if (mk) fe.scrollTop = Math.max(0, mk.offsetTop - 24);
-    var lf = $('#lumLensF'); if (lf && raw && S.sel === CV.id) lf.innerHTML = fe.innerHTML;
-    $('#lumCubeList', cubeEl).innerHTML = CV.steps.map(function (x, j) { return "<li data-cstep='" + j + "' class='" + (j === i ? 'on' : j < i ? 'past' : '') + "'><i>" + (j + 1) + '</i><span><b>' + esc(x.t) + '</b>' + esc(x.d) + '</span></li>'; }).join('');
-    $$('[data-cmode]', cubeEl).forEach(function (b2) { b2.classList.toggle('on', b2.getAttribute('data-cmode') === CV.mode); });
-    $('#lumCubeCap', cubeEl).innerHTML = '<b>' + esc(s.t) + '</b>' + esc(s.d) + (s.pages.length ? "<span class='pg'>On pages: " + esc(s.pages.join(', ')) + '</span>' : '');
-    $('#lumCubeSteps', cubeEl).innerHTML = CV.steps.map(function (x, j) { return "<button data-cstep='" + j + "' class='" + (j === i ? 'on' : j < i ? 'past' : '') + "' title='" + esc(x.t) + "'>" + (j + 1) + '</button>'; }).join('');
-    var pb = $("[data-act='cube-play']", cubeEl); pb.textContent = CV.timer ? 'Pause' : i === CV.steps.length - 1 ? 'Replay' : 'Play'; pb.classList.toggle('on', !CV.timer);
-  }
-  function cubeRot(flat) { var w = $('#lumCw', cubeEl); if (w) w.style.transform = 'scale(' + (CV.big ? 1.75 : 0.8) + ') rotateX(' + (flat ? 0 : CV.rx) + 'deg) rotateY(' + (flat ? 0 : CV.ry) + 'deg)'; }
-  function renderPV(s) {
-    var pv = $('#lumPv', cubeEl); if (!pv) return;
-    var ax = s.ax, xs = ax[0] ? ax[0].it : ['Value'], ys = ax[1] ? ax[1].it : [''], cell = {};
-    s.vox.forEach(function (v) { if (v.c && !v.g && !v.die && v.c[2] === 0) cell[v.c[0] + ':' + v.c[1]] = 1; });
-    var val = function (x, y) { return '$' + Math.round(380000 * (1 + 0.11 * x) * (1 + ((y * 5 + 3) % 7) / 6) * (1 + 0.04 * ((x * 3 + y) % 5))).toLocaleString('en-US'); };
-    var pages = (ax[2] ? [[ax[2].d, ax[2].it[0]]] : []).concat(s.pages.map(function (p) { return [p, 'All']; }));
-    var hh = "<div class='lum-pv-pages'>" + pages.map(function (p) { return '<span>' + esc(p[0]) + ': <b>' + esc(p[1]) + '</b></span>'; }).join('') + "</div><table><tr><th class='mt'>" + esc(ax[1] ? ax[1].d : '') + '</th>' + xs.map(function (x) { return '<th>' + esc(x) + '</th>'; }).join('') + '</tr>';
-    ys.forEach(function (yv, y) { hh += "<tr><td class='rh'>" + esc(yv) + '</td>' + xs.map(function (xv, x) { return '<td>' + (cell[x + ':' + y] ? val(x, y) : '') + '</td>'; }).join('') + '</tr>'; });
-    pv.innerHTML = hh + '</table>';
-  }
-  function cubeStop() { if (CV.timer) { clearInterval(CV.timer); CV.timer = 0; } }
-  function cubePlay(from) {
-    cubeStop(); var i = from == null ? 0 : from; if (i === 0) $('#lumCw', cubeEl).innerHTML = '';
-    cubeRender(i); if (S.cfg.motion === 'off') { cubeRender(CV.steps.length - 1); return; }
-    CV.timer = setInterval(function () { if (CV.i >= CV.steps.length - 1) { cubeStop(); cubeRender(CV.i); return; } cubeRender(CV.i + 1); }, 2100); timers.push(CV.timer); cubeRender(i);
-  }
-  function cubeOpen(b) {
-    cubeStop(); if (CV.id !== b.id) { CV.id = b.id; CV.f = b.formula || ''; cubeStory(b); }
-    var slot = $('#lumCubeSlot');
-    if (!CV.steps.length) { if (cubeEl.parentNode) cubeEl.parentNode.removeChild(cubeEl); return; }
-    $('#lumCubeT', cubeEl).textContent = b.name;
-    if (CV.big) root.appendChild(cubeEl); else if (slot) slot.appendChild(cubeEl);
-    cubeEl.classList.toggle('big', CV.big); cubeRot(); cubePlay(0);
-  }
-  function cubeBig(on) {
-    CV.big = on; $("[data-act='cube-big']", cubeEl).textContent = on ? 'Close  ✕' : 'Full screen';
-    var slot = $('#lumCubeSlot'); if (on) root.appendChild(cubeEl); else if (slot) slot.appendChild(cubeEl); else if (cubeEl.parentNode) cubeEl.parentNode.removeChild(cubeEl);
-    cubeEl.classList.toggle('big', on); cubeRot();
-  }
-  /* depth gauge: where you are in the stack, and a way back up */
+  var CV = { big: false, i: 0, steps: [] }, cubeEl = null;
+function cubeBig() {}
+function cubeOpen() {}
+function cubePlay() {}
+function cubeRender() {}
+function cubeRot() {}
+function cubeStop() {}
+/* depth gauge: where you are in the stack, and a way back up */
   var DEPTH = [['frame', 'Frame', 'what people see', 'frame'], ['strata', 'Frame logic', 'the frame’s own code', 'logic'], ['blocks', 'Source blocks', 'what it reads and writes', 'blocks'], ['flow', 'Blockflow', 'the full model', 'flow'], ['sources', 'Data sources', 'NetSuite and Snowflake', 'sources'], ['lens', 'Formula', 'one block, step by step', 'lens']];
   var DEPTH_AT = { frame: 0, strata: 1, blocks: 2, flow: 3, sources: 4, lens: 5, toolkit: -1 };
   // each rung is one slab of the sandwich, with the layer's own symbol on it; Blockflow's slab is the big one
@@ -4467,7 +4248,7 @@ ntPins(dash);
     var act = document.activeElement, key = act && b.contains(act) && act.getAttribute ? [act.getAttribute('data-st'), act.getAttribute('data-v')] : null, hid = stHiddenIds();
     var hh = "<div class='st-seg' role='group' aria-label='Layout'>" + ST_LAYS.map(function (l) { return "<button data-st='lay' data-v='" + l[0] + "' aria-pressed='" + (ST.lay === l[0]) + "' title='" + l[1] + "' aria-label='" + l[1] + "'><svg viewBox='0 0 18 14' fill='none' stroke='currentColor' stroke-width='1.4' aria-hidden='true'>" + l[2] + '</svg></button>'; }).join('') + '</div>' +
       "<button class='st-btn st-aux' data-act='askwhy' title='Ask why a number is what it is' aria-label='Ask why'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' aria-hidden='true'><circle cx='8' cy='8' r='6.4'/><path d='M6.2 6.2a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4'/><circle cx='8' cy='11.6' r='.4' fill='currentColor'/></svg></button><button class='st-btn st-aux' data-act='sg-toggle' title='Suggest blocks to add to this frame' aria-label='Add blocks'><svg viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' aria-hidden='true'><rect x='1.5' y='1.5' width='5.5' height='5.5' rx='1.2'/><rect x='9' y='9' width='5.5' height='5.5' rx='1.2'/><path d='M11.75 2v5M9.25 4.5h5'/></svg></button>" +
-      "<button class='st-btn" + (ST.edit ? ' on' : '') + "' data-st='edit' aria-pressed='" + ST.edit + "' title='Rename, move, resize, hide and duplicate widgets on the dashboard'>" + icon('edit') + '<span>' + (ST.edit ? 'Done' : 'Edit layout') + '</span></button>';
+      "<button class='st-btn st-aux' data-act='toggle3d' title='See this view in 3D' aria-label='See this view in 3D'><b style='font-size:11px'>3D</b></button><button class='st-btn" + (ST.edit ? ' on' : '') + "' data-st='edit' aria-pressed='" + ST.edit + "' title='Rename, move, resize, hide and duplicate widgets on the dashboard'>" + icon('edit') + '<span>' + (ST.edit ? 'Done' : 'Edit layout') + '</span></button>';
     if (ST.edit) hh += "<button class='st-btn' data-st='undo' title='Undo (Ctrl or Cmd + Z)' aria-label='Undo'" + (ST.hist.length ? '' : ' disabled') + ">↶</button><button class='st-btn' data-st='redo' title='Redo (Shift + Ctrl or Cmd + Z)' aria-label='Redo'" + (ST.fut.length ? '' : ' disabled') + '>↷</button>' +
       "<button class='st-btn' data-st='pop' data-v='hidden' aria-expanded='" + (ST.pop === 'hidden') + "'" + (hid.length ? '' : ' disabled') + " title='Widgets hidden on this view'><span>Hidden</span> " + hid.length + '</button>' +
       "<button class='st-btn' data-st='save' title='Save this layout as everyone’s default'" + (ST.dirty ? '' : ' disabled') + "><span>Save for everyone</span><b class='st-ico' aria-hidden='true'>✓</b></button>" +
@@ -5070,7 +4851,8 @@ else if (act === 'plans') { if (S.scene !== 'flow') goto('flow'); S.plan = null;
     if (AW.el && ev.key === 'Escape') { awClose(); return; }
     if (ev.key === 'Enter' && ev.target && ev.target.hasAttribute && ev.target.hasAttribute('data-awq')) { awAsk(); return; }
     if (/INPUT|TEXTAREA|SELECT/.test(ev.target.tagName)) return;
-    if (ev.key === 'Escape' && CV.big) { cubeBig(false); return; }
+    if (ev.key === 'Escape' && LM.cc && !lmCcMin()) { lmToggle('cc'); return; }
+if (ev.key === 'Escape' && CV.big) { cubeBig(false); return; }
     if (ev.key === 'Escape' && !S.plain) { S.plain = true; S.inspHidden = true; if (S.scene !== 'frame') goto('frame'); applyGrid(); renderRail(); placePeek(); return; }
     if (ev.key === 'ArrowRight') step(1); else if (ev.key === 'ArrowLeft') step(-1);
     else if ((ev.key === '+' || ev.key === '=') && is3d()) { cam.s *= 1.15; if (S.scene === 'strata') S.zoom3d *= 1.15; applyCam(); }
@@ -5378,7 +5160,7 @@ else if (act === 'plans') { if (S.scene !== 'flow') goto('flow'); S.plan = null;
   function lmCcMin() { return !!(S.ccMin || LM.auto.cc); }
   function lmToggle(k) {   
     var key = k === 'dnav' ? 'dnavMin' : k === 'side' ? 'sideMin' : 'ccMin';
-    if (LM.auto[k] && !S[key]) LM.pin[k] = true; else { S[key] = !S[key]; if (S[key]) LM.pin[k] = false; }
+    if (LM.auto[k] && !S[key]) LM.pin[k] = true; else { S[key] = !S[key]; LM.pin[k] = !S[key]; }
     if (k === 'cc') lmSet('min', !!S.ccMin);
     renderDnav(); fit(); lmCcChrome();
   }
@@ -5444,7 +5226,7 @@ else if (act === 'plans') { if (S.scene !== 'flow') goto('flow'); S.plan = null;
   }
   function lmGoto(id) {   
     if (!LM.ready || S.dtab === 'outlook') return;
-    if (LM.views[S.dtab] ? (!S.plain || id !== 'frame') : id !== 'frame') { lmLeave(); S.dtab = 'outlook'; renderDnav(); renderDashboard(); }
+    if (LM.views[S.dtab] ? (!S.plain || id !== 'frame') : id !== 'frame' && id !== 'strata') { lmLeave(); S.dtab = 'outlook'; renderDnav(); renderDashboard(); }
   }
 
   /* ---------- the Views list: grouped, with a fluid or static marker ---------- */
@@ -6364,7 +6146,7 @@ var id = LM.cur; LM.cur = null; root.classList.remove('lm-vh-on');
   function lmCcChrome() {
     var c = LM.cc; if (!c) return; var min = lmCcMin(), stack = ST.lay === 'stack';
     if (LM.ccBadge) { LM.ccBadge.textContent = String(LM.count || 0); LM.ccBadge.hidden = !LM.count; }
-    if (LM.ccMinB) { LM.ccMinB.textContent = String.fromCharCode(stack ? 9662 : S.ccSide === 'left' ? 8249 : 8250); LM.ccMinB.title = 'Collapse the Main Palette'; }
+    if (LM.ccMinB) { LM.ccMinB.textContent = 'Hide ' + String.fromCharCode(stack ? 9662 : S.ccSide === 'left' ? 8249 : 8250); LM.ccMinB.title = 'Collapse the Main Palette'; }
     if (LM.ccSnapB) LM.ccSnapB.title = 'Dock on the ' + (S.ccSide === 'left' ? 'right' : 'left');
     c.setAttribute('aria-label', 'Main Palette' + (min ? ' (collapsed)' : ''));
   }
