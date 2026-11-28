@@ -685,12 +685,16 @@ var stp = Math.floor(time / (reduce ? 2.6 : 1.5)) % 5; [0, 1, 2, 3].forEach(func
 if (stp !== G.air) { G.air = stp; if (!G.airL) G.airL = label('', 5.4, 2.6, 19, -34.4, 43.4, { px: 512, lvl: 1 }); var tasks = ['extract NetSuite', 'load RAW', 'run dbt', 'refresh Pigment import'];
 G.airL.set([{ t: 'Airflow | schedule: daily 02:00', s: 40, w: 800 }].concat(tasks.map(function (tk, q) { return { t: (q === stp ? '> ' : q < stp ? 'done: ' : '') + tk, s: 36, w: q === stp ? 800 : 500, c: q === stp ? 'clay' : q < stp ? 'ink' : 'muted' }; }), [{ t: 'schedules and orchestrates each step (illustrative)', s: 28, c: 'muted' }])); }
 if (ey > -41) { if (!G.ag) { G.nk = Object.keys(nodes).filter(function (id) { return nodes[id].key; }); G.gh = []; G.gL = label([{ t: 'New block (draft)', s: 110, w: 700, c: 'clay' }], 2.6, 0.45, 0, -37.9, 0, { lvl: 1 });
-G.ag = [['Modeler', '#F2A65A', -6], ['Analyst', '#3BB6D6', 6]].map(function (q) { return { c: rgb(q[1]), x: q[2], z: 0, r: 0, n: 0, L: label([{ t: q[0], s: 150, w: 800 }], 1.7, 0.5, q[2], -38.3, 0, { lvl: 1 }) }; }); }
+var sb = new Batch(), sv = sb.v, P = function (t, p) { var x = Math.sin(t) * Math.cos(p), y = Math.cos(t), z = Math.sin(t) * Math.sin(p); sv.push(x / 2, y / 2, z / 2, x, y, z, 1, 1, 1, 1); };
+for (var i = 0; i < 10; i++) for (var j = 0; j < 16; j++) { var t0 = i * Math.PI / 10, t1 = t0 + Math.PI / 10, p0 = j * Math.PI / 8, p1 = p0 + Math.PI / 8; P(t0, p0); P(t1, p0); P(t1, p1); P(t0, p0); P(t1, p1); P(t0, p1); } G.sph = sb.done();
+G.ag = [['#F2A65A', -6], ['#3BB6D6', 6]].map(function (q) { return { c: rgb(q[0]), x: q[1], z: 0, n: 0 }; }); }
+var NV = [0.04, 0.07, 0.17]; function sph(x, y, z, s, c) { draw(G.sph, mTRS(x, y, z, 0, s, s, s), c, 1, 1); }
 G.ag.forEach(function (a, k) { if (!a.to) { var id = G.nk[Math.floor(Math.random() * G.nk.length)]; if (shown(id) && solid(id)) { a.to = nodes[id]; a.w = 0; } }
 if (a.to) { var tx = a.to.n.x, tz = a.to.n.z + 1.25, dx = tx - a.x, dz = tz - a.z, d = Math.sqrt(dx * dx + dz * dz), sp = (reduce ? 99 : 3.6) * dt;
-if (d > 0.05) { var m = Math.min(1, sp / d); a.x += dx * m; a.z += dz * m; a.r += Math.min(sp, d) / 0.45; } else { if (!a.w && !k && ++a.n % 3 === 0) G.gh.push({ x: tx + (tx > 20 ? -3.4 : 3.4), z: a.to.n.z, t: time }); a.w += dt; dbox(tx, -38.47, a.to.n.z, 3, 0.07, 1.4, a.c, 1); if (a.w > 2.4) a.to = null; } }
-[[0.8, 0.8, 0.8], [0.95, 0.55, 0.55], [0.55, 0.95, 0.55], [0.55, 0.55, 0.95]].forEach(function (s) { dbox(a.x, -39.55, a.z, s[0], s[1], s[2], [0.04, 0.07, 0.17], 0, 1, a.r); });
-dbox(a.x, -39.05, a.z, 0.34, 0.3, 0.34, a.c, 1, 1, -a.r); a.L.x = a.x; a.L.z = a.z; });
+if (d > 0.05) { var m = Math.min(1, sp / d); a.x += dx * m; a.z += dz * m; } else { if (!a.w && !k && ++a.n % 3 === 0) G.gh.push({ x: tx + (tx > 20 ? -3.4 : 3.4), z: a.to.n.z, t: time }); a.w += dt; dbox(tx, -38.47, a.to.n.z, 3, 0.07, 1.4, a.c, 1); if (a.w > 2.4) a.to = null; } }
+var gy = -38.8 + (reduce ? 0 : Math.sin(time * 2 + k * 2) * 0.06), ry = reduce ? 0.6 : time * 0.8, cs = Math.cos(ry), sn = Math.sin(ry); sph(a.x, -39.53, a.z, 0.95, NV);
+if (!k) { sph(a.x, gy, a.z, 0.44, a.c); dbox(a.x - 0.08 * cs, gy, a.z + 0.08 * sn, 0.05, 0.48, 0.48, NV, 0, 1, ry); }
+else { dbox(a.x, gy, a.z, 0.34, 0.4, 0.2, a.c, 1, 1, ry); dbox(a.x - 0.07 * cs, gy, a.z + 0.07 * sn, 0.045, 0.42, 0.22, NV, 0, 1, ry); } });
 G.gh = G.gh.filter(function (g) { if (time - g.t > 6) return false; [[0, 0.6, 2.8, 0.07], [0, -0.6, 2.8, 0.07], [1.4, 0, 0.07, 1.2], [-1.4, 0, 0.07, 1.2]].forEach(function (q) { dbox(g.x + q[0], -38.6, g.z + q[1], q[2], 0.07, q[3], G.ag[0].c, 1); }); return true; });
 G.gL.vis = G.gh.length > 0; if (G.gh.length) { G.gL.x = G.gh[G.gh.length - 1].x; G.gL.z = G.gh[G.gh.length - 1].z; } }
 }
